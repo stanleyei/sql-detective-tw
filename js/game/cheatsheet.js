@@ -6,6 +6,7 @@
     { title: '探索', items: [
       ['SHOW TABLES;', '列出所有資料表'],
       ['DESCRIBE person;', '看欄位、型別、主鍵'],
+      ['SHOW FULL COLUMNS FROM person;', '多出 Comment 欄：欄位中文備註'],
       ['SELECT * FROM person LIMIT 10;', '看前 10 筆'],
     ] },
     { title: '查詢骨架', items: [

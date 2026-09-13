@@ -21,6 +21,7 @@ const CASES = [
   ['DESCRIBE person;', (r) => r[0].columns[0] === 'Field' && r[0].values.some((v) => v[0] === 'name')],
   ['DESC crime_report', (r) => r[0].values.length === 5],
   ['SHOW COLUMNS FROM store', (r) => r[0].values.length === 7],
+  ['SHOW FULL COLUMNS FROM store', (r) => r[0].columns.length === 9 && r[0].columns[8] === 'Comment' && r[0].values.length === 7],
   ['SHOW CREATE TABLE person', (r) => /CREATE TABLE/.test(r[0].values[0][1])],
   ['SELECT * FROM person LIMIT 3;', (r) => r[0].values.length === 3],
   ['SELECT name, district FROM person WHERE district = "港東區" LIMIT 5', (r) => r[0].values.length === 5],

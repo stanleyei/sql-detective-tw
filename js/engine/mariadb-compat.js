@@ -934,7 +934,7 @@
       if (second === 'DATABASES' || second === 'SCHEMAS') return { kind: 'query', sql: `SELECT 'chaogang_police' AS "Database" UNION ALL SELECT 'information_schema'`, notes };
       if (second === 'COLUMNS' || second === 'FIELDS' || (second === 'FULL' && (isWord(sig[2], 'COLUMNS') || isWord(sig[2], 'FIELDS')))) {
         const fromIdx = sig.findIndex((t) => isWord(t, 'FROM') || isWord(t, 'IN'));
-        return { kind: 'meta', meta: { op: 'describe', table: sig[fromIdx + 1].value.replace(/`/g, '') }, notes };
+        return { kind: 'meta', meta: { op: 'describe', table: sig[fromIdx + 1].value.replace(/`/g, ''), full: second === 'FULL' }, notes };
       }
       if (second === 'CREATE' && isWord(sig[2], 'TABLE')) return { kind: 'meta', meta: { op: 'showcreate', table: sig[3].value.replace(/`/g, '') }, notes };
       if (second === 'INDEX' || second === 'INDEXES' || second === 'KEYS') { const fromIdx = sig.findIndex((t) => isWord(t, 'FROM') || isWord(t, 'IN')); return { kind: 'meta', meta: { op: 'showindex', table: sig[fromIdx + 1].value.replace(/`/g, '') }, notes }; }

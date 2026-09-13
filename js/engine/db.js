@@ -54,8 +54,9 @@
 
   function invalidateSchema() { schemaCache = null; }
 
-  /** MariaDB 風格的 DESCRIBE 輸出 */
-  function describe(table, column) {
+  /** MariaDB 風格的 DESCRIBE 輸出；full=true 對應 SHOW FULL COLUMNS，多出 Collation / Privileges / Comment。
+   *  Comment 來自 schema-doc.js 的中文說明（SQLite 沒有 COMMENT），測試環境沒載入時留空。 */
+  function describe(table, column, full) {
     const s = schema();
     const real = s.tables.find((t) => t.toLowerCase() === table.toLowerCase());
     if (!real) { const e = new Error(`no such table: ${table}`); throw e; }
@@ -66,9 +67,15 @@
     const rows = s.byTable[real].filter((c) => !column || c.name.toLowerCase() === column.toLowerCase()).map((c) => {
       const auto = c.pk && /AUTOINCREMENT/i.test(create) && new RegExp(`${c.name}\\s+INTEGER\\s+PRIMARY\\s+KEY\\s+AUTOINCREMENT`, 'i').test(create);
       const typeMap = { INTEGER: 'int(11)', TEXT: 'varchar(255)', REAL: 'double', BLOB: 'blob' };
-      return [c.name, typeMap[(c.type || '').toUpperCase().split(' ')[0]] || (c.type || 'text').toLowerCase(), c.notnull || c.pk ? 'NO' : 'YES', c.pk ? 'PRI' : uniques.has(c.name) ? 'UNI' : '', c.dflt === null ? null : String(c.dflt).replace(/^'(.*)'$/, '$1'), auto ? 'auto_increment' : ''];
+      const type = typeMap[(c.type || '').toUpperCase().split(' ')[0]] || (c.type || 'text').toLowerCase();
+      const base = [c.name, type, c.notnull || c.pk ? 'NO' : 'YES', c.pk ? 'PRI' : uniques.has(c.name) ? 'UNI' : '', c.dflt === null ? null : String(c.dflt).replace(/^'(.*)'$/, '$1'), auto ? 'auto_increment' : ''];
+      if (!full) return base;
+      const doc = window.SD && window.SD.schemaDoc;
+      const comment = doc ? doc.column(real, c.name) : '';
+      return [base[0], base[1], /^(varchar|text)/.test(type) ? 'utf8mb4_general_ci' : null, base[2], base[3], base[4], base[5], 'select,insert,update,references', comment];
     });
-    return { columns: ['Field', 'Type', 'Null', 'Key', 'Default', 'Extra'], values: rows };
+    const cols = full ? ['Field', 'Type', 'Collation', 'Null', 'Key', 'Default', 'Extra', 'Privileges', 'Comment'] : ['Field', 'Type', 'Null', 'Key', 'Default', 'Extra'];
+    return { columns: cols, values: rows };
   }
 
   function showCreate(table) {
@@ -99,7 +106,7 @@
 
   function runMeta(meta) {
     switch (meta.op) {
-      case 'describe': return { type: 'result', ...describe(meta.table, meta.column) };
+      case 'describe': return { type: 'result', ...describe(meta.table, meta.column, meta.full) };
       case 'showcreate': return { type: 'result', ...showCreate(meta.table) };
       case 'showindex': return { type: 'result', ...showIndex(meta.table) };
       case 'tablestatus': return { type: 'result', ...tableStatus() };

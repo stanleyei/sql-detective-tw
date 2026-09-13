@@ -77,7 +77,8 @@
   function renderTable(res) {
     const wrap = el('div', 'max-h-[26rem] overflow-auto rounded-xl border border-ink-700');
     const table = el('table', 'result-table');
-    table.innerHTML = `<thead><tr>${res.columns.map((c) => `<th scope="col">${esc(c)}</th>`).join('')}</tr></thead>`;
+    // 表頭下方以小字補中文說明；結果集沒有表名，對不到（別名、COUNT(*)）就不顯示
+    table.innerHTML = `<thead><tr>${res.columns.map((c) => { const zh = SD.schemaDoc.generic(c); return `<th scope="col">${esc(c)}${zh ? `<span class="th-zh">${esc(zh)}</span>` : ''}</th>`; }).join('')}</tr></thead>`;
     const tbody = el('tbody');
     for (const row of res.values) {
       const tr = el('tr');
@@ -157,9 +158,10 @@
       const ul = el('ul', 'flex flex-col border-t border-ink-800 px-2 py-1');
       for (const c of s.byTable[t]) {
         const li = el('li');
-        const b = el('button', 'flex min-h-9 w-full items-center justify-between gap-2 rounded px-2 text-left font-mono text-xs hover:bg-ink-800', `<span>${c.pk ? '🔑 ' : ''}${esc(c.name)}</span><span class="text-ink-300">${esc((c.type || '').split(' ')[0].toLowerCase())}</span>`);
+        const zh = SD.schemaDoc.column(t, c.name);
+        const b = el('button', 'flex min-h-9 w-full items-center justify-between gap-2 rounded px-2 text-left font-mono text-xs hover:bg-ink-800', `<span class="shrink-0">${c.pk ? '🔑 ' : ''}${esc(c.name)}</span><span class="min-w-0 truncate text-right text-ink-300">${esc((c.type || '').split(' ')[0].toLowerCase())}${zh ? ` · <span class="font-sans">${esc(zh)}</span>` : ''}</span>`);
         b.type = 'button';
-        b.title = `插入 ${c.name}`;
+        b.title = zh ? `${zh}，插入 ${c.name}` : `插入 ${c.name}`;
         b.addEventListener('click', () => insertAtCursor(c.name));
         li.appendChild(b);
         ul.appendChild(li);
@@ -169,7 +171,10 @@
       b1.addEventListener('click', () => { setEditor(`DESCRIBE ${t};`); runSql(); });
       const b2 = el('button', 'btn-ghost btn-sm flex-1', '看 5 筆'); b2.type = 'button';
       b2.addEventListener('click', () => { setEditor(`SELECT * FROM ${t} LIMIT 5;`); runSql(); });
-      actions.append(b1, b2);
+      const b3 = el('button', 'btn-ghost btn-sm flex-1', '欄位備註'); b3.type = 'button';
+      b3.title = 'SHOW FULL COLUMNS：含中文 Comment';
+      b3.addEventListener('click', () => { setEditor(`SHOW FULL COLUMNS FROM ${t};`); runSql(); });
+      actions.append(b1, b2, b3);
       d.append(ul, actions);
       list.appendChild(d);
     }

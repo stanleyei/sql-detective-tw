@@ -153,6 +153,10 @@
   .result-table th {
     @apply sticky top-0 border-b border-ink-600 bg-ink-800 px-3 py-2 text-left font-bold text-amber whitespace-nowrap;
   }
+  /* 表頭中文副標：與英文欄名同格，避免另開一列而破壞 sticky */
+  .result-table th .th-zh {
+    @apply block font-sans text-xs font-normal text-ink-300;
+  }
   .result-table td {
     @apply border-b border-ink-800 px-3 py-1.5 align-top text-paper whitespace-nowrap;
   }
