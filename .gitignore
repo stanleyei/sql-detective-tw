@@ -90,3 +90,5 @@ scripts/seed.sql
 
 # 開發用套件不需部署
 node_modules
+
+scripts/.image-raw/

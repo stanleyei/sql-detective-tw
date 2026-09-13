@@ -46,6 +46,16 @@
   $('#pane-tabs').addEventListener('click', (e) => { const b = e.target.closest('[data-pane]'); if (b) showPane(b.dataset.pane); });
   applyPanes();
 
+  /* 焦點模式：read（劇情／教學）壓暗右側兩欄，write（任務）點亮編輯器；樣式見 tailwind.css */
+  const main = $('#main');
+  function setFocus(mode) { main.dataset.focus = mode; }
+
+  // header「⋯」選單：點外面或按 Esc 關閉
+  const moreMenu = $('#more-menu');
+  document.addEventListener('click', (e) => { if (moreMenu.open && !moreMenu.contains(e.target)) moreMenu.open = false; });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && moreMenu.open) moreMenu.open = false; });
+  moreMenu.addEventListener('click', (e) => { if (e.target.closest('.menu-item')) moreMenu.open = false; });
+
   // ---------------------------------------------------------------------------
   // 編輯器與結果
   // ---------------------------------------------------------------------------
@@ -81,6 +91,7 @@
 
   function renderResults(results) {
     resultsEl.innerHTML = '';
+    if (!results.length) { resultsEl.appendChild($('#tpl-results-empty').content.cloneNode(true)); return; }
     for (const r of results) {
       const card = el('div', 'card p-4 flex flex-col gap-3');
       const head = el('div', 'flex flex-wrap items-start justify-between gap-2');
@@ -169,7 +180,7 @@
   // ---------------------------------------------------------------------------
   function clueCard(clue) {
     const c = el('article', 'clue-card');
-    c.innerHTML = `<p class="eyebrow text-[0.65rem] text-teal">第 ${clue.ch} 章 · 線索</p><h4 class="mt-1 font-bold">${esc(clue.title)}</h4><p class="mt-1 leading-6 text-ink-300">${esc(clue.text)}</p>`;
+    c.innerHTML = `<img src="${SD.media.clueIcon(clue.title)}" alt="" width="56" height="56" class="clue-thumb" loading="lazy" /><div class="min-w-0 flex-1"><p class="eyebrow text-[0.65rem] text-teal">第 ${clue.ch} 章 · 線索</p><h4 class="mt-1 font-bold">${esc(clue.title)}</h4><p class="mt-1 leading-6 text-ink-300">${esc(clue.text)}</p></div>`;
     return c;
   }
   function renderBoard() {
@@ -179,7 +190,7 @@
     const clues = state.clues.filter((c) => all || !chapter || c.ch === chapter.id).reverse();
     for (const c of clues) board.appendChild(clueCard(c));
     $('#board-empty').hidden = clues.length > 0;
-    $('#board-empty').textContent = state.clues.length && !clues.length ? '本章還沒有線索。勾選上方可看其他章節。' : '完成任務後，線索會釘在這裡。';
+    $('#board-empty-text').textContent = state.clues.length && !clues.length ? '本章還沒有線索。勾選上方可看其他章節。' : '完成任務後，線索會釘在這裡。';
     $('#clue-count').textContent = `${clues.length} / ${state.clues.length} 條線索`;
   }
   $('#board-all').addEventListener('change', renderBoard);
@@ -257,7 +268,9 @@
   function renderStory(step) {
     const key = stepKey(step);
     const done = stepDone(step);
-    card.innerHTML = `<p class="eyebrow">第 ${chapter.id} 章 · ${esc(chapter.title)}</p><div id="lines" class="mt-4 flex flex-col gap-4"></div><div class="mt-4 flex justify-end"><button type="button" id="btn-continue" class="btn-primary btn-sm">繼續</button></div>`;
+    const sceneSrc = SD.media.scene(chapter, stepIndex);
+    const scene = sceneSrc ? `<figure class="scene"><img src="${sceneSrc}" alt="" width="960" height="540" /></figure>` : '';
+    card.innerHTML = `${scene}<p class="eyebrow">第 ${chapter.id} 章 · ${esc(chapter.title)}</p><div id="lines" class="mt-4 flex flex-col gap-4"></div><div class="mt-4 flex justify-end"><button type="button" id="btn-continue" class="btn-primary btn-sm">繼續</button></div>`;
     const lines = $('#lines', card);
     let i = 0;
     const btn = $('#btn-continue', card);
@@ -279,10 +292,10 @@
       if (instant || reduce) { p.textContent = line.text; finish(); return; }
       let k = 0;
       typing = setInterval(() => { p.textContent = line.text.slice(0, ++k); if (k >= line.text.length) finish(); }, 22);
-      function finish() { clearInterval(typing); typing = null; p.textContent = line.text; if (i >= step.lines.length) { btn.textContent = '下一步 →'; if (!done) SD.state.markStep(chapter.id, key); updateNav(); } }
+      function finish() { clearInterval(typing); typing = null; p.textContent = line.text; if (i >= step.lines.length) { btn.textContent = nextLabel(); if (!done) SD.state.markStep(chapter.id, key); updateNav(); } }
     }
     btn.addEventListener('click', () => {
-      if (typing) { const last = lines.lastElementChild.querySelector('p:last-child'); clearInterval(typing); typing = null; last.textContent = step.lines[i - 1].text; if (i >= step.lines.length) { btn.textContent = '下一步 →'; SD.state.markStep(chapter.id, key); updateNav(); } return; }
+      if (typing) { const last = lines.lastElementChild.querySelector('p:last-child'); clearInterval(typing); typing = null; last.textContent = step.lines[i - 1].text; if (i >= step.lines.length) { btn.textContent = nextLabel(); SD.state.markStep(chapter.id, key); updateNav(); } return; }
       if (i >= step.lines.length) { next(); return; }
       reveal(false);
     });
@@ -290,9 +303,45 @@
   }
 
   function renderLesson(step) {
-    card.innerHTML = `<p class="eyebrow">教學 · ${esc(chapter.title)}</p><h2 class="mt-2 text-2xl font-black">${esc(step.title)}</h2><div class="prose-sd mt-4">${step.body}</div>`;
+    const art = SD.media.lessonArt(chapter.id);
+    card.innerHTML = `${art ? `<img src="${art}" alt="" width="112" height="112" class="lesson-art" loading="lazy" />` : ''}<p class="eyebrow">教學 · ${esc(chapter.title)}</p><h2 class="mt-2 text-2xl font-black">${esc(step.title)}</h2><div class="prose-sd mt-4 clear-both">${step.body}</div>`;
     enhanceCode(card);
     SD.state.markStep(chapter.id, stepKey(step));
+  }
+
+  /* 從標準解答（第 3 個提示）抽出任務會用到的資料表，顯示成可展開欄位的 chip；資料庫未就緒時晚點由 boot 補畫 */
+  function taskTables(step) {
+    const sql = (step.hints && step.hints[2]) || '';
+    const names = new Set();
+    for (const m of sql.matchAll(/\b(?:FROM|JOIN|INTO|UPDATE|TABLE)\s+`?([a-z_][a-z0-9_]*)`?/gi)) names.add(m[1].toLowerCase());
+    if (!dbReady) return [...names];
+    const s = SD.db.schema();
+    return [...names].filter((n) => s.tables.includes(n));
+  }
+  function renderTaskTables() {
+    const wrap = $('#task-tables', card);
+    if (!wrap || !dbReady) return;
+    const step = chapter.steps[stepIndex];
+    const tables = taskTables(step);
+    if (!tables.length) { wrap.hidden = true; return; }
+    wrap.hidden = false;
+    const s = SD.db.schema();
+    wrap.innerHTML = `<p class="text-xs text-ink-300">相關資料表（點開看欄位，點欄位插入編輯器）</p><div class="mt-1 flex flex-wrap gap-2">${tables.map((t) => `<button type="button" class="chip min-h-9 cursor-pointer font-mono text-teal hover:border-amber" data-table="${t}" aria-expanded="false">${esc(t)}</button>`).join('')}</div><div id="task-cols" class="mt-2 flex flex-wrap gap-1.5" hidden></div>`;
+    const cols = $('#task-cols', wrap);
+    wrap.addEventListener('click', (e) => {
+      const tb = e.target.closest('[data-table]');
+      if (tb) {
+        const open = tb.getAttribute('aria-expanded') === 'true';
+        wrap.querySelectorAll('[data-table]').forEach((b) => b.setAttribute('aria-expanded', 'false'));
+        if (open) { cols.hidden = true; return; }
+        tb.setAttribute('aria-expanded', 'true');
+        cols.hidden = false;
+        cols.innerHTML = s.byTable[tb.dataset.table].map((c) => `<button type="button" class="rounded border border-ink-700 bg-ink-950/60 px-2 py-1 font-mono text-xs text-paper hover:border-amber" data-col="${esc(c.name)}">${c.pk ? '🔑 ' : ''}${esc(c.name)}</button>`).join('');
+        return;
+      }
+      const cb = e.target.closest('[data-col]');
+      if (cb) insertAtCursor(cb.dataset.col);
+    });
   }
 
   function renderTask(step) {
@@ -307,13 +356,15 @@
       </div>
       <h2 class="mt-2 text-2xl font-black">${esc(step.title)}</h2>
       <div class="prose-sd mt-3">${step.prompt}</div>
+      <div id="task-tables" class="mt-3" hidden></div>
       <div id="feedback" class="mt-3" aria-live="assertive"></div>
       <div class="mt-4 flex flex-wrap gap-2">
+        <button type="button" id="btn-goto-editor" class="btn-primary btn-sm lg:hidden">前往查詢區寫 SQL →</button>
         <button type="button" id="btn-hint" class="btn-ghost btn-sm">💡 提示（${Math.min(hintsUsed, 3)}/3）</button>
-        <button type="button" id="btn-goto-editor" class="btn-ghost btn-sm lg:hidden">前往查詢區 →</button>
       </div>
       <ol id="hints" class="mt-3 flex flex-col gap-2"></ol>
       <p class="mt-4 text-xs text-ink-300">在查詢區執行 SQL 後會自動檢核。不看提示 3 星、看第 1～2 個提示 2 星、看解答 1 星。</p>`;
+    renderTaskTables();
     const hintsEl = $('#hints', card);
     const showHint = (level) => {
       for (let i = 0; i < level && i < 3; i++) {
@@ -371,11 +422,26 @@
       if (!wasDone) pinClue(step);
       renderBadges();
       updateNav();
+      showResultFeedback(true, step.type === 'solution' ? step.success : (step.success || '結果符合預期。'));
       showPane('story');
     } else {
       fb.innerHTML = `<div class="rounded-xl border border-amber/40 bg-amber/5 p-3 text-sm leading-6"><span class="font-bold text-amber">還差一點：</span>${esc(result.message)}</div>`;
+      showResultFeedback(false, result.message);
     }
   }
+
+  /* 檢核結果也貼在結果區最上方（桌機視線停在中欄），成功時附「下一步」按鈕，不必回左欄找 */
+  function showResultFeedback(ok, message) {
+    const box = $('#result-feedback');
+    box.hidden = false;
+    const last = stepIndex === chapter.steps.length - 1;
+    box.innerHTML = ok
+      ? `<div class="flex flex-wrap items-center gap-3 rounded-xl border border-teal/50 bg-teal/10 p-3"><p class="flex-1 text-sm leading-6"><span class="font-bold text-teal">✔ 正確！</span> ${esc(message)}</p><button type="button" class="btn-teal btn-sm" data-next>${last ? '結束本章 ✔' : '下一步 →'}</button></div>`
+      : `<div class="rounded-xl border border-amber/40 bg-amber/5 p-3 text-sm leading-6"><span class="font-bold text-amber">還差一點：</span>${esc(message)}</div>`;
+    if (canAnimate()) gsap.from(box.firstElementChild, { y: -8, opacity: 0, duration: 0.3 });
+  }
+  $('#result-feedback').addEventListener('click', (e) => { if (e.target.closest('[data-next]')) next(); });
+  function clearResultFeedback() { const box = $('#result-feedback'); box.hidden = true; box.innerHTML = ''; }
 
   function renderBlocks(step) {
     const done = stepDone(step);
@@ -498,26 +564,47 @@
     if (canAnimate()) gsap.fromTo(card, { opacity: 0, x: 16 }, { opacity: 1, x: 0, duration: 0.35, ease: 'power2.out' });
     const p = prog();
     p.step = stepIndex; SD.state.save();
-    renderProgressDots();
+    // 焦點模式與編輯器提示條
+    const writing = step.type === 'task' || step.type === 'solution';
+    setFocus(writing ? 'write' : 'read');
+    $('#editor-cue').hidden = !writing;
+    if (writing) $('#editor-cue-text').textContent = `在這裡輸入 SQL 完成「${step.title}」，按 Ctrl+Enter 執行，結果會自動檢核。`;
+    clearResultFeedback();
+    hideIntro();
+    renderProgress();
     updateNav();
     showPane('story');
     location.hash = `${chapter.slug}/${stepIndex}`;
   }
 
-  function renderProgressDots() {
-    const wrap = $('#chapter-progress');
-    wrap.innerHTML = chapter.steps.map((s, i) => `<span class="dot ${stepDone(s) ? 'done' : ''} ${i === stepIndex ? 'cur' : ''}" title="步驟 ${i + 1}"></span>`).join('');
-    $('#step-count').textContent = `${stepIndex + 1} / ${chapter.steps.length}`;
+  function renderProgress() {
+    const tasks = tasksOf(chapter);
+    const done = tasks.filter(stepDone).length;
+    $('#progress-label').textContent = `第 ${chapter.id} 章 · 任務 ${done} / ${tasks.length}`;
+    $('#progress-fill').style.width = `${tasks.length ? Math.round((done / tasks.length) * 100) : 0}%`;
+    $('#step-count').textContent = `步驟 ${stepIndex + 1} / ${chapter.steps.length}`;
   }
 
+  /* 下一步按鈕會預告接下來是什麼，讓讀者知道「往前走會遇到什麼」 */
+  function nextLabel() {
+    const nxt = chapter.steps[stepIndex + 1];
+    if (!nxt) return '結束本章 ✔';
+    if (nxt.type === 'task' || nxt.type === 'solution') return `下一步：任務 ${tasksOf(chapter).indexOf(nxt) + 1} →`;
+    if (nxt.type === 'lesson') return '下一步：教學 →';
+    if (nxt.type === 'story') return '下一步：劇情 →';
+    if (nxt.type === 'quiz') return '下一步：小測驗 →';
+    return '下一步 →';
+  }
   function updateNav() {
     const step = chapter.steps[stepIndex];
-    const last = stepIndex === chapter.steps.length - 1;
     $('#btn-prev').disabled = stepIndex === 0;
     const blocked = needsCompletion(step) && !stepDone(step);
-    $('#btn-next').disabled = blocked;
-    $('#btn-next').textContent = last ? (blocked ? '完成本步驟' : '結束本章 ✔') : blocked ? '完成任務後繼續' : '下一步 →';
-    renderProgressDots();
+    const nextBtn = $('#btn-next');
+    // 劇情步驟一律由卡片內的按鈕推進（讀完變成「下一步」），避免同時出現兩個主要按鈕
+    nextBtn.hidden = step.type === 'story';
+    nextBtn.disabled = blocked;
+    nextBtn.textContent = blocked ? (step.type === 'task' || step.type === 'solution' ? '完成任務後繼續' : '完成本步驟後繼續') : nextLabel();
+    renderProgress();
   }
 
   function next() {
@@ -568,6 +655,10 @@
   }
   $('#chapter-select').addEventListener('change', (e) => loadChapter(chapters.find((c) => c.slug === e.target.value)));
 
+  /**
+   * 載入章節。未指定步驟（選章、徽章彈窗的「前往」、沒有 hash 的首次進入）先顯示開場畫面；
+   * hash 帶了步驟索引（重新整理、深連結）則直接進入該步驟。
+   */
   function loadChapter(ch, step) {
     chapter = ch;
     const p = prog();
@@ -575,12 +666,113 @@
     populateSelect();
     document.title = `第 ${ch.id} 章 ${ch.title} · SQL 偵探事務所`;
     renderBoard();
-    renderStep();
     if (ch.resettable) addChapterResetButton(); else removeChapterResetButton();
+    if (step === undefined) showIntro(); else renderStep();
   }
+
+  // ---------------------------------------------------------------------------
+  // 章節開場
+  // ---------------------------------------------------------------------------
+  const intro = $('#chapter-intro');
+  function showIntro() {
+    const p = prog();
+    const tasks = tasksOf(chapter);
+    const st = SD.state.chapterStars(chapter.id, tasks);
+    const doneTasks = tasks.filter(stepDone).length;
+    const started = doneTasks > 0 || (p.step || 0) > 0;
+    const firstStory = chapter.steps.find((s) => s.type === 'story');
+    const teaser = firstStory ? firstStory.lines[0].text : '';
+    const clues = state.clues.filter((c) => c.ch === chapter.id).length;
+    intro.innerHTML = `
+      <div class="intro-banner">
+        <img src="${chapter.cover}" alt="" width="1200" height="525" fetchpriority="high" />
+        <div class="absolute inset-x-0 bottom-0 z-10 p-6 sm:p-8">
+          <p class="eyebrow">第 ${chapter.id} 章 · 約 ${chapter.minutes} 分 · ${tasks.length} 個任務</p>
+          <h1 class="mt-2 text-3xl font-black sm:text-5xl">${esc(chapter.title)}</h1>
+          <p class="mt-2 text-lg text-ink-300">${esc(chapter.subtitle)}</p>
+        </div>
+      </div>
+      <div class="mt-6 grid gap-6 lg:grid-cols-[1fr_20rem]">
+        <div class="flex flex-col gap-4">
+          ${teaser ? `<p class="text-lg italic leading-8 text-ink-300">${esc(teaser)}</p>` : ''}
+          <div>
+            <p class="eyebrow">本章會學到</p>
+            <ul class="mt-2 flex flex-wrap gap-2" aria-label="本章語法">${chapter.skills.map((s) => `<li class="chip border-teal/40 text-teal">${esc(s)}</li>`).join('')}</ul>
+          </div>
+          <div class="flex flex-wrap items-center gap-3">
+            <button type="button" id="btn-intro-start" class="btn-primary text-lg">${isDone(chapter) ? '重看本章 →' : started ? `繼續辦案（步驟 ${stepIndex + 1}）→` : '開始辦案 →'}</button>
+            ${started && !isDone(chapter) ? '<button type="button" id="btn-intro-restart" class="btn-ghost">從第一步開始</button>' : ''}
+            <a href="./" class="btn-ghost">回首頁</a>
+          </div>
+        </div>
+        <dl class="grid grid-cols-3 gap-3 lg:grid-cols-1">
+          <div class="intro-stat"><dt>任務進度</dt><dd>${doneTasks} / ${tasks.length}</dd></div>
+          <div class="intro-stat"><dt>本章星數</dt><dd>${st.earned} / ${st.max}</dd></div>
+          <div class="intro-stat"><dt>釘上的線索</dt><dd>${clues}</dd></div>
+        </dl>
+      </div>`;
+    intro.hidden = false;
+    main.hidden = true;
+    $('#pane-tabs').hidden = true;
+    window.scrollTo({ top: 0, behavior: 'instant' });
+    renderProgress();
+    $('#btn-intro-start', intro).addEventListener('click', () => { renderStep(); maybeStartCoach(); });
+    const restart = $('#btn-intro-restart', intro);
+    if (restart) restart.addEventListener('click', () => { stepIndex = 0; renderStep(); maybeStartCoach(); });
+    if (canAnimate()) gsap.from(intro.children, { y: 16, opacity: 0, duration: 0.5, stagger: 0.1, ease: 'power2.out' });
+  }
+  function hideIntro() {
+    if (intro.hidden) return;
+    intro.hidden = true;
+    main.hidden = false;
+    $('#pane-tabs').hidden = false;
+  }
+
+  // ---------------------------------------------------------------------------
+  // 首次導覽：三張提示卡依序指向劇情卡、編輯器、證據板（手機只提示面板切換）
+  // ---------------------------------------------------------------------------
+  const COACH_KEY = 'sd_coach_v1';
+  function maybeStartCoach() {
+    try { if (localStorage.getItem(COACH_KEY)) return; } catch (e) { return; }
+    const steps = lg.matches
+      ? [
+        { target: '#step-card', text: '左邊是劇情、教學與任務。看完一段就按「下一步」，任務會告訴你要查什麼。' },
+        { target: '#editor-card', text: '中間是查詢區。在這裡輸入 SQL，按 Ctrl + Enter 執行，結果會自動檢核並顯示在下方。' },
+        { target: '#pane-board .card', text: '右邊是證據板。每完成一個任務，線索就會釘在這裡，最後靠它們指認兇手。' },
+      ]
+      : [{ target: '#pane-tabs', text: '手機上用這三個分頁切換「劇情、查詢、證據板」。任務卡上的按鈕會直接帶你到查詢區。' }];
+    let i = 0;
+    const overlay = el('div', 'coach');
+    overlay.setAttribute('role', 'dialog');
+    overlay.setAttribute('aria-label', '操作導覽');
+    document.body.appendChild(overlay);
+    let current = null;
+    const finish = () => { if (current) current.classList.remove('coach-target'); overlay.remove(); try { localStorage.setItem(COACH_KEY, '1'); } catch (e) { /* 私密模式下每次都會再看一次導覽，可接受 */ } };
+    function show() {
+      if (current) current.classList.remove('coach-target');
+      const s = steps[i];
+      current = $(s.target);
+      if (!current) { finish(); return; }
+      current.classList.add('coach-target');
+      current.scrollIntoView({ block: 'nearest' });
+      const r = current.getBoundingClientRect();
+      overlay.innerHTML = `<div class="coach-tip"><p class="eyebrow">導覽 ${i + 1} / ${steps.length}</p><p class="mt-2">${esc(s.text)}</p><div class="mt-3 flex justify-end gap-2"><button type="button" class="btn-ghost btn-sm" data-skip>略過</button><button type="button" class="btn-primary btn-sm" data-go>${i === steps.length - 1 ? '知道了' : '下一個'}</button></div></div>`;
+      const tip = overlay.firstElementChild;
+      const below = r.bottom + 12 + 180 < window.innerHeight;
+      tip.style.top = `${below ? r.bottom + 12 : Math.max(12, r.top - 12 - 180)}px`;
+      tip.style.left = `${Math.min(Math.max(12, r.left), window.innerWidth - 20 * 16 - 12)}px`;
+      $('[data-go]', tip).focus();
+    }
+    overlay.addEventListener('click', (e) => {
+      if (e.target.closest('[data-skip]')) { finish(); return; }
+      if (e.target.closest('[data-go]')) { i++; if (i >= steps.length) finish(); else show(); }
+    });
+    show();
+  }
+
   function addChapterResetButton() {
     if ($('#btn-reset-ch')) return;
-    const b = el('button', 'btn-ghost btn-sm', '重置本章資料表'); b.type = 'button'; b.id = 'btn-reset-ch';
+    const b = el('button', 'menu-item', '重置本章資料表'); b.type = 'button'; b.id = 'btn-reset-ch';
     b.title = '刪掉本章建立的 evidence / evidence_photo 表，從第一個任務重做';
     b.addEventListener('click', () => {
       if (!window.confirm('會刪除 evidence 與 evidence_photo 表，並清除本章任務進度。確定？')) return;
@@ -603,6 +795,7 @@
     if (!window.confirm('把資料庫還原成初始狀態？你在第 5 章建立的資料表會消失，任務進度不會改變。')) return;
     SD.db.reset(); SD.state.clearDb(); renderSchemaList();
     resultsEl.innerHTML = '';
+    resultsEl.appendChild($('#tpl-results-empty').content.cloneNode(true));
     $('#db-status').textContent = '資料庫已重置。';
   });
 
@@ -631,7 +824,9 @@
       dbReady = true;
       $('#db-status').textContent = '資料庫已就緒：chaogang_police（18 張表）。按 Ctrl + Enter 執行。';
       resultsEl.innerHTML = '';
+      resultsEl.appendChild($('#tpl-results-empty').content.cloneNode(true));
       renderSchemaList();
+      renderTaskTables();
     } catch (e) {
       $('#db-status').textContent = '資料庫載入失敗：' + e.message;
       resultsEl.innerHTML = `<div class="card border-danger/50 text-danger">無法載入 sql.js（${esc(e.message)}）。請確認瀏覽器支援 WebAssembly，或重新整理。</div>`;

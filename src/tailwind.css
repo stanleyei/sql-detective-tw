@@ -192,4 +192,62 @@
   /* 面板切換（手機） */
   .pane-tab { @apply inline-flex min-h-11 min-w-11 cursor-pointer items-center justify-center gap-2 rounded-lg px-4 py-2 text-base font-bold transition disabled:cursor-not-allowed disabled:opacity-40 flex-1 rounded-none border-b-2 border-transparent px-3 py-1 text-sm text-ink-300; }
   .pane-tab[aria-selected="true"] { @apply border-amber text-amber; }
+
+  /* 章節進度條（取代原本 8px 的步驟點；任務完成比例比步驟數更能回答「還剩多少」） */
+  .progress { @apply h-1.5 w-full overflow-hidden rounded-full bg-ink-700; }
+  /* 寬度由 play.js 以 CSSOM 設定；HTML 不能寫 style 屬性，CSP 的 style-src 沒開 unsafe-inline */
+  .progress > span { @apply block h-full w-0 rounded-full bg-amber transition-[width] duration-500; }
+
+  /* header「⋯」選單：以 <details> 實作，不需 JS 就能開合、Esc 由 JS 補 */
+  .menu { @apply relative; }
+  .menu > summary { @apply list-none; }
+  .menu > summary::-webkit-details-marker { display: none; }
+  .menu-panel { @apply absolute right-0 top-full z-50 mt-2 flex min-w-44 flex-col gap-1 rounded-xl border border-ink-700 bg-ink-900 p-2 shadow-card; }
+  .menu-item { @apply inline-flex min-h-11 w-full cursor-pointer items-center rounded-lg px-3 text-left text-sm text-paper hover:bg-ink-800 hover:text-amber; }
+
+  /* 「現在該做什麼」提示條：只在任務步驟顯示於編輯器上方 */
+  .cue { @apply flex items-center gap-3 rounded-xl border border-amber/50 bg-amber/10 px-3 py-2; }
+  .cue-dot { @apply size-2.5 shrink-0 rounded-full bg-amber; animation: cue-pulse 1.6s ease-in-out infinite; }
+  @keyframes cue-pulse { 0%, 100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--color-amber) 60%, transparent); } 50% { box-shadow: 0 0 0 6px transparent; } }
+
+  /*
+   * 焦點模式（僅桌機三欄）：main[data-focus] 由 play.js 依步驟型別切換。
+   * read  ＝劇情／教學／測驗：把查詢區與證據板壓暗，視線留在左欄。
+   * write ＝任務：編輯器卡片加琥珀光環，左欄劇情卡退為一般亮度。
+   * hover 或聚焦時立刻恢復，熟手想先玩資料庫不會被阻擋。
+   */
+  @media (min-width: 64rem) {
+    #main[data-focus="read"] #pane-editor,
+    #main[data-focus="read"] #pane-board { @apply opacity-55 saturate-50 transition duration-300; }
+    #main[data-focus="read"] #pane-editor:hover,
+    #main[data-focus="read"] #pane-editor:focus-within,
+    #main[data-focus="read"] #pane-board:hover,
+    #main[data-focus="read"] #pane-board:focus-within { @apply opacity-100 saturate-100; }
+    #main[data-focus="write"] #editor-card { @apply border-amber/60 shadow-glow-amber; }
+    #main[data-focus="write"] #pane-board { @apply opacity-70 transition duration-300; }
+    #main[data-focus="write"] #pane-board:hover,
+    #main[data-focus="write"] #pane-board:focus-within { @apply opacity-100; }
+  }
+
+  /* 章節開場 */
+  /* 手機寬度下 16/7 只有約 160px 高，放不下三行標題，改用 4/3 */
+  .intro-banner { @apply relative aspect-[4/3] sm:aspect-[16/7] w-full overflow-hidden rounded-3xl border border-ink-700 shadow-card; }
+  .intro-banner img { @apply size-full object-cover; }
+  .intro-banner::after { content: ''; @apply absolute inset-0 bg-gradient-to-t from-ink-950 via-ink-950/40 to-transparent; }
+  .intro-stat { @apply flex flex-col gap-0.5 rounded-xl border border-ink-700 bg-ink-900/70 px-4 py-3; }
+  .intro-stat dt { @apply text-eyebrow font-bold uppercase text-ink-300; }
+  .intro-stat dd { @apply text-lg font-black text-paper; }
+
+  /* 劇情場景圖與教學主視覺 */
+  .scene { @apply -mx-5 -mt-5 mb-4 aspect-[16/9] overflow-hidden rounded-t-2xl border-b border-ink-700; }
+  .scene img { @apply size-full object-cover; }
+  .lesson-art { @apply float-right ml-4 mb-2 size-24 rounded-2xl border border-ink-700 object-cover sm:size-28; }
+  .clue-card { @apply flex gap-3; }
+  .clue-thumb { @apply size-14 shrink-0 rounded-lg border border-ink-700 object-cover; }
+  .empty-art { @apply mx-auto size-32 rounded-2xl object-cover opacity-80; }
+
+  /* 首次導覽（coach mark） */
+  .coach { @apply pointer-events-none fixed inset-0 z-50; }
+  .coach-tip { @apply pointer-events-auto absolute max-w-xs rounded-2xl border border-amber/60 bg-ink-900 p-4 text-sm leading-6 shadow-glow-amber; }
+  .coach-target { @apply relative z-50 rounded-2xl ring-4 ring-amber/70 ring-offset-4 ring-offset-ink-950; }
 }

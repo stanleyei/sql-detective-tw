@@ -11,7 +11,8 @@
     "test:compat": "node scripts/test-compat.js",
     "favicon": "node scripts/make-favicon.js",
     "serve": "serve . -l 3000",
-    "prebuild": "node scripts/gen-data.js && node scripts/build-tasks.js"
+    "prebuild": "node scripts/gen-data.js && node scripts/build-tasks.js",
+    "img:gen": "node scripts/gen-images.js"
   },
   "devDependencies": {
     "@tailwindcss/cli": "^4.1.0",
