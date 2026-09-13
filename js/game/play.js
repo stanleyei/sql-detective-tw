@@ -256,6 +256,7 @@
       const code = pre.querySelector('code') || pre;
       const raw = code.textContent;
       code.innerHTML = SD.highlight(raw);
+      pre.classList.add('has-insert');
       const b = el('button', 'btn-ghost btn-sm absolute right-2 top-2', '帶入編輯器');
       b.type = 'button';
       b.addEventListener('click', () => setEditor(raw.replace(/^\s*--.*$/gm, '').trim()));

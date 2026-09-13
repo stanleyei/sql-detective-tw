@@ -109,6 +109,13 @@
   .eyebrow {
     @apply text-eyebrow font-bold uppercase text-amber;
   }
+  /* Chromium 原生 select 的箭頭不會隨 padding-right 內縮，會貼死右邊框；改自繪箭頭以對齊左側留白 */
+  .select-sd {
+    @apply min-h-11 cursor-pointer appearance-none rounded-lg border border-ink-600 bg-ink-900 bg-no-repeat pl-3 pr-9 text-paper transition hover:border-amber;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16' fill='none' stroke='%239aa7c7' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m4 6 4 4 4-4'/%3E%3C/svg%3E");
+    background-position: right 0.75rem center;
+    background-size: 1rem 1rem;
+  }
   .chip {
     @apply inline-flex items-center gap-1 rounded-full border border-ink-600 px-2.5 py-1 text-xs text-ink-300;
   }
@@ -123,7 +130,12 @@
     @apply rounded bg-ink-800 px-1.5 py-0.5 text-[0.9em] text-teal;
   }
   .prose-sd pre {
-    @apply relative my-3 overflow-x-auto rounded-xl border border-ink-700 bg-ink-950 p-4 pr-24 text-paper;
+    @apply relative my-3 overflow-x-auto rounded-xl border border-ink-700 bg-ink-950 p-4 text-paper;
+  }
+  /* 帶「帶入編輯器」按鈕的程式碼區塊：按鈕絕對定位於右上角，改在上方預留一整列高度，
+     而非在右側預留固定寬度——右側預留會隨按鈕字寬與欄寬變動而失準，曾造成程式碼與按鈕重疊 */
+  .prose-sd pre.has-insert {
+    @apply pt-14;
   }
   .prose-sd pre code { @apply bg-transparent p-0 text-paper; }
   .sql-kw { @apply font-bold text-pink; }
