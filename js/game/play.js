@@ -43,6 +43,8 @@
   }
   function showPane(name) { activePane = name; applyPanes(); }
   lg.addEventListener('change', applyPanes);
+  // 手機上 18 顆表名 chip 會佔掉大半個畫面，預設收合；桌機中欄夠高則維持展開。只在載入時決定一次，不覆寫使用者之後的開合
+  if (!lg.matches) $('#schema-card').open = false;
   $('#pane-tabs').addEventListener('click', (e) => { const b = e.target.closest('[data-pane]'); if (b) showPane(b.dataset.pane); });
   applyPanes();
 
