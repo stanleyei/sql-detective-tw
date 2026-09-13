@@ -1,0 +1,4 @@
+interface:
+  display_name: "PR Review 發布"
+  short_description: "安全地將彙整後的 PR 審查結果發布為單一 GitHub comment"
+  default_prompt: "使用 $pr-review-publish 在取得我的明確確認後，將完整 PR 審查結果發布為一則 comment。"

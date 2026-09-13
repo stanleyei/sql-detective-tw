@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; media-src 'self'; connect-src 'self'; object-src 'none'; frame-src 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests" />
+  <title>資料表總覽 · SQL 偵探事務所</title>
+  <meta name="description" content="潮港市警局資料庫的 18 張資料表、欄位說明與關聯圖。" />
+  <meta property="og:site_name" content="SQL 偵探事務所" />
+  <meta property="og:title" content="資料表總覽 · SQL 偵探事務所" />
+  <meta property="og:image" content="./images/og.jpg" />
+  <meta property="og:image:alt" content="夜晚的潮港市港口，桌上放著案件檔案夾與放大鏡" />
+  <meta property="og:description" content="潮港市警局資料庫的資料表與關聯。" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet" />
+  <link rel="icon" href="./favicon.ico" sizes="48x48" />
+  <link rel="apple-touch-icon" href="./images/apple-touch-icon.png" />
+  <link rel="stylesheet" href="./css/style.css?v=20260914-01" />
+</head>
+<body>
+  <a href="#main" class="sr-only z-60 rounded-lg bg-amber px-6 py-3 font-bold text-ink-950 focus:not-sr-only focus:fixed focus:left-4 focus:top-4">跳至主要內容</a>
+  <header class="sticky top-0 z-40 border-b border-ink-800/80 bg-ink-950/80 backdrop-blur">
+    <nav class="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3" aria-label="主選單">
+      <a href="./" class="flex items-center gap-2 font-black tracking-wide">
+        <img src="./images/icon/icon-badge.svg" alt="" width="28" height="28" class="size-7" />
+        <span>SQL 偵探事務所</span>
+      </a>
+      <a href="./play.html" class="btn-primary btn-sm">回到辦案</a>
+    </nav>
+  </header>
+
+  <main id="main" class="mx-auto max-w-6xl px-4 py-10">
+    <p class="eyebrow">chaogang_police</p>
+    <h1 class="mt-2 text-3xl font-black sm:text-4xl">潮港市警局資料庫</h1>
+    <p class="mt-3 max-w-3xl leading-7 text-ink-300">18 張資料表。🔑 為主鍵，→ 表示這個欄位參照另一張表（JOIN 時的 ON 條件就是這樣來的）。點「看範例」可看前 3 筆資料。</p>
+
+    <section class="mt-8" aria-label="關聯總覽">
+      <h2 class="text-xl font-bold">關聯一覽</h2>
+      <ul class="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+        <li class="rounded-lg border border-ink-700 bg-ink-900/60 px-3 py-2 text-sm"><span class="font-mono text-teal">person.license_id</span> <span class="text-amber">→</span> <span class="font-mono text-teal">driver_license.id</span><br /><span class="text-ink-300">市民 → 駕照</span></li>
+        <li class="rounded-lg border border-ink-700 bg-ink-900/60 px-3 py-2 text-sm"><span class="font-mono text-teal">interview.person_id</span> <span class="text-amber">→</span> <span class="font-mono text-teal">person.id</span><br /><span class="text-ink-300">筆錄 → 受訪者</span></li>
+        <li class="rounded-lg border border-ink-700 bg-ink-900/60 px-3 py-2 text-sm"><span class="font-mono text-teal">interview.report_id</span> <span class="text-amber">→</span> <span class="font-mono text-teal">crime_report.id</span><br /><span class="text-ink-300">筆錄 → 案件</span></li>
+        <li class="rounded-lg border border-ink-700 bg-ink-900/60 px-3 py-2 text-sm"><span class="font-mono text-teal">employee.person_id</span> <span class="text-amber">→</span> <span class="font-mono text-teal">person.id</span><br /><span class="text-ink-300">員工 → 市民</span></li>
+        <li class="rounded-lg border border-ink-700 bg-ink-900/60 px-3 py-2 text-sm"><span class="font-mono text-teal">employee.company_id</span> <span class="text-amber">→</span> <span class="font-mono text-teal">company.id</span><br /><span class="text-ink-300">員工 → 公司</span></li>
+        <li class="rounded-lg border border-ink-700 bg-ink-900/60 px-3 py-2 text-sm"><span class="font-mono text-teal">employee.manager_id</span> <span class="text-amber">→</span> <span class="font-mono text-teal">employee.id</span><br /><span class="text-ink-300">員工 → 主管（自我連結）</span></li>
+        <li class="rounded-lg border border-ink-700 bg-ink-900/60 px-3 py-2 text-sm"><span class="font-mono text-teal">access_log.employee_id</span> <span class="text-amber">→</span> <span class="font-mono text-teal">employee.id</span><br /><span class="text-ink-300">門禁 → 員工</span></li>
+        <li class="rounded-lg border border-ink-700 bg-ink-900/60 px-3 py-2 text-sm"><span class="font-mono text-teal">transit_card.person_id</span> <span class="text-amber">→</span> <span class="font-mono text-teal">person.id</span><br /><span class="text-ink-300">悠遊卡 → 持卡人</span></li>
+        <li class="rounded-lg border border-ink-700 bg-ink-900/60 px-3 py-2 text-sm"><span class="font-mono text-teal">transit_log.card_id</span> <span class="text-amber">→</span> <span class="font-mono text-teal">transit_card.card_id</span><br /><span class="text-ink-300">進出站 → 悠遊卡</span></li>
+        <li class="rounded-lg border border-ink-700 bg-ink-900/60 px-3 py-2 text-sm"><span class="font-mono text-teal">lost_item.claimed_by</span> <span class="text-amber">→</span> <span class="font-mono text-teal">person.id</span><br /><span class="text-ink-300">遺失物 → 領取人</span></li>
+        <li class="rounded-lg border border-ink-700 bg-ink-900/60 px-3 py-2 text-sm"><span class="font-mono text-teal">gym_member.person_id</span> <span class="text-amber">→</span> <span class="font-mono text-teal">person.id</span><br /><span class="text-ink-300">會員 → 市民</span></li>
+        <li class="rounded-lg border border-ink-700 bg-ink-900/60 px-3 py-2 text-sm"><span class="font-mono text-teal">gym_checkin.membership_id</span> <span class="text-amber">→</span> <span class="font-mono text-teal">gym_member.id</span><br /><span class="text-ink-300">打卡 → 會員</span></li>
+        <li class="rounded-lg border border-ink-700 bg-ink-900/60 px-3 py-2 text-sm"><span class="font-mono text-teal">event_checkin.person_id</span> <span class="text-amber">→</span> <span class="font-mono text-teal">person.id</span><br /><span class="text-ink-300">活動打卡 → 市民</span></li>
+        <li class="rounded-lg border border-ink-700 bg-ink-900/60 px-3 py-2 text-sm"><span class="font-mono text-teal">income.person_id</span> <span class="text-amber">→</span> <span class="font-mono text-teal">person.id</span><br /><span class="text-ink-300">收入 → 市民</span></li>
+        <li class="rounded-lg border border-ink-700 bg-ink-900/60 px-3 py-2 text-sm"><span class="font-mono text-teal">store_sale.store_id</span> <span class="text-amber">→</span> <span class="font-mono text-teal">store.id</span><br /><span class="text-ink-300">銷售 → 店家</span></li>
+        <li class="rounded-lg border border-ink-700 bg-ink-900/60 px-3 py-2 text-sm"><span class="font-mono text-teal">store.owner_id</span> <span class="text-amber">→</span> <span class="font-mono text-teal">person.id</span><br /><span class="text-ink-300">店家 → 老闆</span></li>
+        <li class="rounded-lg border border-ink-700 bg-ink-900/60 px-3 py-2 text-sm"><span class="font-mono text-teal">cctv_log.plate_number</span> <span class="text-amber">→</span> <span class="font-mono text-teal">driver_license.plate_number</span><br /><span class="text-ink-300">監視器 → 車牌</span></li>
+      </ul>
+    </section>
+
+    <section id="tables" class="mt-10 grid gap-4 md:grid-cols-2" aria-label="資料表清單"></section>
+  </main>
+
+  <footer class="border-t border-ink-800">
+    <div class="mx-auto max-w-6xl px-4 py-8 text-sm text-ink-300">所有資料皆為虛構，由固定亂數種子產生。</div>
+  </footer>
+
+  <script src="./vendor/sql-wasm.js"></script>
+  <script src="./js/engine/seed.js?v=20260914-01"></script>
+  <script src="./js/engine/mariadb-compat.js?v=20260914-01"></script>
+  <script src="./js/engine/db.js?v=20260914-01"></script>
+  <script src="./js/game/schema-page.js?v=20260914-01" defer></script>
+</body>
+</html>

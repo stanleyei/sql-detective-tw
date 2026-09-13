@@ -1,0 +1,195 @@
+@import "tailwindcss";
+
+@source "../index.html";
+@source "../play.html";
+@source "../schema.html";
+@source "../js/**/*.js";
+
+@theme {
+  /* 字體 */
+  --font-sans: "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", sans-serif;
+  --font-mono: "JetBrains Mono", "Cascadia Code", "Consolas", "Menlo", monospace;
+
+  /*
+   * 語意色 token。整站為「霓虹港都夜色」的深色主題，命名依用途而非色相。
+   * 對比皆以 ink-950 (#0b1020) 為底驗證：
+   *   paper  #f3efe6 → 17:1（一般文字）
+   *   ink-300 #9aa7c7 → 8.2:1（次要文字）
+   *   amber  #f5b942 → 10.6:1（強調、連結）
+   *   teal   #2ee6c5 → 12.4:1（成功、線索）
+   *   pink   #ff5fa2 → 7.1:1（重點、徽章）
+   *   danger #ff7b7b → 8.0:1（錯誤）
+   * amber 底配 ink-950 字（按鈕）亦為 10.6:1。
+   */
+  --color-ink-950: #0b1020;
+  --color-ink-900: #111832;
+  --color-ink-800: #1a2342;
+  --color-ink-700: #26325a;
+  --color-ink-600: #364578;
+  --color-ink-300: #9aa7c7;
+  --color-paper: #f3efe6;
+  --color-amber: #f5b942;
+  --color-amber-dark: #c98f1a;
+  --color-teal: #2ee6c5;
+  --color-pink: #ff5fa2;
+  --color-danger: #ff7b7b;
+
+  /* 字級：眉標與程式碼用的非標準值，統一在此定義 */
+  --text-eyebrow: 0.75rem;
+  --text-eyebrow--line-height: 1.4;
+  --text-eyebrow--letter-spacing: 0.18em;
+  --text-code: 0.875rem;
+  --text-code--line-height: 1.6;
+
+  /* 陰影：霓虹光暈 */
+  --shadow-glow-amber: 0 0 0 1px color-mix(in srgb, var(--color-amber) 40%, transparent), 0 10px 40px -10px color-mix(in srgb, var(--color-amber) 45%, transparent);
+  --shadow-glow-teal: 0 0 0 1px color-mix(in srgb, var(--color-teal) 40%, transparent), 0 10px 40px -10px color-mix(in srgb, var(--color-teal) 45%, transparent);
+  --shadow-card: 0 1px 0 0 rgb(255 255 255 / 0.04) inset, 0 12px 30px -12px rgb(0 0 0 / 0.6);
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+  body {
+    font-family: var(--font-sans);
+    background-color: var(--color-ink-950);
+    color: var(--color-paper);
+    /* 港都夜色：頂部微光 */
+    background-image:
+      radial-gradient(1200px 600px at 80% -10%, color-mix(in srgb, var(--color-pink) 14%, transparent), transparent 60%),
+      radial-gradient(900px 500px at 0% 0%, color-mix(in srgb, var(--color-teal) 10%, transparent), transparent 60%);
+    background-attachment: fixed;
+  }
+  /* 鍵盤焦點一律可見（WCAG 2.4.7） */
+  :focus-visible {
+    outline: 2px solid var(--color-amber);
+    outline-offset: 2px;
+    border-radius: 0.25rem;
+  }
+  code, pre, textarea.sql {
+    font-family: var(--font-mono);
+  }
+  pre {
+    font-size: var(--text-code);
+    line-height: var(--text-code--line-height);
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}
+
+@layer components {
+  .btn {
+    @apply inline-flex min-h-11 min-w-11 cursor-pointer items-center justify-center gap-2 rounded-lg px-4 py-2 text-base font-bold transition disabled:cursor-not-allowed disabled:opacity-40;
+  }
+  .btn-primary {
+    @apply inline-flex min-h-11 min-w-11 cursor-pointer items-center justify-center gap-2 rounded-lg px-4 py-2 text-base font-bold transition disabled:cursor-not-allowed disabled:opacity-40 bg-amber text-ink-950 hover:bg-amber-dark hover:text-paper;
+  }
+  .btn-ghost {
+    @apply inline-flex min-h-11 min-w-11 cursor-pointer items-center justify-center gap-2 rounded-lg px-4 py-2 text-base font-bold transition disabled:cursor-not-allowed disabled:opacity-40 border border-ink-600 bg-transparent text-paper hover:border-amber hover:text-amber;
+  }
+  .btn-teal {
+    @apply inline-flex min-h-11 min-w-11 cursor-pointer items-center justify-center gap-2 rounded-lg px-4 py-2 text-base font-bold transition disabled:cursor-not-allowed disabled:opacity-40 bg-teal text-ink-950 hover:brightness-110;
+  }
+  .btn-sm {
+    /* 仍維持 44px 的觸控目標高度（WCAG 2.5.5），只縮小字級與左右留白 */
+    @apply px-3 py-1 text-sm;
+  }
+  .card {
+    @apply rounded-2xl border border-ink-700 bg-ink-900/80 p-5 shadow-card backdrop-blur;
+  }
+  .eyebrow {
+    @apply text-eyebrow font-bold uppercase text-amber;
+  }
+  .chip {
+    @apply inline-flex items-center gap-1 rounded-full border border-ink-600 px-2.5 py-1 text-xs text-ink-300;
+  }
+  .prose-sd {
+    @apply text-[1.0625rem] leading-8 text-paper;
+  }
+  .prose-sd p { @apply mb-3; }
+  .prose-sd ul { @apply mb-3 list-disc space-y-1 pl-6; }
+  .prose-sd li { @apply leading-7; }
+  .prose-sd strong { @apply text-amber; }
+  .prose-sd code {
+    @apply rounded bg-ink-800 px-1.5 py-0.5 text-[0.9em] text-teal;
+  }
+  .prose-sd pre {
+    @apply relative my-3 overflow-x-auto rounded-xl border border-ink-700 bg-ink-950 p-4 pr-24 text-paper;
+  }
+  .prose-sd pre code { @apply bg-transparent p-0 text-paper; }
+  .sql-kw { @apply font-bold text-pink; }
+  .sql-fn { @apply text-teal; }
+  .sql-str { @apply text-amber; }
+  .sql-num { @apply text-teal; }
+  .sql-cm { @apply text-ink-300 italic; }
+  /* 結果表 */
+  .result-table {
+    @apply w-full border-collapse text-sm;
+  }
+  .result-table th {
+    @apply sticky top-0 border-b border-ink-600 bg-ink-800 px-3 py-2 text-left font-bold text-amber whitespace-nowrap;
+  }
+  .result-table td {
+    @apply border-b border-ink-800 px-3 py-1.5 align-top text-paper whitespace-nowrap;
+  }
+  .result-table tr:nth-child(even) td { @apply bg-ink-900/60; }
+  .result-table td.null { @apply text-ink-300 italic; }
+  /* 對話 */
+  .speech {
+    @apply relative rounded-2xl rounded-tl-sm border border-ink-700 bg-ink-800/80 px-4 py-3 leading-7;
+  }
+  /* 積木 */
+  .block-chip {
+    @apply cursor-grab select-none rounded-lg border border-ink-600 bg-ink-800 px-3 py-2 font-mono text-sm text-paper transition hover:border-amber active:cursor-grabbing min-h-11;
+  }
+  .block-slot {
+    @apply flex min-h-14 flex-wrap items-center gap-2 rounded-xl border-2 border-dashed border-ink-600 bg-ink-950/60 p-3;
+  }
+  .block-slot.over { @apply border-amber bg-ink-800/60; }
+  /* 步驟點 */
+  .dot { @apply size-2 rounded-full bg-ink-600; }
+  .dot.done { @apply bg-teal; }
+  .dot.cur { @apply bg-amber ring-2 ring-amber/40; }
+  /* 線索卡 */
+  .clue-card {
+    @apply relative rounded-xl border border-teal/40 bg-ink-900 p-3 text-sm shadow-glow-teal;
+  }
+  .clue-card::before {
+    content: '';
+    @apply absolute -top-1.5 left-1/2 size-3 -translate-x-1/2 rounded-full bg-pink shadow;
+  }
+  /* 編輯器 */
+  textarea.sql {
+    @apply block w-full resize-y rounded-xl border border-ink-600 bg-ink-950 p-4 text-code leading-relaxed text-paper placeholder:text-ink-300/70 focus:border-amber;
+    tab-size: 2;
+    min-height: 9rem;
+  }
+  /* 對話框 */
+  dialog.sd {
+    @apply m-auto w-[min(92vw,44rem)] rounded-2xl border border-ink-700 bg-ink-900 p-0 text-paper shadow-card;
+  }
+  dialog.sd::backdrop {
+    background: rgb(5 8 20 / 0.75);
+    backdrop-filter: blur(4px);
+  }
+  /* 首頁章節卡 */
+  .chapter-card {
+    @apply rounded-2xl border border-ink-700 bg-ink-900/80 shadow-card backdrop-blur flex flex-col gap-3 overflow-hidden p-0 transition hover:-translate-y-1 hover:shadow-glow-amber;
+  }
+  .chapter-card img { @apply aspect-[3/2] w-full object-cover; }
+  .chapter-card.locked img { @apply grayscale opacity-60; }
+  .star { @apply text-amber; }
+  .star.off { @apply text-ink-600; }
+  /* 面板切換（手機） */
+  .pane-tab { @apply inline-flex min-h-11 min-w-11 cursor-pointer items-center justify-center gap-2 rounded-lg px-4 py-2 text-base font-bold transition disabled:cursor-not-allowed disabled:opacity-40 flex-1 rounded-none border-b-2 border-transparent px-3 py-1 text-sm text-ink-300; }
+  .pane-tab[aria-selected="true"] { @apply border-amber text-amber; }
+}

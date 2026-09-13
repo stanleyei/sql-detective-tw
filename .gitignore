@@ -1,0 +1,92 @@
+# Nuxt dev/build outputs
+.output
+.data
+.nuxt
+.nitro
+.cache
+dist
+
+# Node dependencies
+node_modules
+
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# SonarQube
+.scannerwork/
+
+# Misc
+.DS_Store
+.fleet
+.idea
+*.swp
+*.swo
+*~
+
+# Local env files
+.env
+.env.*
+!.env.example
+
+# Eslint cache
+.eslintcache
+
+# Package manager lock files (keep package-lock.json for consistency)
+# yarn.lock
+
+# Temporary files
+*.tmp
+*.temp
+
+# Playwright MCP 操作產生的暫存檔
+.playwright-mcp/
+
+# 只忽略 .github 下的 copilot-instructions.md (copilot 參考文件)
+.github/copilot-instructions.md
+.claude/settings.local.json
+
+# production
+web.config
+maintenance.flag
+
+/.phpunit.cache
+/bootstrap/ssr
+/public/build
+/public/hot
+/public/storage
+/backend/public/upload
+/storage/*.key
+/storage/pail
+/resources/js/actions
+/resources/js/routes
+/resources/js/wayfinder
+/backend/vendor
+.phpactor.json
+.phpunit.result.cache
+Homestead.json
+Homestead.yaml
+npm-debug.log
+yarn-error.log
+/auth.json
+/.fleet
+/.idea
+/.nova
+/.vscode
+/.zed
+/css/style.css
+
+# 由 scripts/gen-data.js 產生的除錯用 SQL 副本（seed.js 才是網站用的）
+scripts/seed.sql
+
+# 開發用套件不需部署
+node_modules
