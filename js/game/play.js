@@ -164,21 +164,23 @@
     const grid = el('div', 'grid gap-1 grid-cols-[repeat(auto-fill,minmax(13rem,1fr))]');
     for (const c of s.byTable[t]) {
       const fk = SD.schemaDoc.fk(t, c.name) || c.fk;
-      // 外鍵的第二行只放補充（受訪者、直屬主管…），「→ 表.欄」獨立成右側按鈕才點得到
-      const zh = fk ? fk.note || '' : SD.schemaDoc.column(t, c.name);
+      // 外鍵不在第一行放補充：目標與補充合成「→ 表.欄（補充）」獨立成第二行的整行按鈕。
+      // 放右側時長表名（transit_card.card_id）會把第一行擠到溢出、蓋在按鈕底下，直排才不會重疊
+      const zh = fk ? '' : SD.schemaDoc.column(t, c.name);
       const icon = c.pk ? SD.schemaDoc.keyIcon('pk') : fk ? SD.schemaDoc.keyIcon('fk') : '';
       const type = (c.type || '').split(' ')[0].toLowerCase();
-      const cell = el('div', 'flex items-stretch rounded-lg border border-ink-800 bg-ink-950/40');
-      const b = el('button', 'flex min-h-11 min-w-0 flex-1 flex-col justify-center gap-0.5 rounded-lg px-2.5 py-1.5 text-left hover:bg-ink-800', `<span class="flex items-baseline gap-2 font-mono text-xs text-paper"><span class="inline-flex items-center gap-1">${icon}${esc(c.name)}</span><span class="text-ink-300">${esc(type)}</span></span>${zh ? `<span class="truncate text-xs text-ink-300">${esc(zh)}</span>` : ''}`);
+      const cell = el('div', 'flex flex-col rounded-lg border border-ink-800 bg-ink-950/40');
+      const b = el('button', 'flex min-h-11 min-w-0 flex-col justify-center gap-0.5 rounded-lg px-2.5 py-1.5 text-left hover:bg-ink-800', `<span class="flex min-w-0 flex-wrap items-baseline gap-x-2 font-mono text-xs text-paper"><span class="inline-flex items-center gap-1">${icon}${esc(c.name)}</span><span class="text-ink-300">${esc(type)}</span></span>${zh ? `<span class="truncate text-xs text-ink-300">${esc(zh)}</span>` : ''}`);
       b.type = 'button';
       b.title = zh ? `${zh}，插入 ${c.name}` : `插入 ${c.name}`;
       b.addEventListener('click', () => insertAtCursor(c.name));
       cell.appendChild(b);
       if (fk) {
-        const go = el('button', 'min-h-11 shrink-0 rounded-r-lg border-l border-ink-800 px-2 font-mono text-xs text-teal hover:bg-ink-800 hover:text-amber', `→ ${esc(fk.table)}.${esc(fk.column)}`);
+        const label = `→ ${fk.table}.${fk.column}${fk.note ? `（${fk.note}）` : ''}`;
+        const go = el('button', 'min-h-11 rounded-b-lg border-t border-ink-800 px-2.5 py-1.5 text-left font-mono text-xs text-teal hover:bg-ink-800 hover:text-amber', esc(label));
         go.type = 'button';
         go.title = `前往 ${fk.table}`;
-        go.setAttribute('aria-label', `外鍵，前往 ${fk.table} 表的 ${fk.column} 欄`);
+        go.setAttribute('aria-label', `外鍵，前往 ${fk.table} 表的 ${fk.column} 欄${fk.note ? `（${fk.note}）` : ''}`);
         go.addEventListener('click', () => renderSchemaCols(fk.table));
         cell.appendChild(go);
       }
