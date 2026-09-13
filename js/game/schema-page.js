@@ -11,10 +11,15 @@
     await SD.db.init();
     const s = SD.db.schema();
     root.innerHTML = s.tables.map((t) => {
-      const doc = DOC[t] || { zh: '', cols: {} };
-      const rows = s.byTable[t].map((c) => `<tr><td class="py-1 pr-3 font-mono text-teal">${c.pk ? '🔑 ' : ''}${esc(c.name)}</td><td class="py-1 pr-3 text-ink-300">${esc((c.type || '').split(' ')[0].toLowerCase() || 'text')}</td><td class="py-1 text-sm">${esc(doc.cols[c.name] || '')}</td></tr>`).join('');
+      const doc = DOC[t] || { zh: '' };
+      const rows = s.byTable[t].map((c) => {
+        const fk = SD.schemaDoc.fk(t, c.name) || c.fk;
+        const icon = c.pk ? SD.schemaDoc.keyIcon('pk') : fk ? SD.schemaDoc.keyIcon('fk') : '';
+        const note = fk ? `<a href="#t-${esc(fk.table)}" class="font-mono text-teal underline decoration-dotted hover:text-amber">→ ${esc(fk.table)}.${esc(fk.column)}</a>${fk.note ? `（${esc(fk.note)}）` : ''}` : esc(SD.schemaDoc.column(t, c.name));
+        return `<tr><td class="py-1 pr-3 font-mono text-teal"><span class="inline-flex items-center gap-1">${icon}${esc(c.name)}</span></td><td class="py-1 pr-3 text-ink-300">${esc((c.type || '').split(' ')[0].toLowerCase() || 'text')}</td><td class="py-1 text-sm">${note}</td></tr>`;
+      }).join('');
       const count = SD.db.query(`SELECT COUNT(*) FROM "${t}"`).values[0][0];
-      return `<article class="card p-4" id="t-${t}">
+      return `<article class="card scroll-mt-24 p-4" id="t-${t}">
         <div class="flex items-start justify-between gap-2">
           <div><h2 class="font-mono text-lg font-bold text-amber">${esc(t)}</h2><p class="text-sm text-ink-300">${esc(doc.zh)} · ${count} 筆</p></div>
           <button type="button" class="btn-ghost btn-sm" data-sample="${esc(t)}">看範例</button>

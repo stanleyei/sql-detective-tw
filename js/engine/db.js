@@ -36,7 +36,7 @@
   function reset() { createDb(); }
   function exportDb() { return db.export(); }
 
-  /** 回傳 { tables: [...], columns: [...], byTable: {t: [{name,type,pk,notnull,dflt}]} } */
+  /** 回傳 { tables: [...], columns: [...], byTable: {t: [{name,type,pk,notnull,dflt,fk?}]} }，fk 為 { table, column } */
   function schema() {
     if (schemaCache) return schemaCache;
     const tables = db.exec("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' ORDER BY name");
@@ -46,6 +46,9 @@
     for (const t of names) {
       const info = db.exec(`PRAGMA table_info("${t}")`);
       byTable[t] = (info.length ? info[0].values : []).map((r) => ({ cid: r[0], name: r[1], type: r[2], notnull: r[3], dflt: r[4], pk: r[5] }));
+      // 內建 18 張表沒有宣告 REFERENCES（關聯寫在 schema-doc.js），這裡撿的是使用者 CREATE TABLE 時自己寫的 FOREIGN KEY
+      const fks = db.exec(`PRAGMA foreign_key_list("${t}")`);
+      if (fks.length) for (const r of fks[0].values) { const c = byTable[t].find((x) => x.name === r[3]); if (c) c.fk = { table: r[2], column: r[4] || 'id' }; }
       byTable[t].forEach((c) => columns.add(c.name));
     }
     schemaCache = { tables: names, columns: [...columns], byTable };

@@ -133,6 +133,8 @@
     lastSql = sql;
     lastResults = SD.db.run(sql);
     renderResults(lastResults);
+    // 執行後收起欄位格，讓編輯器與結果同時留在視野內；表名 chip 仍在，一鍵可再展開
+    if (openSchemaTable) renderSchemaCols(null);
     if (lastResults.some((r) => r.type === 'affected' || r.ddl)) { scheduleDbSave(); renderSchemaList(); }
     const step = chapter.steps[stepIndex];
     if (step && (step.type === 'task' || step.type === 'solution')) await evaluateStep(step);
@@ -145,40 +147,57 @@
   });
 
   // ---------------------------------------------------------------------------
-  // 資料表側欄
+  // 資料表面板（編輯器下方）
   // ---------------------------------------------------------------------------
+  /* 同時只展開一張表，記住上次展開的表名；DDL 後重畫時若該表已被 DROP 就回到收合狀態 */
+  let openSchemaTable = null;
+  function renderSchemaCols(t) {
+    const s = SD.db.schema();
+    const cols = $('#schema-cols');
+    $('#schema-tabs').querySelectorAll('[data-table]').forEach((b) => b.setAttribute('aria-expanded', String(b.dataset.table === t)));
+    if (!t || !s.byTable[t]) { openSchemaTable = null; cols.hidden = true; cols.innerHTML = ''; return; }
+    openSchemaTable = t;
+    cols.hidden = false;
+    cols.innerHTML = '';
+    const grid = el('div', 'grid gap-1 grid-cols-[repeat(auto-fill,minmax(13rem,1fr))]');
+    for (const c of s.byTable[t]) {
+      const fk = SD.schemaDoc.fk(t, c.name) || c.fk;
+      // 外鍵的第二行只放補充（受訪者、直屬主管…），「→ 表.欄」獨立成右側按鈕才點得到
+      const zh = fk ? fk.note || '' : SD.schemaDoc.column(t, c.name);
+      const icon = c.pk ? SD.schemaDoc.keyIcon('pk') : fk ? SD.schemaDoc.keyIcon('fk') : '';
+      const type = (c.type || '').split(' ')[0].toLowerCase();
+      const cell = el('div', 'flex items-stretch rounded-lg border border-ink-800 bg-ink-950/40');
+      const b = el('button', 'flex min-h-11 min-w-0 flex-1 flex-col justify-center gap-0.5 rounded-lg px-2.5 py-1.5 text-left hover:bg-ink-800', `<span class="flex items-baseline gap-2 font-mono text-xs text-paper"><span class="inline-flex items-center gap-1">${icon}${esc(c.name)}</span><span class="text-ink-300">${esc(type)}</span></span>${zh ? `<span class="truncate text-xs text-ink-300">${esc(zh)}</span>` : ''}`);
+      b.type = 'button';
+      b.title = zh ? `${zh}，插入 ${c.name}` : `插入 ${c.name}`;
+      b.addEventListener('click', () => insertAtCursor(c.name));
+      cell.appendChild(b);
+      if (fk) {
+        const go = el('button', 'min-h-11 shrink-0 rounded-r-lg border-l border-ink-800 px-2 font-mono text-xs text-teal hover:bg-ink-800 hover:text-amber', `→ ${esc(fk.table)}.${esc(fk.column)}`);
+        go.type = 'button';
+        go.title = `前往 ${fk.table}`;
+        go.setAttribute('aria-label', `外鍵，前往 ${fk.table} 表的 ${fk.column} 欄`);
+        go.addEventListener('click', () => renderSchemaCols(fk.table));
+        cell.appendChild(go);
+      }
+      grid.appendChild(cell);
+    }
+    const actions = el('div', 'mt-2 flex flex-wrap gap-2');
+    const mk = (label, sql, title) => { const b = el('button', 'btn-ghost btn-sm flex-1', label); b.type = 'button'; if (title) b.title = title; b.addEventListener('click', () => { setEditor(sql); runSql(); }); return b; };
+    actions.append(mk('DESCRIBE', `DESCRIBE ${t};`), mk('看 5 筆', `SELECT * FROM ${t} LIMIT 5;`), mk('欄位備註', `SHOW FULL COLUMNS FROM ${t};`, 'SHOW FULL COLUMNS：含中文 Comment'));
+    cols.append(grid, actions);
+  }
   function renderSchemaList() {
     if (!dbReady) return;
-    const list = $('#schema-list');
+    const tabs = $('#schema-tabs');
     const s = SD.db.schema();
-    list.innerHTML = '';
-    for (const t of s.tables) {
-      const d = el('details', 'rounded-lg border border-ink-800');
-      d.innerHTML = `<summary class="flex min-h-11 cursor-pointer items-center justify-between px-3 py-2 font-mono text-teal"><span>${esc(t)}</span><span class="text-xs text-ink-300">${s.byTable[t].length} 欄</span></summary>`;
-      const ul = el('ul', 'flex flex-col border-t border-ink-800 px-2 py-1');
-      for (const c of s.byTable[t]) {
-        const li = el('li');
-        const zh = SD.schemaDoc.column(t, c.name);
-        const b = el('button', 'flex min-h-9 w-full items-center justify-between gap-2 rounded px-2 text-left font-mono text-xs hover:bg-ink-800', `<span class="shrink-0">${c.pk ? '🔑 ' : ''}${esc(c.name)}</span><span class="min-w-0 truncate text-right text-ink-300">${esc((c.type || '').split(' ')[0].toLowerCase())}${zh ? ` · <span class="font-sans">${esc(zh)}</span>` : ''}</span>`);
-        b.type = 'button';
-        b.title = zh ? `${zh}，插入 ${c.name}` : `插入 ${c.name}`;
-        b.addEventListener('click', () => insertAtCursor(c.name));
-        li.appendChild(b);
-        ul.appendChild(li);
-      }
-      const actions = el('div', 'flex gap-1 border-t border-ink-800 p-2');
-      const b1 = el('button', 'btn-ghost btn-sm flex-1', 'DESCRIBE'); b1.type = 'button';
-      b1.addEventListener('click', () => { setEditor(`DESCRIBE ${t};`); runSql(); });
-      const b2 = el('button', 'btn-ghost btn-sm flex-1', '看 5 筆'); b2.type = 'button';
-      b2.addEventListener('click', () => { setEditor(`SELECT * FROM ${t} LIMIT 5;`); runSql(); });
-      const b3 = el('button', 'btn-ghost btn-sm flex-1', '欄位備註'); b3.type = 'button';
-      b3.title = 'SHOW FULL COLUMNS：含中文 Comment';
-      b3.addEventListener('click', () => { setEditor(`SHOW FULL COLUMNS FROM ${t};`); runSql(); });
-      actions.append(b1, b2, b3);
-      d.append(ul, actions);
-      list.appendChild(d);
-    }
+    tabs.innerHTML = s.tables.map((t) => `<button type="button" class="chip min-h-9 cursor-pointer font-mono text-teal hover:border-amber aria-expanded:border-amber aria-expanded:text-amber" data-table="${esc(t)}" aria-expanded="false">${esc(t)} <span class="font-sans text-ink-300">${s.byTable[t].length}</span></button>`).join('');
+    renderSchemaCols(openSchemaTable);
   }
+  $('#schema-tabs').addEventListener('click', (e) => {
+    const b = e.target.closest('[data-table]');
+    if (b) renderSchemaCols(b.dataset.table === openSchemaTable ? null : b.dataset.table);
+  });
 
   // ---------------------------------------------------------------------------
   // 證據板與徽章
@@ -342,7 +361,7 @@
         if (open) { cols.hidden = true; return; }
         tb.setAttribute('aria-expanded', 'true');
         cols.hidden = false;
-        cols.innerHTML = s.byTable[tb.dataset.table].map((c) => `<button type="button" class="rounded border border-ink-700 bg-ink-950/60 px-2 py-1 font-mono text-xs text-paper hover:border-amber" data-col="${esc(c.name)}">${c.pk ? '🔑 ' : ''}${esc(c.name)}</button>`).join('');
+        cols.innerHTML = s.byTable[tb.dataset.table].map((c) => `<button type="button" class="inline-flex items-center gap-1 rounded border border-ink-700 bg-ink-950/60 px-2 py-1 font-mono text-xs text-paper hover:border-amber" data-col="${esc(c.name)}">${c.pk ? SD.schemaDoc.keyIcon('pk') : SD.schemaDoc.fk(tb.dataset.table, c.name) || c.fk ? SD.schemaDoc.keyIcon('fk') : ''}${esc(c.name)}</button>`).join('');
         return;
       }
       const cb = e.target.closest('[data-col]');
