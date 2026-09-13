@@ -12,6 +12,10 @@ SD.expect = {
   "hash": "85c65f23c6de04e946320e5e5e5e54544815c4b38ad54d3a12bc2cf4a4c4230e",
   "rows": 77
  },
+ "c0-t5b": {
+  "hash": "dd12eb82ac7264bcf7a23fbfdf5918f178d37f61bd4aec4349d57dc4511cd4b3",
+  "rows": 334
+ },
  "c0-t6": {
   "hash": "40420c15626fa8340711ff30d0ab9fca412f4fc5f0b2c91a873007abad1e30ff",
   "rows": 48

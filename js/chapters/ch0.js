@@ -62,11 +62,15 @@ WHERE district = '港東區';</code></pre>
       <ul>
         <li>文字要用<strong>單引號</strong>包起來：<code>'港東區'</code>。數字不用：<code>birth_year &gt; 2000</code>。</li>
         <li>常用比較：<code>=</code> 等於、<code>&lt;&gt;</code> 不等於、<code>&gt;</code>、<code>&lt;</code>、<code>&gt;=</code>、<code>&lt;=</code>。</li>
+        <li>不等於也可以寫成 <code>!=</code>，兩者完全同義：<code>&lt;&gt;</code> 是 SQL 標準寫法，<code>!=</code> 則常見於 Laravel、PHP 等程式碼中，選一種並在同一份程式裡保持一致即可。</li>
         <li>順序固定是 <code>SELECT → FROM → WHERE → LIMIT</code>。</li>
       </ul>` },
     { type: 'task', id: 'c0-t5', title: '港東區的居民', prompt: '列出住在<strong>港東區</strong>的市民姓名（<code>name</code>）。',
       hints: ['在 FROM person 後面加上 WHERE 條件。', '條件是 district 等於 \'港東區\'，記得單引號。', '<code>SELECT name FROM person WHERE district = \'港東區\';</code>'],
       check: { kind: 'result', cols: ['name'], ordered: false } },
+    { type: 'task', id: 'c0-t5b', title: '中央區以外的人', prompt: '列出<strong>不住在中央區</strong>的市民姓名（<code>name</code>）與行政區（<code>district</code>）。',
+      hints: ['「不等於」用 &lt;&gt; 或 !=，兩種寫法都可以。', '條件是 district &lt;&gt; \'中央區\'。', '<code>SELECT name, district FROM person WHERE district &lt;&gt; \'中央區\';</code>'],
+      check: { kind: 'result', cols: ['name', 'district'], ordered: false } },
     { type: 'task', id: 'c0-t6', title: '年輕世代', prompt: '列出 <strong>2000 年之後</strong>（不含 2000）出生的市民 <code>name</code> 與 <code>birth_year</code>。',
       hints: ['出生年欄位是 birth_year，是數字，不用引號。', '「之後、不含」就是大於 &gt;。', '<code>SELECT name, birth_year FROM person WHERE birth_year &gt; 2000;</code>'],
       check: { kind: 'result', cols: ['name', 'birth_year'], ordered: false } },

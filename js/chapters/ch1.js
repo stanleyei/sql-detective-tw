@@ -54,7 +54,8 @@ WHERE id IN (10001, 10002)</code></pre>` },
     { type: 'lesson', title: 'IS NULL：空值不能用等號', body: `
       <p>你可能注意到吳志豪的電話是 <strong>NULL</strong>，代表「沒有資料」。NULL 不是 0 也不是空字串，<strong>不能</strong>用 <code>= NULL</code> 比較，要用：</p>
       <pre><code>WHERE phone IS NULL
-WHERE phone IS NOT NULL</code></pre>` },
+WHERE phone IS NOT NULL</code></pre>
+      <p>同理，<code>&lt;&gt;</code>（或 <code>!=</code>）也<strong>選不到</strong> NULL：<code>WHERE phone &lt;&gt; '0900-000000'</code> 不會列出沒登記電話的人，因為 NULL 跟任何值比較的結果都不是「真」。要把他們也算進來，得另外加上 <code>OR phone IS NULL</code>。</p>` },
     { type: 'task', id: 'c1-t5', title: '沒留電話的人', prompt: '找出 <code>person</code> 中<strong>沒有登記電話</strong>的市民有幾位？先列出他們的 <code>name</code>。',
       hints: ['NULL 要用 IS NULL。', 'WHERE phone IS NULL', '<code>SELECT name FROM person WHERE phone IS NULL;</code>'],
       check: { kind: 'result', cols: ['name'], ordered: false } },

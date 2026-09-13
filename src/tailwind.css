@@ -69,6 +69,9 @@
   }
   code, pre, textarea.sql {
     font-family: var(--font-mono);
+    /* JetBrains Mono 預設連字會把 <>、!=、<=、>= 畫成 ≠、≤、≥，
+       教學上必須讓學生看到實際要敲的字元，且 <> 與 != 兩種寫法要能分辨 */
+    font-variant-ligatures: none;
   }
   pre {
     font-size: var(--text-code);
