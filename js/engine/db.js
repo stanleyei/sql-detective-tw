@@ -137,7 +137,10 @@
       if (!rewritten) continue;
       try {
         if (rewritten.kind === 'meta') {
-          out.push({ ...runMeta(rewritten.meta), sql: raw, notes: rewritten.notes });
+          const m = runMeta(rewritten.meta);
+          // meta 結果不經 prepare/step，需自行補齊 total/truncated 讓 result 結構與一般查詢一致
+          if (m.type === 'result') { m.total = m.values.length; m.truncated = false; }
+          out.push({ ...m, sql: raw, notes: rewritten.notes });
           continue;
         }
         const sqls = Array.isArray(rewritten.sql) ? rewritten.sql : [rewritten.sql];
