@@ -882,6 +882,7 @@
       default: card.textContent = '';
     }
     if (step.type !== 'story') closeStage();
+    if (SD.audio) SD.audio.setScene(SD.audio.sceneFor(step.type));
     if (canAnimate()) gsap.fromTo(card, { opacity: 0, x: 16 }, { opacity: 1, x: 0, duration: 0.35, ease: 'power2.out' });
     const p = prog();
     p.step = stepIndex; SD.state.save();
@@ -1173,6 +1174,7 @@
   }
 
   async function boot() {
+    if (SD.audio) SD.audio.init();
     renderBoard();
     renderBadges();
     const { ch, step } = parseHash();

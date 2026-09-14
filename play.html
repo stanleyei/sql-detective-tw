@@ -18,7 +18,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet" />
   <link rel="icon" href="./favicon.ico" sizes="48x48" />
   <link rel="apple-touch-icon" href="./images/apple-touch-icon.png" />
-  <link rel="stylesheet" href="./css/style.css?v=20260914-19" />
+  <link rel="stylesheet" href="./css/style.css?v=20260914-20" />
 </head>
 <body class="min-h-dvh">
   <a href="#editor" class="sr-only z-60 rounded-lg bg-amber px-6 py-3 font-bold text-ink-950 focus:not-sr-only focus:fixed focus:left-4 focus:top-4">跳至查詢區</a>
@@ -50,6 +50,16 @@
         <div class="progress"><span id="progress-fill"></span></div>
       </div>
       <div class="ml-auto flex items-center gap-2">
+        <!-- 背景音樂預設關閉（瀏覽器也不允許未互動就出聲）；首次造訪由 js/game/audio.js 冒出一次提示氣泡 -->
+        <div class="relative">
+          <button type="button" id="btn-bgm" class="btn-ghost btn-sm px-2" aria-pressed="false" aria-label="背景音樂" title="開啟背景音樂">
+            <img src="./images/icon/icon-sound-off.svg" alt="" width="18" height="18" class="size-4.5" />
+          </button>
+          <div id="bgm-hint" class="bgm-hint" role="status" hidden>
+            <p>想要一點辦案氛圍？按上方喇叭可開啟背景音樂，隨時可再關閉。</p>
+            <button type="button" class="btn-ghost btn-sm mt-2 w-full">知道了</button>
+          </div>
+        </div>
         <!-- 證據板是全螢幕覆蓋層，從這顆按鈕開；新線索到時按鈕加 has-new 亮起小圓點 -->
         <button type="button" id="btn-board" class="btn-ghost btn-sm relative" aria-haspopup="dialog">
           <img src="./images/icon/icon-pin.svg" alt="" width="18" height="18" class="size-4.5" />
@@ -230,24 +240,25 @@
   <script src="./vendor/sql-wasm.js"></script>
   <script src="./vendor/gsap.min.js"></script>
   <script src="./vendor/Flip.min.js"></script>
-  <script src="./js/engine/seed.js?v=20260914-19"></script>
-  <script src="./js/engine/mariadb-compat.js?v=20260914-19"></script>
-  <script src="./js/engine/db.js?v=20260914-19"></script>
-  <script src="./js/game/schema-doc.js?v=20260914-19"></script>
-  <script src="./js/game/cast.js?v=20260914-19"></script>
-  <script src="./js/game/media.js?v=20260914-19"></script>
-  <script src="./js/chapters/ch0.js?v=20260914-19"></script>
-  <script src="./js/chapters/ch1.js?v=20260914-19"></script>
-  <script src="./js/chapters/ch2.js?v=20260914-19"></script>
-  <script src="./js/chapters/ch3.js?v=20260914-19"></script>
-  <script src="./js/chapters/ch4.js?v=20260914-19"></script>
-  <script src="./js/chapters/ch5.js?v=20260914-19"></script>
-  <script src="./js/chapters/ch6.js?v=20260914-19"></script>
-  <script src="./js/chapters/expect.js?v=20260914-19"></script>
-  <script src="./js/game/state.js?v=20260914-19"></script>
-  <script src="./js/game/check.js?v=20260914-19"></script>
-  <script src="./js/game/cheatsheet.js?v=20260914-19"></script>
-  <script src="./js/game/highlight.js?v=20260914-19"></script>
-  <script src="./js/game/play.js?v=20260914-19" defer></script>
+  <script src="./js/engine/seed.js?v=20260914-20"></script>
+  <script src="./js/engine/mariadb-compat.js?v=20260914-20"></script>
+  <script src="./js/engine/db.js?v=20260914-20"></script>
+  <script src="./js/game/schema-doc.js?v=20260914-20"></script>
+  <script src="./js/game/cast.js?v=20260914-20"></script>
+  <script src="./js/game/media.js?v=20260914-20"></script>
+  <script src="./js/game/audio.js?v=20260914-20"></script>
+  <script src="./js/chapters/ch0.js?v=20260914-20"></script>
+  <script src="./js/chapters/ch1.js?v=20260914-20"></script>
+  <script src="./js/chapters/ch2.js?v=20260914-20"></script>
+  <script src="./js/chapters/ch3.js?v=20260914-20"></script>
+  <script src="./js/chapters/ch4.js?v=20260914-20"></script>
+  <script src="./js/chapters/ch5.js?v=20260914-20"></script>
+  <script src="./js/chapters/ch6.js?v=20260914-20"></script>
+  <script src="./js/chapters/expect.js?v=20260914-20"></script>
+  <script src="./js/game/state.js?v=20260914-20"></script>
+  <script src="./js/game/check.js?v=20260914-20"></script>
+  <script src="./js/game/cheatsheet.js?v=20260914-20"></script>
+  <script src="./js/game/highlight.js?v=20260914-20"></script>
+  <script src="./js/game/play.js?v=20260914-20" defer></script>
 </body>
 </html>
