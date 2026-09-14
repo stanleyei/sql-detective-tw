@@ -360,7 +360,14 @@
   const newClueIds = new Set();
   let boardFilter = 'current'; // 'current' | 'all' | 章節 id
 
-  function clueCard(clue, isNew) {
+  /* 存檔裡的線索文字只是取得當下的快照；文案改版後要讓既有玩家也看到新字，渲染時一律回頭查章節定義，查不到（如「結案」卡）才用存檔值 */
+  function liveClue(clue) {
+    const ch = chapters.find((c) => c.id === clue.ch);
+    const step = ch && ch.steps.find((s) => s.id === clue.id);
+    return step && step.clue ? { ...clue, title: step.clue.title, text: step.clue.text } : clue;
+  }
+  function clueCard(saved, isNew) {
+    const clue = liveClue(saved);
     const c = el('article', `polaroid${isNew ? ' is-new' : ''}`);
     c.innerHTML = `<img src="${SD.media.clueIcon(clue.title)}" alt="" width="240" height="240" class="polaroid-photo" loading="lazy" /><div class="min-w-0 flex-1"><p class="polaroid-ch">第 ${clue.ch} 章 · 線索</p><h4>${esc(clue.title)}</h4><p class="clue-text">${esc(clue.text)}</p></div>`;
     return c;
@@ -456,7 +463,7 @@
 
   /* 結案回顧：指認／提交步驟的卡片下方列出本章已釘上的線索，並提示還有幾條藏在未完成的任務裡 */
   function clueRecapHtml() {
-    const got = state.clues.filter((c) => c.ch === chapter.id);
+    const got = state.clues.filter((c) => c.ch === chapter.id).map(liveClue);
     // 指認成功會多釘一張「結案」，分母把它算進去，數字才不會超過總數
     const total = chapter.steps.filter((s) => s.clue || s.type === 'answer').length;
     const missing = chapter.steps.filter((s) => s.clue && !stepDone(s)).length;

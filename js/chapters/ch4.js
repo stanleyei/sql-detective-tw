@@ -58,7 +58,7 @@ WHERE a.door = '機房';</code></pre>
       lead: '三張表兩個 JOIN：transit_log → transit_card（card_id）→ person（person_id），WHERE 放姓名與日期。',
       hints: ['JOIN transit_card c ON c.card_id = t.card_id JOIN person p ON p.id = c.person_id', "WHERE p.name = '許國棟' AND t.log_time LIKE '2025-06-20%'", "<code>SELECT t.station, t.direction, t.log_time FROM transit_log t JOIN transit_card c ON c.card_id = t.card_id JOIN person p ON p.id = c.person_id WHERE p.name = '許國棟' AND t.log_time LIKE '2025-06-20%';</code>"],
       check: { kind: 'result', cols: ['station', 'direction', 'log_time'], ordered: false },
-      clue: { title: '經理不在現場', text: '許國棟的悠遊卡 22:05 在山城站進站、22:35 在港東站出站。機房刷卡 22:17 時，他人在捷運上。有人用了他的卡。' } },
+      clue: { title: '經理不在現場', text: '許國棟的悠遊卡在 2025-06-20 的 22:05 於山城站進站、22:35 於港東站出站。機房刷卡 22:17 時，他人在捷運上。有人用了他的卡。' } },
     { type: 'lesson', title: 'LEFT JOIN：對不上的也要留下來', body: `
       <p><code>JOIN</code> 只留兩邊都有的。但「哪些員工<strong>當晚沒有</strong>任何門禁紀錄」這種問題，需要把<strong>沒對上的也留下</strong>，右邊補 NULL。這就是 <code>LEFT JOIN</code>：</p>
       <pre><code>SELECT p.name, a.door, a.event_time
@@ -72,17 +72,17 @@ WHERE e.company_id = 1 AND e.department = '研發部';</code></pre>
     { type: 'task', id: 'c4-t6', title: '研發部當晚誰在公司？', prompt: '照上面的寫法，列出研發部每位員工在 <strong>6 月 20 日 20:00 之後</strong>的門禁紀錄（沒有的顯示 NULL），顯示 <code>p.name</code>、<code>a.door</code>、<code>a.event_time</code>。',
       hints: ['先 JOIN person，再 LEFT JOIN access_log。', '時間條件放在 LEFT JOIN 的 ON 裡。', "<code>SELECT p.name, a.door, a.event_time FROM employee e JOIN person p ON p.id = e.person_id LEFT JOIN access_log a ON a.employee_id = e.id AND a.event_time BETWEEN '2025-06-20 20:00:00' AND '2025-06-20 23:59:59' WHERE e.company_id = 1 AND e.department = '研發部';</code>"],
       check: { kind: 'result', cols: ['name', 'door', 'event_time'], ordered: false },
-      clue: { title: '研發部當晚動態', text: '只有兩人有紀錄：許國棟（研發區、機房）與周文傑（大門 21:55 進、23:05 出）。其餘研發部員工當晚都沒有回公司。' } },
+      clue: { title: '研發部當晚動態', text: '2025-06-20 當晚只有兩人有紀錄：許國棟（研發區、機房）與周文傑（大門 21:55 進、23:05 出）。其餘研發部員工當晚都沒有回公司。' } },
     { type: 'task', id: 'c4-t7', title: '整棟樓還有誰？', prompt: '不限部門：列出 <strong>6 月 20 日 20:00 到 23:59:59</strong> 之間有任何門禁紀錄的<strong>不重複</strong>員工姓名 <code>p.name</code>。',
       lead: '同上一題的三表 JOIN，WHERE 只留時間範圍，SELECT DISTINCT p.name。',
       hints: ['FROM access_log a JOIN employee e ... JOIN person p ...', 'SELECT DISTINCT p.name', "<code>SELECT DISTINCT p.name FROM access_log a JOIN employee e ON e.id = a.employee_id JOIN person p ON p.id = e.person_id WHERE a.event_time BETWEEN '2025-06-20 20:00:00' AND '2025-06-20 23:59:59';</code>"],
       check: { kind: 'result', cols: ['name'], ordered: false },
-      clue: { title: '當晚在場名單', text: '許國棟（卡片，本人不在）、周文傑、以及一位業務部員工郭曼玲（22:20 就離開了）。' } },
+      clue: { title: '當晚在場名單', text: '2025-06-20 當晚在場：許國棟（卡片，本人不在）、周文傑、以及一位業務部員工郭曼玲（22:20 就離開了）。' } },
     { type: 'task', id: 'c4-t8', title: '兩個人的說法', prompt: '從 <code>interview</code> 接上 <code>person</code>，取出 <strong>許國棟</strong> 與 <strong>周文傑</strong> 的筆錄，顯示 <code>p.name</code>、<code>i.transcript</code>。',
       lead: 'interview JOIN person ON p.id = i.person_id，WHERE p.name IN (...)。',
       hints: ["WHERE p.name IN ('許國棟', '周文傑')", 'JOIN person p ON p.id = i.person_id', "<code>SELECT p.name, i.transcript FROM interview i JOIN person p ON p.id = i.person_id WHERE p.name IN ('許國棟', '周文傑');</code>"],
       check: { kind: 'result', cols: ['name', 'transcript'], ordered: false },
-      clue: { title: '周文傑說謊', text: '周文傑聲稱「加班到十點就回家」，但門禁顯示他 21:55 才進大門、23:05 才離開，中間正是機房被刷開的時段。' } },
+      clue: { title: '周文傑說謊', text: '周文傑聲稱「加班到十點就回家」，但門禁顯示他 2025-06-20 的 21:55 才進大門、23:05 才離開，中間正是機房被刷開的時段。' } },
     { type: 'lesson', title: '自我連結：員工與他的主管在同一張表', body: `
       <p><code>employee.manager_id</code> 指向<strong>同一張表</strong>的另一列。要列出「員工與主管姓名」，就把 employee 跟自己 JOIN 一次，用兩個不同別名：</p>
       <pre><code>SELECT p.name AS employee, m.name AS manager
