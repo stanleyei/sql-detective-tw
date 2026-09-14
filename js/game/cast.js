@@ -7,11 +7,11 @@
     mentor: { name: '林曉青 警官', img: './images/char-mentor.webp', portrait: './images/portrait/mentor.webp', role: '你的指導警官' },
     chief: { name: '陳大川 局長', img: './images/char-chief.webp', portrait: './images/portrait/chief.webp', role: '潮港市警察局長' },
     tech: { name: '張哲', img: './images/char-tech.webp', portrait: './images/portrait/tech.webp', role: '鑑識技術員' },
-    vendor: { name: '洪美玲', img: './images/char-vendor.webp', role: '夜市攤商' },
+    vendor: { name: '洪美玲', img: './images/char-vendor.webp', portrait: './images/portrait/vendor.webp', role: '夜市攤商' },
     clerk: { name: '許承恩', img: './images/char-clerk.webp', portrait: './images/portrait/clerk.webp', role: '便利商店店員' },
-    station: { name: '楊詩涵', img: './images/char-station.webp', role: '捷運站務員' },
+    station: { name: '楊詩涵', img: './images/char-station.webp', portrait: './images/portrait/station.webp', role: '捷運站務員' },
     manager: { name: '許國棟', img: './images/char-manager.webp', portrait: './images/portrait/manager.webp', role: '潮港科技 研發部經理' },
-    suspect: { name: '蔡明哲', img: './images/char-suspect.webp', role: '嫌疑人' },
+    suspect: { name: '蔡明哲', img: './images/char-suspect.webp', portrait: './images/portrait/suspect.webp', role: '嫌疑人' },
   };
   window.SD.chapters = [];
 })();
