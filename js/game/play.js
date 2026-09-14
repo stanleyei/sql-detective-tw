@@ -34,7 +34,7 @@
   // ---------------------------------------------------------------------------
   // 面板切換（手機）
   // ---------------------------------------------------------------------------
-  const panes = { story: $('#pane-story'), editor: $('#pane-editor'), board: $('#pane-board') };
+  const panes = { story: $('#pane-story'), editor: $('#pane-editor') };
   const lg = window.matchMedia('(min-width: 64rem)');
   let activePane = 'story';
   function applyPanes() {
@@ -342,43 +342,116 @@
   // ---------------------------------------------------------------------------
   // 證據板與徽章
   // ---------------------------------------------------------------------------
-  function clueCard(clue) {
-    const c = el('article', 'clue-card');
-    c.innerHTML = `<img src="${SD.media.clueIcon(clue.title)}" alt="" width="56" height="56" class="clue-thumb" loading="lazy" /><div class="min-w-0 flex-1"><p class="eyebrow text-[0.65rem] text-teal">第 ${clue.ch} 章 · 線索</p><h4 class="mt-1 font-bold">${esc(clue.title)}</h4><p class="mt-1 leading-6 text-ink-300">${esc(clue.text)}</p></div>`;
+  /*
+   * 證據板是全螢幕 <dialog>（#board-stage）。板上每張線索是一張拍立得；
+   * 尚未在板上看過的線索記在 newClueIds，header 按鈕亮點、卡片加「新」標，開板即清除。
+   */
+  const boardStage = $('#board-stage');
+  const newClueIds = new Set();
+  let boardFilter = 'current'; // 'current' | 'all' | 章節 id
+
+  function clueCard(clue, isNew) {
+    const c = el('article', `polaroid${isNew ? ' is-new' : ''}`);
+    c.innerHTML = `<img src="${SD.media.clueIcon(clue.title)}" alt="" width="240" height="240" class="polaroid-photo" loading="lazy" /><div class="min-w-0 flex-1"><p class="polaroid-ch">第 ${clue.ch} 章 · 線索</p><h4>${esc(clue.title)}</h4><p class="clue-text">${esc(clue.text)}</p></div>`;
     return c;
+  }
+  function updateBoardButton() {
+    $('#clue-count').textContent = String(state.clues.length);
+    $('#btn-board').classList.toggle('has-new', newClueIds.size > 0);
+    $('#clue-new-sr').textContent = newClueIds.size ? `，${newClueIds.size} 條新線索` : '';
   }
   function renderBoard() {
     const board = $('#board');
     board.innerHTML = '';
-    const all = $('#board-all').checked;
-    const clues = state.clues.filter((c) => all || !chapter || c.ch === chapter.id).reverse();
-    for (const c of clues) board.appendChild(clueCard(c));
-    $('#board-empty').hidden = clues.length > 0;
-    $('#board-empty-text').textContent = state.clues.length && !clues.length ? '本章還沒有線索。勾選上方可看其他章節。' : '完成任務後，線索會釘在這裡。';
-    $('#clue-count').textContent = `${clues.length} / ${state.clues.length} 條線索`;
+    const chIds = [...new Set(state.clues.map((c) => c.ch))].sort((a, b) => b - a);
+    // 目前章節沒線索時「本章」沒東西可看，退回全部
+    if (boardFilter === 'current' && chapter && !chIds.includes(chapter.id)) boardFilter = 'all';
+    const shown = chIds.filter((id) => boardFilter === 'all' || (boardFilter === 'current' ? chapter && id === chapter.id : id === boardFilter));
+    // 篩選 chip：全部／本章／各章
+    const f = $('#board-filter');
+    const chips = [['all', '全部'], ...(chapter && chIds.includes(chapter.id) ? [['current', '本章']] : []), ...chIds.filter((id) => !chapter || id !== chapter.id).map((id) => [id, `第 ${id} 章`])];
+    f.innerHTML = chips.map(([k, label]) => `<button type="button" class="board-chip" data-filter="${k}" aria-pressed="${String(k) === String(boardFilter)}">${label}</button>`).join('');
+    let n = 0;
+    for (const id of shown) {
+      const ch = chapters.find((c) => c.id === id);
+      const clues = state.clues.filter((c) => c.ch === id).reverse();
+      n += clues.length;
+      const sec = el('section');
+      sec.setAttribute('aria-label', `第 ${id} 章線索`);
+      sec.innerHTML = `<div class="board-section-title"><p class="eyebrow">第 ${id} 章</p><h3 class="text-xl font-black">${esc(ch ? ch.title : '')}</h3><span class="text-sm text-ink-300">${clues.length} 條線索</span></div>`;
+      const grid = el('div', 'board-grid');
+      for (const c of clues) grid.appendChild(clueCard(c, newClueIds.has(c.id)));
+      sec.appendChild(grid);
+      board.appendChild(sec);
+    }
+    $('#board-empty').hidden = n > 0;
+    $('#board-count').textContent = state.clues.length ? `${n} / ${state.clues.length} 條` : '';
+    updateBoardButton();
   }
-  $('#board-all').addEventListener('change', renderBoard);
+  $('#board-filter').addEventListener('click', (e) => {
+    const b = e.target.closest('[data-filter]');
+    if (!b) return;
+    const k = b.dataset.filter;
+    boardFilter = k === 'all' || k === 'current' ? k : Number(k);
+    renderBoard();
+  });
+  function openBoard() {
+    boardFilter = 'current';
+    renderBoard();
+    boardStage.showModal();
+    if (canAnimate()) {
+      gsap.fromTo(boardStage, { opacity: 0 }, { opacity: 1, duration: 0.3 });
+      gsap.from('#board .polaroid', { y: -24, opacity: 0, duration: 0.45, stagger: 0.04, ease: 'power2.out', clearProps: 'all' });
+    }
+    // 看過就不算新：標記留到關板才清，讓玩家在板上找得到剛釘的那張
+  }
+  $('#btn-board').addEventListener('click', openBoard);
+  $('#board-close').addEventListener('click', () => boardStage.close());
+  boardStage.addEventListener('close', () => { newClueIds.clear(); updateBoardButton(); $('#btn-board').focus(); });
+
+  /* 新增線索：存檔 → 標新 → 右下角提示卡展示後飛進 header 按鈕 */
+  function addClue(clue) {
+    if (!SD.state.addClue(clue)) return;
+    newClueIds.add(clue.id);
+    updateBoardButton();
+    revealClue(clue);
+  }
   function pinClue(step) {
     if (!step.clue) return;
-    const clue = { id: step.id, ch: chapter.id, title: step.clue.title, text: step.clue.text };
-    if (!SD.state.addClue(clue)) return;
-    const board = $('#board');
-    const card = clueCard(clue);
-    $('#board-empty').hidden = true;
-    $('#clue-count').textContent = `${state.clues.filter((c) => $('#board-all').checked || c.ch === chapter.id).length} / ${state.clues.length} 條線索`;
-    // 線索卡從任務卡「飛」到證據板（Flip）；小螢幕看不到證據板時只做淡入
-    const anchor = $('#step-card');
-    if (canAnimate() && window.Flip && lg.matches) {
-      anchor.appendChild(card);
-      card.style.position = 'absolute';
-      const flipState = Flip.getState(card);
-      card.style.position = '';
-      board.prepend(card);
-      Flip.from(flipState, { duration: 0.9, ease: 'power2.inOut', absolute: true, scale: true });
-    } else {
-      board.prepend(card);
-      if (canAnimate()) gsap.from(card, { y: -20, opacity: 0, duration: 0.5 });
-    }
+    addClue({ id: step.id, ch: chapter.id, title: step.clue.title, text: step.clue.text });
+  }
+  let toastTimer = null;
+  function revealClue(clue) {
+    const toast = $('#clue-toast');
+    clearTimeout(toastTimer);
+    toast.innerHTML = '';
+    const card = clueCard(clue, false);
+    card.querySelector('.polaroid-ch').textContent = '新線索已釘上證據板';
+    card.insertAdjacentHTML('beforeend', '<button type="button" class="btn-primary btn-sm absolute bottom-3 right-3" data-open-board>看證據板</button>');
+    toast.appendChild(card);
+    card.querySelector('[data-open-board]').addEventListener('click', () => { dismiss(true); openBoard(); });
+    const btn = $('#btn-board');
+    const dismiss = (now) => {
+      clearTimeout(toastTimer);
+      if (!card.isConnected) return;
+      if (now || !canAnimate()) { card.remove(); return; }
+      // 飛向 header 的證據板按鈕再淡出，讓玩家知道線索收到哪裡去了
+      const from = card.getBoundingClientRect();
+      const to = btn.getBoundingClientRect();
+      gsap.to(card, { x: to.left + to.width / 2 - (from.left + from.width / 2), y: to.top + to.height / 2 - (from.top + from.height / 2), scale: 0.15, opacity: 0, duration: 0.6, ease: 'power2.in', onComplete: () => { card.remove(); gsap.fromTo(btn, { scale: 1.15 }, { scale: 1, duration: 0.4, ease: 'back.out(3)' }); } });
+    };
+    if (canAnimate()) gsap.from(card, { y: 40, opacity: 0, duration: 0.5, ease: 'back.out(1.4)' });
+    toastTimer = setTimeout(() => dismiss(false), 4500);
+  }
+
+  /* 結案回顧：指認／提交步驟的卡片下方列出本章已釘上的線索，並提示還有幾條藏在未完成的任務裡 */
+  function clueRecapHtml() {
+    const got = state.clues.filter((c) => c.ch === chapter.id);
+    // 指認成功會多釘一張「結案」，分母把它算進去，數字才不會超過總數
+    const total = chapter.steps.filter((s) => s.clue || s.type === 'answer').length;
+    const missing = chapter.steps.filter((s) => s.clue && !stepDone(s)).length;
+    const rows = got.map((c) => `<li class="clue-row"><img src="${SD.media.clueIcon(c.title)}" alt="" width="40" height="40" loading="lazy" /><div class="min-w-0"><p class="font-bold">${esc(c.title)}</p><p class="text-sm leading-6 text-ink-300">${esc(c.text)}</p></div></li>`).join('');
+    return `<div class="clue-recap"><div class="flex flex-wrap items-center justify-between gap-2"><p class="eyebrow text-teal">本章線索 ${got.length} / ${total}</p><button type="button" class="btn-ghost btn-sm" data-open-board>打開證據板</button></div>${rows ? `<ul class="mt-2">${rows}</ul>` : '<p class="mt-2 text-sm text-ink-300">還沒有線索。回頭完成任務，線索會釘在這裡。</p>'}${missing ? `<p class="mt-2 text-sm text-amber">還有 ${missing} 條線索藏在未完成的任務裡。</p>` : ''}</div>`;
   }
   function renderBadges() {
     const wrap = $('#badge-list');
@@ -411,6 +484,7 @@
   // 步驟渲染
   // ---------------------------------------------------------------------------
   const card = $('#step-card');
+  card.addEventListener('click', (e) => { if (e.target.closest('[data-open-board]')) openBoard(); });
 
   function stars(n) { return `<span aria-label="${n} 星">${[1, 2, 3].map((i) => `<span class="star ${i <= n ? '' : 'off'}">★</span>`).join('')}</span>`; }
   function starsForHints(h) { return h >= 3 ? 1 : h >= 1 ? 2 : 3; }
@@ -751,7 +825,8 @@
         <input id="answer-input" class="min-h-11 flex-1 rounded-lg border border-ink-600 bg-ink-950 px-3 text-paper" placeholder="輸入姓名" autocomplete="off" ${done ? 'disabled' : ''} />
         <button type="submit" class="btn-primary" ${done ? 'disabled' : ''}>提交</button>
       </form>
-      <div id="feedback" class="mt-3" aria-live="assertive"></div>`;
+      <div id="feedback" class="mt-3" aria-live="assertive"></div>
+      ${clueRecapHtml()}`;
     const fb = $('#feedback', card);
     const success = () => { fb.innerHTML = `<div class="rounded-xl border border-teal/50 bg-teal/10 p-4"><p class="text-lg font-black text-teal">✔ 破案！</p><p class="mt-2 leading-7">${esc(step.success)}</p></div>`; };
     if (done) success();
@@ -766,8 +841,7 @@
         if (canAnimate()) gsap.from(fb.firstElementChild, { scale: 0.9, opacity: 0, duration: 0.5, ease: 'back.out(2)' });
         $('#answer-input', card).disabled = true;
         e.target.querySelector('button').disabled = true;
-        SD.state.addClue({ id: step.id, ch: chapter.id, title: '結案', text: `${v}。${step.success.split('。')[0]}。` });
-        renderBoard();
+        addClue({ id: step.id, ch: chapter.id, title: '結案', text: `${v}。${step.success.split('。')[0]}。` });
         updateNav();
       } else {
         fb.innerHTML = `<div class="rounded-xl border border-amber/40 bg-amber/5 p-3 text-sm leading-6"><span class="font-bold text-amber">不是這個人。</span>${esc(step.fail)}</div>`;
@@ -779,6 +853,7 @@
   function renderSolution(step) {
     renderTask(step);
     $('.eyebrow', card).textContent = '結案系統';
+    $('#feedback', card).insertAdjacentHTML('beforebegin', clueRecapHtml());
     const fb = $('#feedback', card);
     if (stepDone(step)) fb.innerHTML = `<div class="rounded-xl border border-teal/50 bg-teal/10 p-3"><p class="font-bold text-teal">✔ 正確！</p><p class="mt-1 text-sm leading-6">${esc(step.success)}</p></div>`;
   }
@@ -983,9 +1058,12 @@
       ? [
         { target: '#step-card', text: '左邊是劇情、教學與任務。看完一段就按「下一步」，任務會告訴你要查什麼。' },
         { target: '#editor-card', text: '中間是查詢區。在這裡輸入 SQL，按 Ctrl + Enter 執行，結果會自動檢核並顯示在下方。' },
-        { target: '#pane-board .card', text: '右邊是證據板。每完成一個任務，線索就會釘在這裡，最後靠它們指認兇手。' },
+        { target: '#btn-board', text: '右上角是證據板。每完成一個任務，線索就會釘上去，最後靠它們指認兇手。' },
       ]
-      : [{ target: '#pane-tabs', text: '手機上用這三個分頁切換「劇情、查詢、證據板」。任務卡上的按鈕會直接帶你到查詢區。' }];
+      : [
+        { target: '#pane-tabs', text: '手機上用這兩個分頁切換「劇情、查詢」。任務卡上的按鈕會直接帶你到查詢區。' },
+        { target: '#btn-board', text: '右上角是證據板。每完成一個任務，線索就會釘上去，最後靠它們指認兇手。' },
+      ];
     let i = 0;
     const overlay = el('div', 'coach');
     overlay.setAttribute('role', 'dialog');

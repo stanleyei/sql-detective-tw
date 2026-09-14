@@ -178,14 +178,6 @@
   .dot { @apply size-2 rounded-full bg-ink-600; }
   .dot.done { @apply bg-teal; }
   .dot.cur { @apply bg-amber ring-2 ring-amber/40; }
-  /* 線索卡 */
-  .clue-card {
-    @apply relative rounded-xl border border-teal/40 bg-ink-900 p-3 text-sm shadow-glow-teal;
-  }
-  .clue-card::before {
-    content: '';
-    @apply absolute -top-1.5 left-1/2 size-3 -translate-x-1/2 rounded-full bg-pink shadow;
-  }
   /* 編輯器 */
   textarea.sql {
     @apply block w-full resize-y rounded-xl border border-ink-600 bg-ink-950 p-4 text-code leading-relaxed text-paper placeholder:text-ink-300/70 focus:border-amber;
@@ -243,21 +235,15 @@
 
   /*
    * 焦點模式（僅桌機三欄）：main[data-focus] 由 play.js 依步驟型別切換。
-   * read  ＝劇情／教學／測驗：把查詢區與證據板壓暗，視線留在左欄。
+   * read  ＝劇情／教學／測驗：把查詢區壓暗，視線留在左欄。
    * write ＝任務：編輯器卡片加琥珀光環，左欄劇情卡退為一般亮度。
    * hover 或聚焦時立刻恢復，熟手想先玩資料庫不會被阻擋。
    */
   @media (min-width: 64rem) {
-    #main[data-focus="read"] #pane-editor,
-    #main[data-focus="read"] #pane-board { @apply opacity-55 saturate-50 transition duration-300; }
+    #main[data-focus="read"] #pane-editor { @apply opacity-55 saturate-50 transition duration-300; }
     #main[data-focus="read"] #pane-editor:hover,
-    #main[data-focus="read"] #pane-editor:focus-within,
-    #main[data-focus="read"] #pane-board:hover,
-    #main[data-focus="read"] #pane-board:focus-within { @apply opacity-100 saturate-100; }
+    #main[data-focus="read"] #pane-editor:focus-within { @apply opacity-100 saturate-100; }
     #main[data-focus="write"] #editor-card { @apply border-amber/60 shadow-glow-amber; }
-    #main[data-focus="write"] #pane-board { @apply opacity-70 transition duration-300; }
-    #main[data-focus="write"] #pane-board:hover,
-    #main[data-focus="write"] #pane-board:focus-within { @apply opacity-100; }
   }
 
   /* 章節開場 */
@@ -273,8 +259,6 @@
   .scene { @apply -mx-5 -mt-5 mb-4 aspect-[16/9] overflow-hidden rounded-t-2xl border-b border-ink-700; }
   .scene img { @apply size-full object-cover; }
   .lesson-art { @apply float-right ml-4 mb-2 size-24 rounded-2xl border border-ink-700 object-cover sm:size-28; }
-  .clue-card { @apply flex gap-3; }
-  .clue-thumb { @apply size-14 shrink-0 rounded-lg border border-ink-700 object-cover; }
   .empty-art { @apply mx-auto size-32 rounded-2xl object-cover opacity-80; }
 
   /*
@@ -299,4 +283,61 @@
   .coach { @apply pointer-events-none fixed inset-0 z-50; }
   .coach-tip { @apply pointer-events-auto absolute max-w-xs rounded-2xl border border-amber/60 bg-ink-900 p-4 text-sm leading-6 shadow-glow-amber; }
   .coach-target { @apply relative z-50 rounded-2xl ring-4 ring-amber/70 ring-offset-4 ring-offset-ink-950; }
+}
+
+@layer components {
+  /*
+   * 證據板（全螢幕覆蓋層，沿用 .stage）。線索做成「拍立得」釘在暗牆上：紙白底配 ink 字，
+   * 與周圍的深色 UI 形成材質差，讓「這是實體證據」一眼可辨；ink-950 於 paper 上 17:1、ink-700 約 9:1。
+   */
+  .board-bar { @apply absolute inset-x-0 top-0 z-10 flex flex-wrap items-center gap-x-4 gap-y-2 border-b border-ink-800 bg-ink-950/90 px-4 py-2 backdrop-blur sm:px-8; }
+  /* 暗牆：細點陣 + 四角收暗，不放圖片，CSS 失效時就是純 ink-950 */
+  .board-body {
+    @apply absolute inset-0 overflow-y-auto px-4 pb-[max(2rem,env(safe-area-inset-bottom))] pt-28 sm:px-8 sm:pt-24;
+    background-image:
+      radial-gradient(ellipse at center, transparent 40%, color-mix(in srgb, var(--color-ink-950) 80%, transparent) 100%),
+      radial-gradient(color-mix(in srgb, var(--color-ink-600) 55%, transparent) 1px, transparent 1.5px);
+    background-size: 100% 100%, 22px 22px;
+    background-color: var(--color-ink-900);
+  }
+  .board-chip { @apply inline-flex min-h-9 items-center gap-1 rounded-full border border-ink-600 px-2.5 py-1 text-xs text-ink-300 cursor-pointer hover:border-amber hover:text-amber aria-pressed:border-amber aria-pressed:bg-amber/15 aria-pressed:text-amber; }
+  .board-section-title { @apply mb-4 flex flex-wrap items-baseline gap-x-3; }
+  /* 手機一欄時卡片橫排（縮圖在左，文字不被壓窄）；sm 起才是直式拍立得 */
+  .board-grid { @apply grid gap-6 sm:grid-cols-[repeat(auto-fill,minmax(14rem,1fr))] sm:gap-8; }
+  .polaroid {
+    @apply relative flex flex-row gap-3 rounded-sm bg-paper p-3 text-ink-950 shadow-card transition sm:flex-col sm:pb-5;
+    rotate: -1.2deg;
+  }
+  .polaroid:nth-child(even) { rotate: 1.1deg; }
+  .polaroid:nth-child(3n) { rotate: 0.6deg; }
+  .polaroid:hover, .polaroid:focus-within { rotate: 0deg; @apply z-10 shadow-glow-amber; }
+  /* 圖釘：粉紅圓頭 + 一小段陰影 */
+  .polaroid::before {
+    content: '';
+    @apply absolute -top-2 left-1/2 size-4 -translate-x-1/2 rounded-full bg-pink;
+    box-shadow: 0 2px 4px rgb(0 0 0 / 0.45), inset -2px -2px 3px rgb(0 0 0 / 0.25);
+  }
+  /* 桌機用 4/3 而非正方形：一屏能多放一列，圖示主體佔七成、裁上下不會切到主體 */
+  .polaroid-photo { @apply size-24 shrink-0 rounded-sm bg-ink-900 object-cover sm:aspect-[4/3] sm:size-auto sm:w-full; }
+  .polaroid-ch { @apply text-eyebrow font-bold uppercase text-ink-700; }
+  .polaroid h4 { @apply mt-0.5 text-base font-black leading-6; }
+  .polaroid p.clue-text { @apply mt-1 text-sm leading-6 text-ink-700; }
+  .polaroid.is-new { @apply ring-4 ring-amber ring-offset-2 ring-offset-ink-900; }
+  .polaroid.is-new::after { content: '新'; @apply absolute -right-2 -top-2 rounded-full bg-amber px-2 py-0.5 text-xs font-black text-ink-950; }
+
+  /* header 證據板按鈕：有未讀線索時右上角亮一顆脈衝小點 */
+  .board-dot { @apply absolute -right-1 -top-1 hidden size-3 rounded-full bg-amber; }
+  #btn-board.has-new .board-dot { @apply block; animation: cue-pulse 1.6s ease-in-out infinite; }
+
+  /* 新線索提示卡：固定在右下角，不佔版面；手機貼齊左右邊 */
+  .clue-toast { @apply pointer-events-none fixed inset-x-4 bottom-4 z-50 sm:inset-x-auto sm:right-6 sm:w-96; }
+  .clue-toast > * { @apply pointer-events-auto; }
+  /* 底部預留一列給「看證據板」按鈕（絕對定位在右下） */
+  .clue-toast .polaroid { rotate: 0deg; @apply flex-row pb-14 sm:flex-row sm:pb-14; }
+  .clue-toast .polaroid-photo { @apply size-20 sm:aspect-auto sm:size-20; }
+
+  /* 結案回顧：指認題面下方列出本章已釘上的線索 */
+  .clue-recap { @apply mt-4 rounded-xl border border-teal/40 bg-ink-950/60 p-3; }
+  .clue-row { @apply flex gap-3 border-t border-ink-800 py-2 first:border-t-0; }
+  .clue-row img { @apply size-10 shrink-0 rounded-md object-cover; }
 }
