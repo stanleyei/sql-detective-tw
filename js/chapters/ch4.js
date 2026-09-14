@@ -1,11 +1,11 @@
-/* 第 4 章 公司內鬼：INNER JOIN、多表 JOIN、LEFT JOIN、自我連結、JOIN + GROUP BY */
+/* 第 4 章 公司內鬼：INNER JOIN、多表 JOIN、LEFT JOIN、SELF JOIN、JOIN + GROUP BY */
 SD.chapters.push({
   id: 4,
   slug: 'ch4',
   title: '公司內鬼',
   subtitle: '把資料表接起來',
   cover: './images/ch4.webp',
-  skills: ['INNER JOIN', '多表 JOIN', 'LEFT JOIN', '表別名', '自我連結'],
+  skills: ['INNER JOIN', '多表 JOIN', 'LEFT JOIN', '表別名', 'SELF JOIN'],
   badge: { id: 'join', name: '連結專家', img: './images/badge-join.webp', desc: '用 JOIN 把門禁、員工、市民、捷運四張表串成一條證據鏈。' },
   steps: [
     { type: 'story', lines: [
@@ -83,7 +83,7 @@ WHERE e.company_id = 1 AND e.department = '研發部';</code></pre>
       hints: ["WHERE p.name IN ('許國棟', '周文傑')", 'JOIN person p ON p.id = i.person_id', "<code>SELECT p.name, i.transcript FROM interview i JOIN person p ON p.id = i.person_id WHERE p.name IN ('許國棟', '周文傑');</code>"],
       check: { kind: 'result', cols: ['name', 'transcript'], ordered: false },
       clue: { title: '周文傑說謊', text: '周文傑聲稱「加班到十點就回家」，但門禁顯示他 2025-06-20 的 21:55 才進大門、23:05 才離開，中間正是機房被刷開的時段。' } },
-    { type: 'lesson', title: '自我連結：員工與他的主管在同一張表', body: `
+    { type: 'lesson', title: 'SELF JOIN：員工與他的主管在同一張表', body: `
       <p><code>employee.manager_id</code> 指向<strong>同一張表</strong>的另一列。要列出「員工與主管姓名」，就把 employee 跟自己 JOIN 一次，用兩個不同別名：</p>
       <pre><code>SELECT p.name AS employee, m.name AS manager
 FROM employee AS e

@@ -17,7 +17,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet" />
   <link rel="icon" href="./favicon.ico" sizes="48x48" />
   <link rel="apple-touch-icon" href="./images/apple-touch-icon.png" />
-  <link rel="stylesheet" href="./css/style.css?v=20260915-02" />
+  <link rel="stylesheet" href="./css/style.css?v=20260915-03" />
 </head>
 <body>
   <a href="#main" class="sr-only z-60 rounded-lg bg-amber px-6 py-3 font-bold text-ink-950 focus:not-sr-only focus:fixed focus:left-4 focus:top-4">跳至主要內容</a>
@@ -44,7 +44,7 @@
         <li class="rounded-lg border border-ink-700 bg-ink-900/60 px-3 py-2 text-sm"><span class="font-mono text-teal">interview.report_id</span> <span class="text-amber">→</span> <span class="font-mono text-teal">crime_report.id</span><br /><span class="text-ink-300">筆錄 → 案件</span></li>
         <li class="rounded-lg border border-ink-700 bg-ink-900/60 px-3 py-2 text-sm"><span class="font-mono text-teal">employee.person_id</span> <span class="text-amber">→</span> <span class="font-mono text-teal">person.id</span><br /><span class="text-ink-300">員工 → 市民</span></li>
         <li class="rounded-lg border border-ink-700 bg-ink-900/60 px-3 py-2 text-sm"><span class="font-mono text-teal">employee.company_id</span> <span class="text-amber">→</span> <span class="font-mono text-teal">company.id</span><br /><span class="text-ink-300">員工 → 公司</span></li>
-        <li class="rounded-lg border border-ink-700 bg-ink-900/60 px-3 py-2 text-sm"><span class="font-mono text-teal">employee.manager_id</span> <span class="text-amber">→</span> <span class="font-mono text-teal">employee.id</span><br /><span class="text-ink-300">員工 → 主管（自我連結）</span></li>
+        <li class="rounded-lg border border-ink-700 bg-ink-900/60 px-3 py-2 text-sm"><span class="font-mono text-teal">employee.manager_id</span> <span class="text-amber">→</span> <span class="font-mono text-teal">employee.id</span><br /><span class="text-ink-300">員工 → 主管（SELF JOIN）</span></li>
         <li class="rounded-lg border border-ink-700 bg-ink-900/60 px-3 py-2 text-sm"><span class="font-mono text-teal">access_log.employee_id</span> <span class="text-amber">→</span> <span class="font-mono text-teal">employee.id</span><br /><span class="text-ink-300">門禁 → 員工</span></li>
         <li class="rounded-lg border border-ink-700 bg-ink-900/60 px-3 py-2 text-sm"><span class="font-mono text-teal">transit_card.person_id</span> <span class="text-amber">→</span> <span class="font-mono text-teal">person.id</span><br /><span class="text-ink-300">悠遊卡 → 持卡人</span></li>
         <li class="rounded-lg border border-ink-700 bg-ink-900/60 px-3 py-2 text-sm"><span class="font-mono text-teal">transit_log.card_id</span> <span class="text-amber">→</span> <span class="font-mono text-teal">transit_card.card_id</span><br /><span class="text-ink-300">進出站 → 悠遊卡</span></li>
@@ -67,10 +67,10 @@
   </footer>
 
   <script src="./vendor/sql-wasm.js"></script>
-  <script src="./js/engine/seed.js?v=20260915-02"></script>
-  <script src="./js/engine/mariadb-compat.js?v=20260915-02"></script>
-  <script src="./js/engine/db.js?v=20260915-02"></script>
-  <script src="./js/game/schema-doc.js?v=20260915-02"></script>
-  <script src="./js/game/schema-page.js?v=20260915-02" defer></script>
+  <script src="./js/engine/seed.js?v=20260915-03"></script>
+  <script src="./js/engine/mariadb-compat.js?v=20260915-03"></script>
+  <script src="./js/engine/db.js?v=20260915-03"></script>
+  <script src="./js/game/schema-doc.js?v=20260915-03"></script>
+  <script src="./js/game/schema-page.js?v=20260915-03" defer></script>
 </body>
 </html>

@@ -12,7 +12,7 @@
 | 1 | 夜市失竊 | AND / OR、LIKE、IN、BETWEEN、IS NULL、ORDER BY、DISTINCT |
 | 2 | 超商監視器 | 日期時間函數、INTERVAL、字串函數、CASE、AS |
 | 3 | 捷運遺失物 | COUNT / SUM / AVG、GROUP BY、HAVING、GROUP_CONCAT |
-| 4 | 公司內鬼 | INNER JOIN、LEFT JOIN、多表、自我連結 |
+| 4 | 公司內鬼 | INNER JOIN、LEFT JOIN、多表、SELF JOIN |
 | 5 | 資料室整理 | CREATE TABLE、AUTO_INCREMENT、INSERT / UPDATE / DELETE、ALTER、DROP |
 | 6 | 海景大樓命案 | 子查詢、綜合推理、INSERT INTO solution |
 

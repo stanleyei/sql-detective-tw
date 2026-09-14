@@ -32,7 +32,7 @@
     { title: 'JOIN', items: [
       ['FROM employee e\nJOIN person p ON p.id = e.person_id', '內連結：兩邊都有才留'],
       ['LEFT JOIN access_log a ON a.employee_id = e.id', '左連結：左邊全留，右邊補 NULL'],
-      ['JOIN employee me ON me.id = e.manager_id', '自我連結：同一張表用不同別名'],
+      ['JOIN employee me ON me.id = e.manager_id', 'SELF JOIN：同一張表用不同別名'],
     ] },
     { title: '子查詢', items: [
       ['WHERE house_no = (SELECT MAX(house_no) FROM person)', '單一值用 ='],
