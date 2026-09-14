@@ -14,7 +14,9 @@
     "prebuild": "node scripts/gen-data.js && node scripts/build-tasks.js",
     "img:gen": "node scripts/gen-images.js",
     "test:tasks": "node scripts/test-tasks.js",
-    "test": "npm run test:compat && npm run test:tasks"
+    "bump": "node scripts/bump-version.js",
+    "bump:check": "node scripts/bump-version.js --check",
+    "test": "npm run test:compat && npm run test:tasks && npm run bump:check"
   },
   "devDependencies": {
     "@tailwindcss/cli": "^4.1.0",

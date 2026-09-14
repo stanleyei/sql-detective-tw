@@ -30,7 +30,7 @@
 <script src="./js/main.js?v=YYYYMMDD-NN" defer></script>
 ```
 
-**只要 `src/tailwind.css`、`css/style.css` 或 `js/` 底下任一檔案有異動，發布前務必將三個 HTML 內所有 `?v=` 同步更新為當日日期與下一個流水號。** 同一天多次發布時，流水號必須遞增，避免 `immutable` 快取因版本號重複而繼續提供舊檔。
+**只要 `src/tailwind.css`、`css/style.css` 或 `js/` 底下任一檔案有異動，發布前務必執行 `npm run bump`**，它會讀出三頁現有版本、以今天日期算出下一個流水號並同步改寫三個 HTML 內所有 `?v=`；不要手動逐一替換。`npm run bump:check` 只驗證三頁是否一致不改檔，已納入 `npm test`。同一天多次發布時流水號必須遞增，避免 `immutable` 快取因版本號重複而繼續提供舊檔。`bump` 綁定「發布」而非「建置」，因此刻意不掛進 `build` 或 `dev`。
 
 原因：正式站（GitHub Pages）與過往 nginx 部署都會長期快取靜態檔，nginx 對 `.css` / `.js` 設定了 `Cache-Control: public, max-age=31536000, immutable`（一年、不重新驗證），版本號沒更新使用者就會一直拿到舊檔。LINE、Facebook 等 App 內建瀏覽器有獨立於系統瀏覽器的快取，且比一般瀏覽器更難清除，這個問題在它們身上最嚴重——曾發生 Tailwind 新增的 utility 因舊 CSS 未更新而未生效、導致圖示爆版的實際案例。
 
