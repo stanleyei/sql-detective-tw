@@ -1015,7 +1015,7 @@
       <div class="intro-banner">
         <img src="${chapter.cover}" alt="" width="1200" height="525" fetchpriority="high" />
         <div class="absolute inset-x-0 bottom-0 z-10 p-6 sm:p-8">
-          <p class="eyebrow">第 ${chapter.id} 章 · 約 ${chapter.minutes} 分 · ${tasks.length} 個任務</p>
+          <p class="eyebrow">第 ${chapter.id} 章 · ${tasks.length} 個任務</p>
           <h1 class="mt-2 text-3xl font-black sm:text-5xl">${esc(chapter.title)}</h1>
           <p class="mt-2 text-lg text-ink-300">${esc(chapter.subtitle)}</p>
         </div>

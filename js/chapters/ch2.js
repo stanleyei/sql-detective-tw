@@ -5,7 +5,6 @@ SD.chapters.push({
   title: '超商監視器',
   subtitle: '時間、字串與 CASE',
   cover: './images/ch2.webp',
-  minutes: 60,
   skills: ['日期時間函數', 'DATE_SUB / INTERVAL', 'RIGHT / LEFT / CONCAT', 'CASE WHEN', 'AS 別名'],
   badge: { id: 'time', name: '時間旅人', img: './images/badge-time.webp', desc: '用日期時間函數重建案發時間線。' },
   steps: [

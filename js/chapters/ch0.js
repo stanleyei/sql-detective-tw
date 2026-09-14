@@ -5,7 +5,6 @@ SD.chapters.push({
   title: '報到日',
   subtitle: '認識警局資料庫',
   cover: './images/ch0.webp',
-  minutes: 40,
   skills: ['SHOW TABLES', 'DESCRIBE', 'SELECT', 'WHERE', '比較運算'],
   badge: { id: 'rookie', name: '菜鳥實習生', img: './images/badge-rookie.webp', desc: '完成報到，學會用 SELECT 打開資料抽屜。' },
   steps: [

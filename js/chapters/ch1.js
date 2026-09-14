@@ -5,7 +5,6 @@ SD.chapters.push({
   title: '夜市失竊',
   subtitle: '篩選條件與排序',
   cover: './images/ch1.webp',
-  minutes: 70,
   skills: ['AND / OR / NOT', 'LIKE', 'IN', 'BETWEEN', 'IS NULL', 'ORDER BY', 'DISTINCT'],
   badge: { id: 'filter', name: '篩選大師', img: './images/badge-filter.webp', desc: '用 WHERE 的各種條件從人海中撈出嫌疑人。' },
   steps: [

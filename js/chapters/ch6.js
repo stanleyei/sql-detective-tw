@@ -5,7 +5,6 @@ SD.chapters.push({
   title: '海景大樓命案',
   subtitle: '子查詢與綜合推理',
   cover: './images/ch6.webp',
-  minutes: 90,
   skills: ['子查詢', 'IN (SELECT ...)', 'MAX 子查詢', 'HAVING', '綜合推理'],
   badge: { id: 'detective', name: '名偵探', img: './images/badge-detective.webp', desc: '獨力破解潮港市命案，找出兇手與幕後主使。' },
   steps: [

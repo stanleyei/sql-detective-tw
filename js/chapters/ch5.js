@@ -5,7 +5,6 @@ SD.chapters.push({
   title: '資料室整理',
   subtitle: '建表與資料異動',
   cover: './images/ch5.webp',
-  minutes: 60,
   skills: ['CREATE TABLE', 'AUTO_INCREMENT', 'INSERT', 'UPDATE', 'DELETE', 'ALTER TABLE', 'DROP TABLE'],
   badge: { id: 'admin', name: '資料管理員', img: './images/badge-admin.webp', desc: '從零建立證物登錄系統，並安全地新增、修改與刪除資料。' },
   resettable: true,

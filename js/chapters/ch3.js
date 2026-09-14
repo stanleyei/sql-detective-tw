@@ -5,7 +5,6 @@ SD.chapters.push({
   title: '捷運遺失物',
   subtitle: '統計與分組',
   cover: './images/ch3.webp',
-  minutes: 70,
   skills: ['COUNT / SUM / AVG', 'MIN / MAX', 'GROUP BY', 'HAVING', 'GROUP_CONCAT'],
   badge: { id: 'stats', name: '統計高手', img: './images/badge-stats.webp', desc: '用聚合函數從幾百筆紀錄中數出異常。' },
   steps: [

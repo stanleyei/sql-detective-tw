@@ -38,7 +38,7 @@
       <img src="${ch.cover}" alt="" width="600" height="400" loading="lazy" />
       <div class="flex flex-1 flex-col gap-2 p-5">
         <div class="flex items-center justify-between gap-2">
-          <p class="eyebrow">第 ${ch.id} 章 · 約 ${ch.minutes} 分</p>
+          <p class="eyebrow">第 ${ch.id} 章</p>
           ${status}
         </div>
         <h3 class="text-xl font-bold">${ch.title}</h3>

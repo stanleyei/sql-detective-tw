@@ -5,7 +5,6 @@ SD.chapters.push({
   title: '公司內鬼',
   subtitle: '把資料表接起來',
   cover: './images/ch4.webp',
-  minutes: 90,
   skills: ['INNER JOIN', '多表 JOIN', 'LEFT JOIN', '表別名', '自我連結'],
   badge: { id: 'join', name: '連結專家', img: './images/badge-join.webp', desc: '用 JOIN 把門禁、員工、市民、捷運四張表串成一條證據鏈。' },
   steps: [
