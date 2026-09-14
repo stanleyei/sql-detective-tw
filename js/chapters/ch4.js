@@ -37,7 +37,7 @@ WHERE e.company_id = 1;</code></pre>
       lead: 'access_log 表，door 與 event_time 兩個條件用 AND，時間用 BETWEEN 並寫完整日期時間。',
       hints: ["door = '機房' AND event_time BETWEEN ... AND ...", '這題還不需要 JOIN。', "<code>SELECT employee_id, action, event_time FROM access_log WHERE door = '機房' AND event_time BETWEEN '2025-06-20 22:00:00' AND '2025-06-20 23:00:00';</code>"],
       check: { kind: 'result', cols: ['employee_id', 'action', 'event_time'], ordered: false },
-      clue: { title: '機房門禁', text: '員工編號 1 的卡在 22:17 進入機房、22:41 離開。' } },
+      clue: { title: '機房門禁', text: '員工編號 1 的卡在 2025-06-20 的 22:17 進入機房、22:41 離開。' } },
     { type: 'lesson', title: '三張表一起 JOIN', body: `
       <p>JOIN 可以一路接下去。門禁 → 員工 → 市民：</p>
       <pre><code>SELECT p.name, e.title, a.door, a.event_time
