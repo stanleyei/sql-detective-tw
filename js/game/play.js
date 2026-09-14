@@ -830,6 +830,9 @@
     chapter = ch;
     const p = prog();
     stepIndex = step !== undefined ? Math.min(step, ch.steps.length - 1) : Math.min(p.step || 0, ch.steps.length - 1);
+    if (step === undefined && location.hash !== `#${ch.slug}`) {
+      history.replaceState(null, '', `#${ch.slug}`);
+    }
     populateSelect();
     document.title = `第 ${ch.id} 章 ${ch.title} · SQL 偵探事務所`;
     renderBoard();
