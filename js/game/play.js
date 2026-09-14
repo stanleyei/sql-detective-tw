@@ -580,6 +580,13 @@
     const sp = speaker(line.who);
     const last = stageLine === stageStep.lines.length - 1;
     stageBox.classList.toggle('narrator', !sp.name);
+    stageBox.classList.toggle('has-portrait', !!sp.portrait);
+    const portrait = $('#stage-portrait');
+    const switching = !!sp.portrait && portrait.getAttribute('src') !== sp.portrait;
+    portrait.hidden = !sp.portrait;
+    if (sp.portrait) portrait.src = sp.portrait;
+    // 只在換人時滑入，同一人連續說話立繪不動
+    if (switching && canAnimate()) gsap.fromTo(portrait, { x: -16, opacity: 0 }, { x: 0, opacity: 1, duration: 0.3, ease: 'power2.out' });
     const avatar = $('#stage-avatar');
     avatar.hidden = !sp.img;
     if (sp.img) avatar.src = sp.img;

@@ -312,7 +312,14 @@
   .stage-top { @apply absolute inset-x-0 top-0 z-10 flex flex-wrap items-center justify-between gap-2 bg-gradient-to-b from-ink-950/80 to-transparent px-4 py-3 sm:px-8; }
   /* pb 取 safe-area 與 1rem 的較大值：手機底部手勢列會蓋住按鈕 */
   .stage-body { @apply absolute inset-0 flex cursor-pointer flex-col justify-end bg-gradient-to-t from-ink-950 via-ink-950/30 to-transparent px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-20 sm:px-8 sm:pb-8; }
-  .stage-box { @apply mx-auto w-full max-w-3xl rounded-2xl border border-ink-700 bg-ink-950/90 p-4 shadow-card backdrop-blur sm:p-6; }
+  .stage-box { @apply relative mx-auto w-full max-w-3xl rounded-2xl border border-ink-700 bg-ink-950/90 p-4 shadow-card backdrop-blur sm:p-6; }
+  /*
+   * 立繪：貼齊視窗底部、下半身被對話框蓋住（視覺小說慣例，臉永遠在框上方）。
+   * 手機置中；桌機移到對話框左緣（框寬 48rem 置中，左緣即 50% - 24rem），與框重疊約一半。
+   * 高度取 dvh 與上限的較小值：矮視窗時立繪不會把臉頂出畫面。
+   */
+  .stage-portrait { @apply pointer-events-none absolute bottom-0 left-1/2 h-[min(58dvh,30rem)] w-auto -translate-x-1/2 object-contain object-bottom drop-shadow-2xl lg:left-[calc(50%-24rem)] lg:h-[min(70dvh,36rem)]; }
+  .stage-box.has-portrait .stage-avatar { @apply hidden; }
   .stage-speaker { @apply flex items-center gap-3; }
   .stage-avatar { @apply size-16 shrink-0 rounded-full border-2 border-amber/60 object-cover; }
   /* min-h 預留約三行，句子長短不同時對話框高度不跳動 */
