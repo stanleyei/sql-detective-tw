@@ -355,7 +355,7 @@
     if (!tables.length) { wrap.hidden = true; return; }
     wrap.hidden = false;
     const s = SD.db.schema();
-    wrap.innerHTML = `<p class="text-xs text-ink-300">相關資料表（點開看欄位，點欄位插入編輯器）</p><div class="mt-1 flex flex-wrap gap-2">${tables.map((t) => `<button type="button" class="chip min-h-9 cursor-pointer font-mono text-teal hover:border-amber" data-table="${t}" aria-expanded="false">${esc(t)}</button>`).join('')}</div><div id="task-cols" class="mt-2 flex flex-wrap gap-1.5" hidden></div>`;
+    wrap.innerHTML = `<p class="text-xs text-ink-300">相關資料表（點開看欄位，點欄位插入編輯器）</p><div class="mt-1 flex flex-wrap gap-2">${tables.map((t) => `<button type="button" class="chip min-h-11 cursor-pointer font-mono text-teal hover:border-amber" data-table="${t}" aria-expanded="false">${esc(t)}</button>`).join('')}</div><div id="task-cols" class="mt-2 flex flex-wrap gap-1.5" hidden></div>`;
     const cols = $('#task-cols', wrap);
     wrap.addEventListener('click', (e) => {
       const tb = e.target.closest('[data-table]');
@@ -365,7 +365,7 @@
         if (open) { cols.hidden = true; return; }
         tb.setAttribute('aria-expanded', 'true');
         cols.hidden = false;
-        cols.innerHTML = s.byTable[tb.dataset.table].map((c) => `<button type="button" class="inline-flex items-center gap-1 rounded border border-ink-700 bg-ink-950/60 px-2 py-1 font-mono text-xs text-paper hover:border-amber" data-col="${esc(c.name)}">${c.pk ? SD.schemaDoc.keyIcon('pk') : SD.schemaDoc.fk(tb.dataset.table, c.name) || c.fk ? SD.schemaDoc.keyIcon('fk') : ''}${esc(c.name)}</button>`).join('');
+        cols.innerHTML = s.byTable[tb.dataset.table].map((c) => `<button type="button" class="inline-flex min-h-11 items-center gap-1 rounded border border-ink-700 bg-ink-950/60 px-2 py-1 font-mono text-xs text-paper hover:border-amber" data-col="${esc(c.name)}">${c.pk ? SD.schemaDoc.keyIcon('pk') : SD.schemaDoc.fk(tb.dataset.table, c.name) || c.fk ? SD.schemaDoc.keyIcon('fk') : ''}${esc(c.name)}</button>`).join('');
         return;
       }
       const cb = e.target.closest('[data-col]');
@@ -386,8 +386,8 @@
       <h2 class="mt-2 text-2xl font-black">${esc(step.title)}</h2>
       <div class="prose-sd mt-3">${step.prompt}</div>
       <div id="task-tables" class="mt-3" hidden></div>
-      <div id="feedback" class="mt-3" aria-live="assertive"></div>
-      <div class="mt-4 flex flex-wrap gap-2">
+      <div id="feedback" class="not-empty:mt-3" aria-live="assertive"></div>
+      <div class="mt-5 flex flex-wrap gap-2 border-t border-ink-700 pt-4">
         <button type="button" id="btn-goto-editor" class="btn-primary btn-sm lg:hidden">前往查詢區寫 SQL →</button>
         <button type="button" id="btn-hint" class="btn-ghost btn-sm">💡 提示（${Math.min(hintsUsed, 3)}/3）</button>
       </div>
