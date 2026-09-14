@@ -224,6 +224,18 @@
   .menu-panel { @apply absolute right-0 top-full z-50 mt-2 flex min-w-44 flex-col gap-1 rounded-xl border border-ink-700 bg-ink-900 p-2 shadow-card; }
   .menu-item { @apply inline-flex min-h-11 w-full cursor-pointer items-center rounded-lg px-3 text-left text-sm text-paper hover:bg-ink-800 hover:text-amber; }
 
+  /*
+   * 查詢紀錄浮動面板：以編輯器標題列（relative）為定位基準。手機與標題列同寬；
+   * 桌機靠右、最寬 36rem。高度上限用 dvh，手機網址列伸縮時才不會超出可視範圍。
+   */
+  .history-panel { @apply absolute inset-x-0 top-full z-50 mt-2 flex max-h-[60dvh] flex-col overflow-hidden rounded-xl border border-ink-700 bg-ink-900 shadow-card lg:left-auto lg:w-[36rem] lg:max-w-full; }
+  /* .card 的 backdrop-blur 會建立 stacking context，面板的 z-50 出不了卡片、會被後面的卡片蓋住；開啟時整張卡往上抬 */
+  .card:has(> * > .menu[open], > * > * > .menu[open]) { @apply relative z-30; }
+  .history-row { @apply flex min-h-11 min-w-0 flex-1 cursor-pointer flex-col gap-1 rounded-lg px-2 py-1.5 text-left hover:bg-ink-800; }
+  .history-sql { @apply line-clamp-2 font-mono text-code break-all whitespace-pre-wrap text-paper; }
+  /* 復原提示浮在編輯器右下角（absolute），不佔版面高度 */
+  .undo-toast { @apply absolute inset-x-2 bottom-3 z-10 sm:left-auto; }
+
   /* 「現在該做什麼」提示條：只在任務步驟顯示於編輯器上方 */
   .cue { @apply flex items-center gap-3 rounded-xl border border-amber/50 bg-amber/10 px-3 py-2; }
   .cue-dot { @apply size-2.5 shrink-0 rounded-full bg-amber; animation: cue-pulse 1.6s ease-in-out infinite; }

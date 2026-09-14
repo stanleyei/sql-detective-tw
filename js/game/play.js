@@ -52,10 +52,14 @@
   const main = $('#main');
   function setFocus(mode) { main.dataset.focus = mode; }
 
-  // header「⋯」選單：點外面或按 Esc 關閉
+  // <details class="menu"> 下拉選單（header「⋯」、查詢紀錄）：點外面或按 Esc 關閉，Esc 時焦點回到開關
+  const menus = [...document.querySelectorAll('details.menu')];
+  document.addEventListener('click', (e) => { menus.forEach((m) => { if (m.open && !m.contains(e.target)) m.open = false; }); });
+  document.addEventListener('keydown', (e) => {
+    if (e.key !== 'Escape') return;
+    menus.forEach((m) => { if (m.open) { m.open = false; m.querySelector('summary').focus(); } });
+  });
   const moreMenu = $('#more-menu');
-  document.addEventListener('click', (e) => { if (moreMenu.open && !moreMenu.contains(e.target)) moreMenu.open = false; });
-  document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && moreMenu.open) moreMenu.open = false; });
   moreMenu.addEventListener('click', (e) => { if (e.target.closest('.menu-item')) moreMenu.open = false; });
 
   // ---------------------------------------------------------------------------
@@ -65,16 +69,77 @@
   const resultsEl = $('#results');
 
   function insertAtCursor(text) {
+    showPane('editor');
     const start = editor.selectionStart, end = editor.selectionEnd;
     const before = editor.value.slice(0, start), after = editor.value.slice(end);
     const pad = before && !/\s$/.test(before) ? ' ' : '';
-    editor.value = before + pad + text + after;
-    const pos = start + pad.length + text.length;
-    editor.setSelectionRange(pos, pos);
     editor.focus();
-    showPane('editor');
+    editor.setSelectionRange(start, end);
+    if (!execInsert(pad + text)) {
+      editor.value = before + pad + text + after;
+      const pos = start + pad.length + text.length;
+      editor.setSelectionRange(pos, pos);
+    }
+    saveDraftSoon(500);
   }
-  function setEditor(text) { editor.value = text; editor.focus(); showPane('editor'); }
+  /*
+   * 程式寫入編輯器一律用 execCommand('insertText')，不直接設 value：直接設 value 會打亂瀏覽器原生的復原堆疊，
+   * 之後按 Ctrl+Z 會救不回被蓋掉的內容，甚至拼出錯亂的文字。execCommand 雖列為過時，主流瀏覽器仍支援。
+   */
+  function execInsert(text) {
+    try { return text ? document.execCommand('insertText', false, text) : document.execCommand('delete'); } catch (e) { return false; }
+  }
+  /** 整段取代編輯器內容；execInsert 失敗（不支援或編輯器不可見）時才退回設 value */
+  function writeEditor(text) {
+    editor.focus();
+    if (editor.value === text) return;
+    editor.select();
+    if (!execInsert(text) || editor.value !== text) editor.value = text;
+    saveDraftSoon(0);
+  }
+
+  /** 所有「整段取代編輯器」的操作都走這裡：原本有內容就先存進紀錄，並提供復原 */
+  function replaceEditor(text, message) {
+    const prev = editor.value;
+    const changed = prev.trim() && prev.trim() !== text.trim();
+    if (changed) { SD.state.addHistory({ sql: prev.trim(), kind: 'draft', ch: chapter ? chapter.id : null }); renderHistory(); }
+    // 先切到查詢分頁：手機上編輯器所在面板是 hidden，無法聚焦也就無法 execCommand
+    showPane('editor');
+    writeEditor(text);
+    // 沒產生新的復原點時也收掉舊提示，否則「已清空」之類的訊息會對應到錯的內容
+    if (changed) showUndo(message, prev); else hideUndo();
+  }
+  function setEditor(text) { replaceEditor(text, '已用帶入的 SQL 取代原本的內容。'); }
+
+  const undoBox = $('#editor-undo');
+  let undoTimer = null;
+  function hideUndo() { clearTimeout(undoTimer); undoBox.innerHTML = ''; }
+  function showUndo(message, prev) {
+    hideUndo();
+    const row = el('div', 'flex items-center gap-3 rounded-xl border border-teal/60 bg-ink-900 py-1 pl-3 pr-1 text-sm shadow-card');
+    row.appendChild(el('span', 'flex-1', esc(message)));
+    const b = el('button', 'btn-ghost btn-sm', '復原');
+    b.type = 'button';
+    b.addEventListener('click', () => {
+      // 帶入後若又改過，復原前把目前內容也留進紀錄，來回切換都不會掉東西
+      const cur = editor.value.trim();
+      if (cur && cur !== prev.trim()) { SD.state.addHistory({ sql: cur, kind: 'draft', ch: chapter ? chapter.id : null }); renderHistory(); }
+      writeEditor(prev);
+      hideUndo();
+    });
+    row.appendChild(b);
+    undoBox.appendChild(row);
+    // 焦點在復原按鈕上時不收掉，避免鍵盤使用者按到一半按鈕消失
+    const schedule = () => { undoTimer = setTimeout(() => { if (undoBox.contains(document.activeElement)) schedule(); else hideUndo(); }, 8000); };
+    schedule();
+  }
+
+  /* 草稿自動保存：重新整理或關掉分頁後，打到一半的 SQL 仍在 */
+  let draftTimer = null;
+  function saveDraftSoon(delay) { clearTimeout(draftTimer); draftTimer = setTimeout(() => SD.state.saveDraft(editor.value), delay); }
+  editor.value = SD.state.loadDraft();
+  editor.addEventListener('input', () => { saveDraftSoon(500); histNav = null; });
+  window.addEventListener('pagehide', () => SD.state.saveDraft(editor.value));
 
   function renderTable(res) {
     const wrap = el('div', 'max-h-[26rem] overflow-auto rounded-xl border border-ink-700');
@@ -135,6 +200,8 @@
     lastSql = sql;
     lastResults = SD.db.run(sql);
     renderResults(lastResults);
+    SD.state.addHistory({ sql, kind: 'run', ch: chapter ? chapter.id : null, ...runSummary(lastResults) });
+    renderHistory();
     // 執行後收起欄位格，讓編輯器與結果同時留在視野內；表名 chip 仍在，一鍵可再展開
     if (openSchemaTable) renderSchemaCols(null);
     if (lastResults.some((r) => r.type === 'affected' || r.ddl)) { scheduleDbSave(); renderSchemaList(); }
@@ -142,11 +209,80 @@
     if (step && (step.type === 'task' || step.type === 'solution')) await evaluateStep(step);
   }
   $('#btn-run').addEventListener('click', runSql);
-  $('#btn-clear').addEventListener('click', () => { editor.value = ''; editor.focus(); });
+  $('#btn-clear').addEventListener('click', () => replaceEditor('', '已清空編輯器。'));
   editor.addEventListener('keydown', (e) => {
     if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') { e.preventDefault(); runSql(); }
     if (e.key === 'Tab') { e.preventDefault(); insertAtCursor('  '); }
+    // 只綁 Alt + 方向鍵：單純的上下鍵在多行 textarea 裡是移動游標
+    if (e.altKey && (e.key === 'ArrowUp' || e.key === 'ArrowDown')) { e.preventDefault(); stepHistory(e.key === 'ArrowUp' ? 1 : -1); }
   });
+
+  // ---------------------------------------------------------------------------
+  // 查詢紀錄（編輯器下方）
+  // ---------------------------------------------------------------------------
+  function runSummary(results) {
+    const err = results.find((r) => r.type === 'error');
+    if (err) return { status: 'error', summary: `錯誤：${err.title}` };
+    const last = results[results.length - 1];
+    if (!last) return { status: 'ok', summary: '沒有結果' };
+    if (last.type === 'result') return { status: 'ok', summary: `成功 · ${last.total} 筆` };
+    if (last.type === 'affected') return { status: 'ok', summary: `Query OK · 影響 ${last.count} 筆` };
+    return { status: 'ok', summary: 'Query OK' };
+  }
+  const visibleHistory = () => { const all = $('#history-all').checked; return SD.state.history().filter((h) => all || !chapter || h.ch === chapter.id); };
+  const timeFmt = new Intl.DateTimeFormat('zh-TW', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit', hour12: false });
+
+  function renderHistory() {
+    const list = visibleHistory();
+    const ol = $('#history-list');
+    ol.innerHTML = '';
+    list.forEach((h, i) => {
+      const li = el('li', 'flex items-center gap-1');
+      // 整列就是「帶入」按鈕；狀態以文字標示，不只靠顏色（WCAG 1.4.1）；SQL 來自使用者輸入，一律經 highlight／esc 轉義
+      const label = h.kind === 'draft' ? '被取代的草稿' : h.summary;
+      const tone = h.kind === 'draft' ? 'border-ink-600 text-ink-300' : h.status === 'error' ? 'border-danger/60 text-danger' : 'border-teal/50 text-teal';
+      const where = h.ch !== null && h.ch !== undefined ? `第 ${esc(h.ch)} 章 · ` : '';
+      li.innerHTML = `<button type="button" class="history-row" data-history-use="${i}"><span class="sr-only">帶入：</span><span class="flex flex-wrap items-center gap-2"><span class="chip ${tone} py-0">${esc(label)}</span><span class="text-xs text-ink-300">${where}${esc(timeFmt.format(new Date(h.at)))}</span></span><code class="history-sql">${SD.highlight(h.sql)}</code></button><button type="button" class="btn-ghost btn-sm shrink-0" data-history-insert="${i}" aria-label="插入游標處">插入</button>`;
+      ol.appendChild(li);
+    });
+    $('#history-empty').hidden = list.length > 0;
+    const total = SD.state.history().length;
+    const count = $('#history-count');
+    count.hidden = !total;
+    count.textContent = total;
+    $('#history-menu summary').setAttribute('aria-label', total ? `查詢紀錄，共 ${total} 筆` : '查詢紀錄');
+  }
+  $('#history-list').addEventListener('click', (e) => {
+    const b = e.target.closest('[data-history-use], [data-history-insert]');
+    if (!b) return;
+    const list = visibleHistory();
+    // 先關面板再寫入，焦點才會落回編輯器
+    $('#history-menu').open = false;
+    if (b.dataset.historyUse !== undefined) { const h = list[Number(b.dataset.historyUse)]; if (h) replaceEditor(h.sql, '已用紀錄中的 SQL 取代原本的內容。'); }
+    else { const h = list[Number(b.dataset.historyInsert)]; if (h) insertAtCursor(h.sql); }
+  });
+  $('#history-all').addEventListener('change', renderHistory);
+  $('#btn-history-clear').addEventListener('click', () => {
+    if (!window.confirm('清除所有章節的查詢紀錄？此動作無法復原。')) return;
+    SD.state.clearHistory(); histNav = null; renderHistory();
+  });
+
+  /*
+   * Alt + ↑ ↓ 仿終端機瀏覽紀錄。開始瀏覽時暫存編輯器內容，往下回到起點時還原，
+   * 所以單純翻看紀錄不會寫入任何東西；一旦手動輸入就結束瀏覽（input 事件把 histNav 設回 null）。
+   */
+  let histNav = null;
+  function stepHistory(dir) {
+    const list = visibleHistory();
+    if (!histNav) { if (dir < 0 || !list.length) return; histNav = { pos: -1, stash: editor.value }; }
+    const pos = Math.max(-1, Math.min(list.length - 1, histNav.pos + dir));
+    if (pos === histNav.pos) return;
+    const nav = histNav;
+    nav.pos = pos;
+    writeEditor(pos === -1 ? nav.stash : list[pos].sql);
+    // writeEditor 觸發的 input 事件會清掉 histNav，寫完再掛回去
+    histNav = pos === -1 ? null : nav;
+  }
 
   // ---------------------------------------------------------------------------
   // 資料表面板（編輯器下方）
@@ -421,7 +557,8 @@
     });
     if (hintsUsed >= 3) $('#btn-hint', card).disabled = true;
     $('#btn-goto-editor', card).addEventListener('click', () => showPane('editor'));
-    if (step.starter) editor.value = step.starter;
+    // 起始 SQL 只填進空的編輯器；使用者已有內容（含重新整理後還原的草稿）時不覆寫
+    if (step.starter && !editor.value.trim()) { editor.value = step.starter; saveDraftSoon(0); }
   }
 
   async function evaluateStep(step) {
@@ -695,6 +832,7 @@
     populateSelect();
     document.title = `第 ${ch.id} 章 ${ch.title} · SQL 偵探事務所`;
     renderBoard();
+    renderHistory();
     if (ch.resettable) addChapterResetButton(); else removeChapterResetButton();
     if (step === undefined) showIntro(); else renderStep();
   }
@@ -833,7 +971,8 @@
     const body = $('#cheatsheet-body');
     if (!body.children.length) {
       body.innerHTML = SD.cheatsheet.map((g) => `<section class="mb-5"><h3 class="eyebrow mb-2">${esc(g.title)}</h3><ul class="flex flex-col gap-2">${g.items.map(([code, desc]) => `<li class="flex flex-col gap-1 rounded-lg border border-ink-800 p-2 sm:flex-row sm:items-start sm:justify-between"><pre class="prose-sd m-0 flex-1 text-code"><code>${SD.highlight(code)}</code></pre><span class="text-xs text-ink-300 sm:max-w-[40%] sm:text-right">${esc(desc)}</span><button type="button" class="btn-ghost btn-sm shrink-0" data-insert="${esc(code)}">帶入</button></li>`).join('')}</ul></section>`).join('');
-      body.addEventListener('click', (e) => { const b = e.target.closest('[data-insert]'); if (b) { setEditor(b.dataset.insert); $('#dlg-cheatsheet').close(); } });
+      // 先關 dialog 再寫入：modal 開著時頁面其餘部分是 inert，編輯器無法聚焦，insertText 會失敗而退回設 value
+      body.addEventListener('click', (e) => { const b = e.target.closest('[data-insert]'); if (b) { $('#dlg-cheatsheet').close(); setEditor(b.dataset.insert); } });
     }
     $('#dlg-cheatsheet').showModal();
   });

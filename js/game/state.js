@@ -4,6 +4,10 @@
   window.SD = window.SD || {};
   const KEY = 'sd_progress_v1';
   const DB_KEY = 'sd_db_v1';
+  /* 查詢紀錄與草稿各用獨立 key：不跟進度搶同一個 JSON，資料庫快照吃滿配額時也只影響各自的寫入 */
+  const HISTORY_KEY = 'sd_history_v1';
+  const DRAFT_KEY = 'sd_draft_v1';
+  const HISTORY_MAX = 50;
 
   const empty = () => ({ v: 1, chapters: {}, clues: [], badges: [], updatedAt: null });
   let state = null;
@@ -57,7 +61,10 @@
     }
     return { earned: total, max: tasks.length * 3 };
   }
-  function resetAll() { state = empty(); save(); try { localStorage.removeItem(DB_KEY); } catch (e) { /* 忽略 */ } }
+  function resetAll() {
+    state = empty(); save();
+    try { [DB_KEY, HISTORY_KEY, DRAFT_KEY].forEach((k) => localStorage.removeItem(k)); } catch (e) { /* 忽略 */ }
+  }
   function resetChapter(chId) { const s = load(); delete s.chapters[chId]; save(); }
 
   /** 資料庫快照（ch5 的 DDL/DML 成果要跨重新整理保留） */
@@ -80,5 +87,22 @@
   }
   function clearDb() { try { localStorage.removeItem(DB_KEY); } catch (e) { /* 忽略 */ } }
 
-  window.SD.state = { load, save, chapter, markStep, useHint, addClue, addBadge, chapterStars, resetAll, resetChapter, saveDb, loadDb, clearDb };
+  /**
+   * 查詢紀錄，新的在前。entry：{ sql, kind: 'run' | 'draft', ch, status, summary, at }
+   * 與最新一筆 SQL 相同時只更新那一筆，連按執行不會洗版；但草稿不覆寫同內容的執行紀錄，免得執行結果被洗掉。
+   */
+  function history() {
+    try { const list = JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]'); return Array.isArray(list) ? list : []; } catch (e) { return []; }
+  }
+  function addHistory(entry) {
+    const list = history();
+    const item = { ...entry, at: new Date().toISOString() };
+    if (list[0] && list[0].sql === item.sql) { if (item.kind === 'draft') return; list[0] = item; } else list.unshift(item);
+    try { localStorage.setItem(HISTORY_KEY, JSON.stringify(list.slice(0, HISTORY_MAX))); } catch (e) { /* 配額不足時放棄紀錄，不影響遊戲 */ }
+  }
+  function clearHistory() { try { localStorage.removeItem(HISTORY_KEY); } catch (e) { /* 忽略 */ } }
+  function saveDraft(text) { try { if (text) localStorage.setItem(DRAFT_KEY, text); else localStorage.removeItem(DRAFT_KEY); } catch (e) { /* 忽略 */ } }
+  function loadDraft() { try { return localStorage.getItem(DRAFT_KEY) || ''; } catch (e) { return ''; } }
+
+  window.SD.state = { load, save, chapter, markStep, useHint, addClue, addBadge, chapterStars, resetAll, resetChapter, saveDb, loadDb, clearDb, history, addHistory, clearHistory, saveDraft, loadDraft };
 })();
