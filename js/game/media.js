@@ -5,8 +5,8 @@
 
   /* 劇情步驟 → 場景圖。key 為「章節 slug/步驟索引」；各章第一段劇情沿用章節封面（見 scene()）。 */
   const scenes = {
-    'ch0/14': './images/scene/ch0-office.webp',
-    'ch0/18': './images/scene/ch0-lobby.webp',
+    'ch0/15': './images/scene/ch0-office.webp',
+    'ch0/19': './images/scene/ch0-lobby.webp',
     'ch1/10': './images/scene/ch1-forensics.webp',
     'ch1/23': './images/scene/ch1-nightmarket-end.webp',
     'ch2/21': './images/scene/ch2-store-end.webp',

@@ -430,42 +430,110 @@
 
   function speaker(who) { return SD.cast[who] || SD.cast.narrator; }
 
-  function renderStory(step) {
-    const key = stepKey(step);
+  /*
+   * 劇情步驟：對話在全螢幕舞台（#story-stage）逐句播放，左欄卡片只放腳本。
+   * 讀完後卡片列出全部句子供回看並提供「下一步」；未讀完只給重新開啟舞台的入口。
+   */
+  function renderStoryCard(step) {
     const done = stepDone(step);
     const sceneSrc = SD.media.scene(chapter, stepIndex);
     const scene = sceneSrc ? `<figure class="scene"><img src="${sceneSrc}" alt="" width="960" height="540" /></figure>` : '';
-    card.innerHTML = `${scene}<p class="eyebrow">第 ${chapter.id} 章 · ${esc(chapter.title)}</p><div id="lines" class="mt-4 flex flex-col gap-4"></div><div class="mt-4 flex justify-end"><button type="button" id="btn-continue" class="btn-primary btn-sm">繼續</button></div>`;
-    const lines = $('#lines', card);
-    let i = 0;
-    const btn = $('#btn-continue', card);
-    let typing = null;
-    function reveal(instant) {
-      if (i >= step.lines.length) return;
-      const line = step.lines[i++];
+    const script = step.lines.map((line) => {
       const sp = speaker(line.who);
-      const row = el('div', 'flex items-start gap-3');
-      if (sp.img) row.innerHTML = `<img src="${sp.img}" alt="" width="48" height="48" class="size-12 shrink-0 rounded-full border border-ink-600 object-cover" />`;
-      const bubble = el('div', line.who === 'narrator' ? 'flex-1 italic leading-7 text-ink-300' : 'speech flex-1');
-      if (sp.name) bubble.innerHTML = `<p class="text-xs font-bold text-amber">${esc(sp.name)}<span class="ml-2 font-normal text-ink-300">${esc(sp.role)}</span></p>`;
-      const p = el('p', 'mt-1');
-      bubble.appendChild(p);
-      row.appendChild(bubble);
-      lines.appendChild(row);
-      if (canAnimate()) gsap.from(row, { y: 10, opacity: 0, duration: 0.3 });
-      // 打字機效果；尊重 reduced-motion
-      if (instant || reduce) { p.textContent = line.text; finish(); return; }
-      let k = 0;
-      typing = setInterval(() => { p.textContent = line.text.slice(0, ++k); if (k >= line.text.length) finish(); }, 22);
-      function finish() { clearInterval(typing); typing = null; p.textContent = line.text; if (i >= step.lines.length) { btn.textContent = nextLabel(); if (!done) SD.state.markStep(chapter.id, key); updateNav(); } }
-    }
-    btn.addEventListener('click', () => {
-      if (typing) { const last = lines.lastElementChild.querySelector('p:last-child'); clearInterval(typing); typing = null; last.textContent = step.lines[i - 1].text; if (i >= step.lines.length) { btn.textContent = nextLabel(); SD.state.markStep(chapter.id, key); updateNav(); } return; }
-      if (i >= step.lines.length) { next(); return; }
-      reveal(false);
-    });
-    if (done) { while (i < step.lines.length) reveal(true); } else reveal(false);
+      if (!sp.name) return `<li class="italic leading-7 text-ink-300">${esc(line.text)}</li>`;
+      return `<li class="flex items-start gap-3"><img src="${sp.img}" alt="" width="40" height="40" class="size-10 shrink-0 rounded-full border border-ink-600 object-cover" /><div class="speech flex-1"><p class="text-xs font-bold text-amber">${esc(sp.name)}<span class="ml-2 font-normal text-ink-300">${esc(sp.role)}</span></p><p class="mt-1">${esc(line.text)}</p></div></li>`;
+    }).join('');
+    card.innerHTML = `${scene}<p class="eyebrow">第 ${chapter.id} 章 · ${esc(chapter.title)}</p>
+      ${done ? `<ul class="mt-4 flex flex-col gap-4">${script}</ul>` : `<p class="mt-4 leading-7 text-ink-300">這段劇情共 ${step.lines.length} 句，在全螢幕舞台播放。看完才能進入下一步。</p>`}
+      <div class="mt-4 flex flex-wrap justify-end gap-2">
+        <button type="button" id="btn-replay" class="btn-ghost btn-sm">${done ? '重看劇情' : '開啟劇情'}</button>
+        ${done ? `<button type="button" id="btn-continue" class="btn-primary btn-sm">${nextLabel()}</button>` : ''}
+      </div>`;
+    $('#btn-replay', card).addEventListener('click', () => openStage(step));
+    const cont = $('#btn-continue', card);
+    if (cont) cont.addEventListener('click', next);
   }
+  function renderStory(step) {
+    renderStoryCard(step);
+    openStage(step);
+  }
+
+  // ---------------------------------------------------------------------------
+  // 劇情舞台
+  // ---------------------------------------------------------------------------
+  const stage = $('#story-stage');
+  const stageBox = $('#stage-box');
+  const stageText = $('#stage-text');
+  const stageNext = $('#stage-next');
+  let stageStep = null;
+  let stageLine = 0;
+  let stageTyping = null;
+
+  function openStage(step) {
+    stageStep = step;
+    stageLine = 0;
+    $('#stage-bg').src = SD.media.scene(chapter, stepIndex) || chapter.cover;
+    $('#stage-title').textContent = `第 ${chapter.id} 章 · ${chapter.title}`;
+    if (!stage.open) stage.showModal();
+    stageNext.focus();
+    if (canAnimate()) gsap.fromTo(stage, { opacity: 0 }, { opacity: 1, duration: 0.4 });
+    // 已讀過的劇情不再逐字打，仍逐句點過；想直接跳到底有「跳過對話」
+    showStageLine(stepDone(step));
+  }
+  function stopTyping() { if (stageTyping) { clearInterval(stageTyping); stageTyping = null; } }
+  function markStoryDone() {
+    if (stageStep && !stepDone(stageStep)) { SD.state.markStep(chapter.id, stepKey(stageStep)); updateNav(); }
+  }
+  function showStageLine(instant) {
+    const line = stageStep.lines[stageLine];
+    const sp = speaker(line.who);
+    const last = stageLine === stageStep.lines.length - 1;
+    stageBox.classList.toggle('narrator', !sp.name);
+    const avatar = $('#stage-avatar');
+    avatar.hidden = !sp.img;
+    if (sp.img) avatar.src = sp.img;
+    $('#stage-name').textContent = sp.name;
+    $('#stage-role').textContent = sp.role;
+    $('#stage-count').textContent = `${stageLine + 1} / ${stageStep.lines.length}`;
+    $('#stage-live').textContent = sp.name ? `${sp.name}：${line.text}` : line.text;
+    stageNext.textContent = last ? nextLabel() : '下一句 ▼';
+    stopTyping();
+    if (canAnimate()) gsap.fromTo(stageBox, { y: 8, opacity: 0.6 }, { y: 0, opacity: 1, duration: 0.25, ease: 'power2.out' });
+    if (instant || reduce) { stageText.textContent = line.text; if (last) markStoryDone(); return; }
+    stageText.textContent = '';
+    let k = 0;
+    stageTyping = setInterval(() => {
+      stageText.textContent = line.text.slice(0, ++k);
+      if (k >= line.text.length) { stopTyping(); if (last) markStoryDone(); }
+    }, 16);
+  }
+  function stageAdvance() {
+    if (!stageStep) return;
+    const last = stageLine === stageStep.lines.length - 1;
+    // 打字中先補完整句，再點才換句
+    if (stageTyping) { stopTyping(); stageText.textContent = stageStep.lines[stageLine].text; if (last) markStoryDone(); return; }
+    if (last) { next(); return; }
+    stageLine++;
+    showStageLine(false);
+  }
+  function closeStage() { stopTyping(); stageStep = null; if (stage.open) stage.close(); }
+
+  stageNext.addEventListener('click', stageAdvance);
+  $('#stage-skip').addEventListener('click', () => { if (!stageStep) return; stageLine = stageStep.lines.length - 1; showStageLine(true); stageNext.focus(); });
+  $('#stage-close').addEventListener('click', () => stage.close());
+  $('#stage-tap').addEventListener('click', (e) => { if (!e.target.closest('button')) stageAdvance(); });
+  stage.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowRight') { e.preventDefault(); stageAdvance(); return; }
+    // 按鈕本身的 Enter／空白鍵交給原生 click，避免推進兩次
+    if ((e.key === 'Enter' || e.key === ' ') && !e.target.closest('button')) { e.preventDefault(); stageAdvance(); }
+  });
+  // Esc（原生 cancel）與「回到辦案畫面」都走這裡：把卡片重畫成目前讀到的狀態，焦點回左欄
+  stage.addEventListener('close', () => {
+    stopTyping(); stageStep = null;
+    const step = chapter && chapter.steps[stepIndex];
+    if (step && step.type === 'story') { renderStoryCard(step); $('#btn-replay', card).focus(); }
+    startCoachIfPending();
+  });
 
   function renderLesson(step) {
     const art = SD.media.lessonArt(chapter.id);
@@ -728,6 +796,7 @@
       case 'solution': renderSolution(step); break;
       default: card.textContent = '';
     }
+    if (step.type !== 'story') closeStage();
     if (canAnimate()) gsap.fromTo(card, { opacity: 0, x: 16 }, { opacity: 1, x: 0, duration: 0.35, ease: 'power2.out' });
     const p = prog();
     p.step = stepIndex; SD.state.save();
@@ -742,6 +811,7 @@
     updateNav();
     showPane('story');
     location.hash = `${chapter.slug}/${stepIndex}`;
+    if (step.type !== 'story') startCoachIfPending();
   }
 
   function renderProgress() {
@@ -783,6 +853,7 @@
   $('#btn-prev').addEventListener('click', prev);
 
   function completeChapter() {
+    closeStage();
     const p = prog();
     const firstTime = !p.done;
     p.done = true; SD.state.save();
@@ -882,14 +953,15 @@
           <div class="intro-stat"><dt>釘上的線索</dt><dd>${clues}</dd></div>
         </dl>
       </div>`;
+    closeStage();
     intro.hidden = false;
     main.hidden = true;
     $('#pane-tabs').hidden = true;
     window.scrollTo({ top: 0, behavior: 'instant' });
     renderProgress();
-    $('#btn-intro-start', intro).addEventListener('click', () => { renderStep(); maybeStartCoach(); });
+    $('#btn-intro-start', intro).addEventListener('click', () => { coachPending = true; renderStep(); });
     const restart = $('#btn-intro-restart', intro);
-    if (restart) restart.addEventListener('click', () => { stepIndex = 0; renderStep(); maybeStartCoach(); });
+    if (restart) restart.addEventListener('click', () => { coachPending = true; stepIndex = 0; renderStep(); });
     if (canAnimate()) gsap.from(intro.children, { y: 16, opacity: 0, duration: 0.5, stagger: 0.1, ease: 'power2.out' });
   }
   function hideIntro() {
@@ -903,6 +975,8 @@
   // 首次導覽：三張提示卡依序指向劇情卡、編輯器、證據板（手機只提示面板切換）
   // ---------------------------------------------------------------------------
   const COACH_KEY = 'sd_coach_v1';
+  let coachPending = false;
+  function startCoachIfPending() { if (!coachPending || stage.open) return; coachPending = false; maybeStartCoach(); }
   function maybeStartCoach() {
     try { if (localStorage.getItem(COACH_KEY)) return; } catch (e) { return; }
     const steps = lg.matches

@@ -277,6 +277,24 @@
   .clue-thumb { @apply size-14 shrink-0 rounded-lg border border-ink-700 object-cover; }
   .empty-art { @apply mx-auto size-32 rounded-2xl object-cover opacity-80; }
 
+  /*
+   * 劇情舞台（視覺小說式全螢幕對話）。<dialog> 預設置中、有邊框與 canvas 色，這裡全部覆寫成滿版。
+   * 對話框用 ink-950/90 實色底確保文字對比，背景漸層只負責讓場景圖往底部收暗、不承擔可讀性。
+   */
+  .stage { @apply fixed inset-0 m-0 h-dvh w-dvw max-h-none max-w-none overflow-hidden border-0 bg-ink-950 p-0 text-paper; }
+  .stage::backdrop { @apply bg-ink-950; }
+  .stage-bg { @apply absolute inset-0 size-full object-cover; }
+  .stage-top { @apply absolute inset-x-0 top-0 z-10 flex flex-wrap items-center justify-between gap-2 bg-gradient-to-b from-ink-950/80 to-transparent px-4 py-3 sm:px-8; }
+  /* pb 取 safe-area 與 1rem 的較大值：手機底部手勢列會蓋住按鈕 */
+  .stage-body { @apply absolute inset-0 flex cursor-pointer flex-col justify-end bg-gradient-to-t from-ink-950 via-ink-950/30 to-transparent px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-20 sm:px-8 sm:pb-8; }
+  .stage-box { @apply mx-auto w-full max-w-3xl rounded-2xl border border-ink-700 bg-ink-950/90 p-4 shadow-card backdrop-blur sm:p-6; }
+  .stage-speaker { @apply flex items-center gap-3; }
+  .stage-avatar { @apply size-16 shrink-0 rounded-full border-2 border-amber/60 object-cover; }
+  /* min-h 預留約三行，句子長短不同時對話框高度不跳動 */
+  .stage-text { @apply mt-3 min-h-[6rem] text-lg leading-8 sm:text-xl sm:leading-9; }
+  .stage-box.narrator .stage-speaker { @apply hidden; }
+  .stage-box.narrator .stage-text { @apply mt-0 text-center italic text-ink-300; }
+
   /* 首次導覽（coach mark） */
   .coach { @apply pointer-events-none fixed inset-0 z-50; }
   .coach-tip { @apply pointer-events-auto absolute max-w-xs rounded-2xl border border-amber/60 bg-ink-900 p-4 text-sm leading-6 shadow-glow-amber; }
