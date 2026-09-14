@@ -245,13 +245,23 @@
       li.innerHTML = `<button type="button" class="history-row" data-history-use="${i}"><span class="sr-only">帶入：</span><span class="flex flex-wrap items-center gap-2"><span class="chip ${tone} py-0">${esc(label)}</span><span class="text-xs text-ink-300">${where}${esc(timeFmt.format(new Date(h.at)))}</span></span><code class="history-sql">${SD.highlight(h.sql)}</code></button><button type="button" class="btn-ghost btn-sm shrink-0" data-history-insert="${i}" aria-label="插入游標處">插入</button>`;
       ol.appendChild(li);
     });
-    $('#history-empty').hidden = list.length > 0;
-    const total = SD.state.history().length;
+    // 數字與空狀態都以「目前可見的清單」為準：清單預設只看本章，若數字顯示總數會出現「有數字、清單卻是空的」的錯覺
+    const others = SD.state.history().length - list.length;
+    const emptyEl = $('#history-empty');
+    emptyEl.hidden = list.length > 0;
+    emptyEl.innerHTML = others
+      ? `本章還沒有紀錄，其他章節有 ${others} 筆。<button type="button" id="btn-history-show-all" class="btn-ghost btn-sm ml-1">顯示所有章節</button>`
+      : '還沒有紀錄。執行過或被取代的 SQL 會出現在這裡。';
     const count = $('#history-count');
-    count.hidden = !total;
-    count.textContent = total;
-    $('#history-menu summary').setAttribute('aria-label', total ? `查詢紀錄，共 ${total} 筆` : '查詢紀錄');
+    count.hidden = !list.length;
+    count.textContent = list.length;
+    $('#history-menu summary').setAttribute('aria-label', list.length ? `查詢紀錄，${$('#history-all').checked ? '共' : '本章'} ${list.length} 筆` : others ? `查詢紀錄，其他章節 ${others} 筆` : '查詢紀錄');
   }
+  $('#history-empty').addEventListener('click', (e) => {
+    if (!e.target.closest('#btn-history-show-all')) return;
+    $('#history-all').checked = true;
+    renderHistory();
+  });
   $('#history-list').addEventListener('click', (e) => {
     const b = e.target.closest('[data-history-use], [data-history-insert]');
     if (!b) return;
@@ -1136,24 +1146,54 @@
   // ---------------------------------------------------------------------------
   // 啟動
   // ---------------------------------------------------------------------------
+  /*
+   * 開場過場：play.html 內建的 #boot-stage 從第一次繪製就蓋住畫面，這裡只負責換文字、
+   * 換成該章封面當背景，以及在資料庫就緒後淡出移除；失敗時停在過場顯示錯誤與重新整理。
+   */
+  const bootEl = $('#boot-stage');
+  const bootStage = { engine: '載入查詢引擎…', snapshot: '還原你上次的資料庫…', seed: '建立潮港市警局資料…' };
+  function bootSay(text) { $('#boot-status').textContent = text; }
+  function bootDismiss() {
+    bootEl.setAttribute('aria-busy', 'false');
+    bootSay('檔案調閱完成');
+    if (canAnimate()) gsap.to(bootEl, { opacity: 0, duration: 0.45, ease: 'power2.out', onComplete: () => bootEl.remove() });
+    else bootEl.remove();
+  }
+  function bootFail(message) {
+    bootEl.setAttribute('aria-busy', 'false');
+    bootEl.setAttribute('role', 'alert');
+    bootSay(`資料庫載入失敗：${message}。請確認瀏覽器支援 WebAssembly，或重新整理。`);
+    const actions = $('#boot-actions');
+    const reload = el('button', 'btn-primary btn-sm', '重新整理'); reload.type = 'button';
+    reload.addEventListener('click', () => location.reload());
+    const home = el('a', 'btn-ghost btn-sm', '回首頁'); home.href = './';
+    actions.append(reload, home);
+    actions.hidden = false;
+    reload.focus();
+  }
+
   async function boot() {
     renderBoard();
     renderBadges();
     const { ch, step } = parseHash();
     const start = (ch && unlocked(ch)) ? ch : (chapters.find((c) => unlocked(c) && !isDone(c)) || chapters[0]);
     loadChapter(start, ch && unlocked(ch) ? step : undefined);
+    const bg = $('#boot-bg');
+    if (start.cover) { bg.src = start.cover; bg.hidden = false; }
     resultsEl.appendChild($('#tpl-loading').content.cloneNode(true));
     try {
-      await SD.db.init(SD.state.loadDb());
+      await SD.db.init(SD.state.loadDb(), (s) => bootSay(bootStage[s] || '載入中…'));
       dbReady = true;
       $('#db-status').textContent = '資料庫已就緒：chaogang_police（18 張表）。按 Ctrl + Enter 執行。';
       resultsEl.innerHTML = '';
       resultsEl.appendChild($('#tpl-results-empty').content.cloneNode(true));
       renderSchemaList();
       renderTaskTables();
+      bootDismiss();
     } catch (e) {
       $('#db-status').textContent = '資料庫載入失敗：' + e.message;
       resultsEl.innerHTML = `<div class="card border-danger/50 text-danger">無法載入 sql.js（${esc(e.message)}）。請確認瀏覽器支援 WebAssembly，或重新整理。</div>`;
+      bootFail(e.message);
     }
   }
   window.addEventListener('hashchange', () => { const { ch, step } = parseHash(); if (ch && unlocked(ch) && (ch !== chapter || (step !== undefined && step !== stepIndex))) loadChapter(ch, step); });

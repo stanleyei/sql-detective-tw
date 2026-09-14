@@ -279,6 +279,15 @@
   .stage-box.narrator .stage-speaker { @apply hidden; }
   .stage-box.narrator .stage-text { @apply mt-0 text-center italic text-ink-300; }
 
+  /*
+   * 開場過場（沿用 .stage 的滿版定位）。z-60 高於 coach mark（z-50）與 header（z-40），
+   * 但低於 <dialog> 的 top layer；資料庫就緒前不會開任何 dialog，所以不衝突。
+   * 背景用該章封面壓暗到 40%，資訊卡維持 ink-950/90 實色底確保對比。
+   */
+  .boot { @apply z-60 flex items-center justify-center; }
+  .boot-bg { @apply opacity-40; }
+  .boot-box { @apply relative mx-4 w-full max-w-md rounded-2xl border border-ink-700 bg-ink-950/90 p-6 text-center shadow-card backdrop-blur; }
+
   /* 首次導覽（coach mark） */
   .coach { @apply pointer-events-none fixed inset-0 z-50; }
   .coach-tip { @apply pointer-events-auto absolute max-w-xs rounded-2xl border border-amber/60 bg-ink-900 p-4 text-sm leading-6 shadow-glow-amber; }

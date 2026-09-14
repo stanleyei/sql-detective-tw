@@ -12,13 +12,22 @@
   let db = null;
   let schemaCache = null;
 
-  /** @param {Uint8Array|null} snapshot 先前 export() 的資料庫快照；有效就還原，否則重建種子 */
-  async function init(snapshot) {
+  /**
+   * @param {Uint8Array|null} snapshot 先前 export() 的資料庫快照；有效就還原，否則重建種子
+   * @param {(stage: 'engine' | 'snapshot' | 'seed') => void} [onStage] 進度回呼，供載入畫面更新文字
+   */
+  async function init(snapshot, onStage) {
     if (db) return db;
+    const say = (s) => { if (onStage) onStage(s); };
+    say('engine');
     SQL = await initSqlJs({ locateFile: (f) => `./vendor/${f}` });
     if (snapshot) {
+      say('snapshot');
       try { createDb(snapshot); return db; } catch (e) { /* 快照損毀就退回種子資料 */ }
     }
+    say('seed');
+    // 讓瀏覽器先把上面的狀態文字畫出來，再開始這段會卡住主執行緒的種子匯入
+    await new Promise((r) => setTimeout(r, 0));
     createDb();
     return db;
   }
