@@ -589,7 +589,7 @@
       </div>
       <h2 class="mt-2 text-2xl font-black">${esc(step.title)}</h2>
       <div class="prose-sd mt-3">${step.prompt}</div>
-      ${step.lead ? `<p class="mt-1 flex gap-2 rounded-lg border border-ink-700 bg-ink-950/40 px-3 py-2 text-sm leading-6 text-ink-300"><span class="shrink-0 font-bold text-teal">方向</span><span>${esc(step.lead)}</span></p>` : ''}
+      ${step.lead ? `<p class="mt-1 flex gap-2 rounded-lg border border-ink-700 bg-ink-950/40 px-3 py-2 text-sm leading-6 text-ink-300"><span class="shrink-0 font-bold text-teal">說明</span><span>${esc(step.lead)}</span></p>` : ''}
       <div id="task-tables" class="mt-3" hidden></div>
       <div id="feedback" class="not-empty:mt-3" aria-live="assertive"></div>
       <div class="mt-5 flex flex-wrap gap-2 border-t border-ink-700 pt-4">
@@ -597,7 +597,7 @@
         <button type="button" id="btn-hint" class="btn-ghost btn-sm">💡 提示（${Math.min(hintsUsed, 3)}/3）</button>
       </div>
       <ol id="hints" class="mt-3 flex flex-col gap-2"></ol>
-      <p class="mt-4 text-xs text-ink-300">在查詢區執行 SQL 後會自動檢核。「方向」不算提示；不看提示 3 星、看第 1～2 個提示 2 星、看解答 1 星。</p>`;
+      <p class="mt-4 text-xs text-ink-300">在查詢區執行 SQL 後會自動檢核。「說明」不算提示；不看提示 3 星、看第 1～2 個提示 2 星、看解答 1 星。</p>`;
     renderTaskTables();
     const hintsEl = $('#hints', card);
     const showHint = (level) => {
