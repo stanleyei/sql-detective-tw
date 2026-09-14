@@ -559,10 +559,25 @@
   let stageStep = null;
   let stageLine = 0;
   let stageTyping = null;
+  let portraitToken = 0;
+  const preloadedPortraits = new Set();
+
+  // 開舞台時先把本段會出場的立繪抓下來並解碼，換人時才不會在觀眾面前等圖
+  function preloadPortraits(step) {
+    step.lines.forEach((line) => {
+      const src = speaker(line.who).portrait;
+      if (!src || preloadedPortraits.has(src)) return;
+      preloadedPortraits.add(src);
+      const img = new Image();
+      img.src = src;
+      if (img.decode) img.decode().catch(() => {});
+    });
+  }
 
   function openStage(step) {
     stageStep = step;
     stageLine = 0;
+    preloadPortraits(step);
     $('#stage-bg').src = SD.media.scene(chapter, stepIndex) || chapter.cover;
     $('#stage-title').textContent = `第 ${chapter.id} 章 · ${chapter.title}`;
     if (!stage.open) stage.showModal();
@@ -585,8 +600,17 @@
     const switching = !!sp.portrait && portrait.getAttribute('src') !== sp.portrait;
     portrait.hidden = !sp.portrait;
     if (sp.portrait) portrait.src = sp.portrait;
-    // 只在換人時滑入，同一人連續說話立繪不動
-    if (switching && canAnimate()) gsap.fromTo(portrait, { x: -16, opacity: 0 }, { x: 0, opacity: 1, duration: 0.3, ease: 'power2.out' });
+    // 只在換人時滑入，同一人連續說話立繪不動。
+    // 改 src 後瀏覽器會繼續畫舊圖直到新圖解碼完成，若立刻播動畫會變成「舊角色滑入、再瞬間跳成新角色」，
+    // 因此先壓成透明、等 decode() 完成才滑入；期間又換句時以 token 判定過期，交給後續呼叫處理。
+    if (switching && canAnimate()) {
+      const token = ++portraitToken;
+      gsap.set(portrait, { opacity: 0 });
+      portrait.decode().catch(() => {}).then(() => {
+        if (token !== portraitToken) return;
+        gsap.fromTo(portrait, { x: -16, opacity: 0 }, { x: 0, opacity: 1, duration: 0.3, ease: 'power2.out' });
+      });
+    }
     const avatar = $('#stage-avatar');
     avatar.hidden = !sp.img;
     if (sp.img) avatar.src = sp.img;
