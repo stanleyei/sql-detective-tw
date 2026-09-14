@@ -26,6 +26,9 @@
   --color-ink-800: #1a2342;
   --color-ink-700: #26325a;
   --color-ink-600: #364578;
+  /* 滾軸拇指專用：WCAG 1.4.11 非文字對比需 ≥ 3:1，ink-600 只有 2.1:1 太暗；
+     ink-500 對 ink-950 為 3.9:1、對 ink-900 為 3.6:1，兩種底色皆合格 */
+  --color-ink-500: #5e6fa8;
   --color-ink-300: #9aa7c7;
   --color-paper: #f3efe6;
   --color-amber: #f5b942;
@@ -50,6 +53,38 @@
 @layer base {
   html {
     scroll-behavior: smooth;
+    /* 整站為深色主題；不宣告 dark 時瀏覽器仍畫淺色原生滾軸與表單控件，
+       這行是 CSS 其餘部分失效時的底線 */
+    color-scheme: dark;
+  }
+  /*
+   * 自訂滾軸。Chromium 121+ 一旦設了非 auto 的 scrollbar-color / scrollbar-width，
+   * 會整組忽略 ::-webkit-scrollbar，因此標準屬性只給沒有該偽元素的瀏覽器（Firefox）。
+   * 偽元素版本較完整（圓角、hover、角落），Chromium 與 Safari 走這一套。
+   */
+  @supports not selector(::-webkit-scrollbar) {
+    * {
+      scrollbar-width: thin;
+      scrollbar-color: var(--color-ink-500) transparent;
+    }
+  }
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  ::-webkit-scrollbar-track,
+  ::-webkit-scrollbar-corner {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    /* 透明邊框 + padding-box 讓拇指內縮不貼邊，實際可見寬度 6px */
+    border: 2px solid transparent;
+    border-radius: 999px;
+    background-color: var(--color-ink-500);
+    background-clip: padding-box;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background-color: var(--color-ink-300);
   }
   body {
     font-family: var(--font-sans);
