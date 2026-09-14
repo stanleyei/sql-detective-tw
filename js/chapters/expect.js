@@ -2,7 +2,8 @@
 SD.expect = {
  "c0-t3": {
   "hash": "e43344dc1310003bb50c8b756dd59b8e49b38e70f64725f41633d32462f644ae",
-  "rows": 5
+  "rows": 5,
+  "unorderedHash": "e43344dc1310003bb50c8b756dd59b8e49b38e70f64725f41633d32462f644ae"
  },
  "c0-t4": {
   "hash": "77dc3a49da3d18c8ede7d42066eb2ef14e09fea6b6f14fa66ee9382f3692f58c",
@@ -54,11 +55,13 @@ SD.expect = {
  },
  "c1-t7": {
   "hash": "bf8eac5a8e30d0077c07c0c3627dd1a2f5c16331628ca357f9d63bba48d2caf6",
-  "rows": 1
+  "rows": 1,
+  "unorderedHash": "bf8eac5a8e30d0077c07c0c3627dd1a2f5c16331628ca357f9d63bba48d2caf6"
  },
  "c1-t8": {
   "hash": "87ed0aff54544f41474f8ccd290b5e180e268ffb5dcce8deeb2deb54fc9edb9d",
-  "rows": 2
+  "rows": 2,
+  "unorderedHash": "87ed0aff54544f41474f8ccd290b5e180e268ffb5dcce8deeb2deb54fc9edb9d"
  },
  "c1-t9": {
   "hash": "d1828c2f23ed271a4ae7d0da698d79c502c0d7b6cf09630bad32a95b922107e9",
@@ -89,7 +92,8 @@ SD.expect = {
  },
  "c2-t4": {
   "hash": "a28c94995760979e70762ba8e7659c3150ac63d0aa313fa77424917fd2f2ffa4",
-  "rows": 3
+  "rows": 3,
+  "unorderedHash": "a28c94995760979e70762ba8e7659c3150ac63d0aa313fa77424917fd2f2ffa4"
  },
  "c2-t5": {
   "hash": "4a15cad7f742fb4e20b478d9bfd78218734f84eeee435a6642f8dfb3c24299dc",
@@ -113,11 +117,13 @@ SD.expect = {
  },
  "c2-t10": {
   "hash": "f63a6f9966405ff5b4be8c8ac49eb4c7dc47260a0806945abb49d0033b986a41",
-  "rows": 3
+  "rows": 3,
+  "unorderedHash": "f63a6f9966405ff5b4be8c8ac49eb4c7dc47260a0806945abb49d0033b986a41"
  },
  "c2-t11": {
   "hash": "495b805600cb360ed2d74c3182c4b182b50c335f78bed2b73f81b399bbec3433",
-  "rows": 3
+  "rows": 3,
+  "unorderedHash": "495b805600cb360ed2d74c3182c4b182b50c335f78bed2b73f81b399bbec3433"
  },
  "c2-t12": {
   "hash": "801f2f219f29b82228178c71a053ac222886c77c59b76de739e6c5a8c44a8c0d",
@@ -144,7 +150,8 @@ SD.expect = {
  },
  "c3-t5": {
   "hash": "67a66d615f966da2d28ffe9ec939eec510038fbb5a6f931831ad1e37f347edee",
-  "rows": 7
+  "rows": 7,
+  "unorderedHash": "2095da1f6d9ba48652a13a295ff9ccef5810a92f5e1b79c6dfc711312aebd9d2"
  },
  "c3-t6": {
   "hash": "0aa310f79ebe989cc88593d5e6d837bb84848f7c3852a985460b6efc907472f9",

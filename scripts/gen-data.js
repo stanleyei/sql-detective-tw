@@ -294,7 +294,14 @@ addCctv({ camera_location: '海濱門市前', district: '港西區', capture_tim
 // 第六章
 addCctv({ camera_location: '海景大道口', district: '海濱區', capture_time: '2025-08-15 20:48:10', plate_number: 'KHT-4271', note: '黑色汽車停靠' });
 addCctv({ camera_location: '海景大道口', district: '海濱區', capture_time: '2025-08-15 21:23:55', plate_number: 'KHT-4271', note: '黑色汽車離開' });
-cctv.sort((a, b) => (a.capture_time < b.capture_time ? -1 : 1));
+// id 刻意不照時間排：INTEGER PRIMARY KEY 的表不加 ORDER BY 時依 id 輸出，
+// 若 id 與時間同序，「依時間排序」的任務漏寫 ORDER BY 也會過關。
+// 洗牌用獨立亂數源，不消耗 rand，以免後續資料表的內容跟著改變。
+const cctvRand = mulberry32(20250412);
+for (let i = cctv.length - 1; i > 0; i--) {
+  const j = Math.floor(cctvRand() * (i + 1));
+  [cctv[i], cctv[j]] = [cctv[j], cctv[i]];
+}
 cctv.forEach((c, i) => { c.id = i + 1; });
 
 // ---------- transit_card / transit_log ----------

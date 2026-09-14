@@ -96,8 +96,11 @@
     if (h === expect.hash) return { ok: true, message: '' };
     let msg = '結果不符。';
     if (expect.rows !== undefined && n.rows !== expect.rows) msg += `你的結果有 ${n.rows} 筆，預期 ${expect.rows} 筆。`;
-    else if (check.ordered) msg += '筆數正確但順序不同，檢查 ORDER BY。';
-    else msg += '筆數正確但內容不同，檢查選取的欄位與條件。';
+    else if (check.ordered && expect.unorderedHash) {
+      // 內容相同（不計順序）才能斷定是排序問題，否則多半是欄位或條件寫錯
+      const u = normalizeResult(last.columns, last.values, { ...check, ordered: false });
+      msg += (await sha256(u.text)) === expect.unorderedHash ? '筆數與內容都正確但順序不同，檢查 ORDER BY。' : '筆數正確但內容不同，檢查選取的欄位與條件。';
+    } else msg += '筆數正確但內容不同，檢查選取的欄位與條件。';
     return { ok: false, message: msg };
   }
 

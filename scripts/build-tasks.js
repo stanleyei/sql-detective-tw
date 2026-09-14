@@ -65,6 +65,11 @@ const decode = (html) => html.replace(/<[^>]+>/g, '').replace(/&gt;/g, '>').repl
       if (!n.ok) { console.log(`欄位投影失敗 ${step.id}: ${n.error}`); problems++; continue; }
       if (n.rows === 0) { console.log(`警告：解答結果 0 筆 ${step.id}`); }
       expect[step.id] = { hash: await SD.check.sha256(n.text), rows: n.rows };
+      // 排序任務另存不計順序的 hash，讓檢核能分辨「只是順序錯」與「內容錯」
+      if (check.ordered) {
+        const u = SD.check.normalizeResult(last.columns, last.values, { ...check, ordered: false });
+        expect[step.id].unorderedHash = await SD.check.sha256(u.text);
+      }
     }
   }
   const out = `// 由 scripts/build-tasks.js 產生，請勿手動編輯。執行 npm run tasks 重新產生。\nSD.expect = ${JSON.stringify(expect, null, 1)};\n`;
