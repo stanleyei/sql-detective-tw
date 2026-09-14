@@ -135,6 +135,9 @@
   function run(text) {
     const statements = compat.splitStatements(text);
     const out = [];
+    // tokenizer 已把全形／不斷行空白當一般空白處理，這裡只負責提醒：正式 MariaDB 會直接報錯
+    const WS_NOTE = /[\u3000\u00a0]/.test(text) ? 'SQL 裡有全形空白（或不斷行空白），模擬環境已當成一般空白執行；正式 MariaDB 會回「語法錯誤」，請切回半形輸入。' : null;
+    const ret = () => { if (WS_NOTE) for (const r of out) { if (r.type !== 'error') r.notes = [WS_NOTE, ...(r.notes || [])]; } return out; };
     for (const raw of statements) {
       let rewritten;
       try {
@@ -174,7 +177,7 @@
         break;
       }
     }
-    return out;
+    return ret();
   }
 
   /** 供任務檢核用的靜默查詢：回傳 {columns, values} 或 null */

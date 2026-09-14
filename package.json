@@ -12,7 +12,9 @@
     "favicon": "node scripts/make-favicon.js",
     "serve": "serve . -l 3000",
     "prebuild": "node scripts/gen-data.js && node scripts/build-tasks.js",
-    "img:gen": "node scripts/gen-images.js"
+    "img:gen": "node scripts/gen-images.js",
+    "test:tasks": "node scripts/test-tasks.js",
+    "test": "npm run test:compat && npm run test:tasks"
   },
   "devDependencies": {
     "@tailwindcss/cli": "^4.1.0",

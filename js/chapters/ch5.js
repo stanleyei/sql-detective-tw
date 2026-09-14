@@ -35,6 +35,7 @@ SD.chapters.push({
       check: { kind: 'probe', probe: "SELECT (SELECT GROUP_CONCAT(name) FROM pragma_table_info('evidence')) AS cols, (SELECT sql LIKE '%AUTOINCREMENT%' FROM sqlite_master WHERE name = 'evidence') AS auto" },
       clue: { title: '證物登錄系統上線', text: 'evidence 表建立完成，共 6 個欄位，id 自動編號。' } },
     { type: 'task', id: 'c5-t2', title: '確認結構', prompt: '用 <code>DESCRIBE</code> 檢查 <code>evidence</code> 表，確認 <code>id</code> 的 Key 是 PRI、Extra 是 auto_increment。',
+      lead: 'DESCRIBE 表名; 就會列出每個欄位的 Type、Null、Key、Default、Extra。',
       hints: ['DESCRIBE evidence;', 'DESC evidence; 也行。', '<code>DESCRIBE evidence;</code>'],
       check: { kind: 'regex', pattern: '^\\s*(DESCRIBE|DESC|SHOW\\s+(FULL\\s+)?COLUMNS\\s+FROM)\\s+`?evidence`?' } },
     { type: 'lesson', title: 'INSERT：新增資料', body: `
@@ -50,7 +51,8 @@ VALUES (36, '空展示盒', '金鑫手機配件攤位');</code></pre>
       check: { kind: 'probe', probe: 'SELECT id, report_id, item_name, location, status, logged_at FROM evidence ORDER BY id' },
       clue: { title: '三件證物入庫', text: 'id 自動編為 1、2、3，status 自動填入「保管中」。' } },
     { type: 'task', id: 'c5-t4', title: '看看結果', prompt: '查詢 <code>evidence</code> 全部欄位，確認 <code>id</code> 自動編號、<code>status</code> 有預設值。',
-      hints: ['SELECT * FROM evidence;', '', '<code>SELECT * FROM evidence;</code>'],
+      lead: 'SELECT * FROM evidence; 看剛新增的三筆。',
+      hints: ['SELECT * FROM evidence;', '沒有條件、不用 WHERE，星號代表全部欄位。', '<code>SELECT * FROM evidence;</code>'],
       check: { kind: 'result', cols: ['id', 'report_id', 'item_name', 'location', 'status', 'logged_at'], ordered: false } },
     { type: 'lesson', title: 'UPDATE：修改資料（一定要 WHERE）', body: `
       <pre><code>UPDATE evidence
@@ -61,6 +63,7 @@ WHERE item_name = '監視器畫面';</code></pre>
       hints: ["UPDATE evidence SET status = '已送鑑識' WHERE ...", "WHERE item_name = '監視器畫面'", "<code>UPDATE evidence SET status = '已送鑑識' WHERE item_name = '監視器畫面';</code>"],
       check: { kind: 'probe', probe: 'SELECT id, report_id, item_name, location, status, logged_at FROM evidence ORDER BY id' } },
     { type: 'task', id: 'c5-t6', title: '補登錄時間', prompt: '把 <code>report_id</code> 為 <strong>36</strong> 的所有證物 <code>logged_at</code> 設為 <code>\'2025-03-09 09:00:00\'</code>。',
+      lead: 'UPDATE evidence SET 欄位 = 值 WHERE report_id = ...，時間值要加引號。',
       hints: ['一句 UPDATE 會改到兩筆，這是正常的。', "SET logged_at = '2025-03-09 09:00:00' WHERE report_id = 36", "<code>UPDATE evidence SET logged_at = '2025-03-09 09:00:00' WHERE report_id = 36;</code>"],
       check: { kind: 'probe', probe: 'SELECT id, report_id, item_name, location, status, logged_at FROM evidence ORDER BY id' } },
     { type: 'lesson', title: 'DELETE：刪除資料（更要 WHERE）', body: `
@@ -90,6 +93,7 @@ ALTER TABLE evidence RENAME COLUMN location TO found_at; -- 改名</code></pre>`
       hints: ['ALTER TABLE evidence ADD COLUMN weight_g INT;', 'ADD 後面的 COLUMN 可以省略。', '<code>ALTER TABLE evidence ADD COLUMN weight_g INT;</code>'],
       check: { kind: 'probe', probe: "SELECT GROUP_CONCAT(name) FROM pragma_table_info('evidence')" } },
     { type: 'task', id: 'c5-t10', title: '登記重量', prompt: '把 <code>item_name</code> 為 <strong>MacBook Air</strong> 的證物 <code>weight_g</code> 改成 <strong>1240</strong>。',
+      lead: 'UPDATE evidence SET weight_g = 數字 WHERE item_name = ...，數字不加引號。',
       hints: ["UPDATE evidence SET weight_g = 1240 WHERE item_name = 'MacBook Air';", '數字不用引號。', "<code>UPDATE evidence SET weight_g = 1240 WHERE item_name = 'MacBook Air';</code>"],
       check: { kind: 'probe', probe: 'SELECT item_name, weight_g FROM evidence WHERE weight_g IS NOT NULL' } },
     { type: 'lesson', title: '第二張表與外鍵', body: `
@@ -105,6 +109,7 @@ ALTER TABLE evidence RENAME COLUMN location TO found_at; -- 改名</code></pre>`
       hints: ['三個欄位加一行 FOREIGN KEY。', 'FOREIGN KEY (evidence_id) REFERENCES evidence(id)', '<code>CREATE TABLE evidence_photo (id INT AUTO_INCREMENT PRIMARY KEY, evidence_id INT NOT NULL, file_name VARCHAR(200) NOT NULL, FOREIGN KEY (evidence_id) REFERENCES evidence(id));</code>'],
       check: { kind: 'probe', probe: "SELECT (SELECT GROUP_CONCAT(name) FROM pragma_table_info('evidence_photo')) AS cols, (SELECT COUNT(*) FROM pragma_foreign_key_list('evidence_photo')) AS fks" } },
     { type: 'task', id: 'c5-t12', title: '新增照片並 JOIN 回來', prompt: '先新增一筆照片：<code>evidence_id</code> 為 1、<code>file_name</code> 為 <code>\'box-001.jpg\'</code>。然後用 JOIN 查出這張照片對應的證物名稱：顯示 <code>ph.file_name</code>、<code>ev.item_name</code>。',
+      lead: '兩句 SQL：先 INSERT INTO evidence_photo (...) VALUES (...);，再 SELECT ... FROM evidence_photo ph JOIN evidence ev ON ev.id = ph.evidence_id。',
       hints: ["INSERT INTO evidence_photo (evidence_id, file_name) VALUES (1, 'box-001.jpg');", 'SELECT ph.file_name, ev.item_name FROM evidence_photo ph JOIN evidence ev ON ev.id = ph.evidence_id;', "<code>INSERT INTO evidence_photo (evidence_id, file_name) VALUES (1, 'box-001.jpg'); SELECT ph.file_name, ev.item_name FROM evidence_photo ph JOIN evidence ev ON ev.id = ph.evidence_id;</code>"],
       check: { kind: 'probe', probe: 'SELECT ph.file_name, ev.item_name FROM evidence_photo ph JOIN evidence ev ON ev.id = ph.evidence_id ORDER BY ph.id' } },
     { type: 'lesson', title: 'DROP、TRUNCATE、DELETE 的差別', body: `

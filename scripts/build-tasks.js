@@ -69,6 +69,9 @@ const decode = (html) => html.replace(/<[^>]+>/g, '').replace(/&gt;/g, '>').repl
       if (check.ordered) {
         const u = SD.check.normalizeResult(last.columns, last.values, { ...check, ordered: false });
         expect[step.id].unorderedHash = await SD.check.sha256(u.text);
+        // 記下標準解答最後一個 ORDER BY 的方向，檢核發現結果整個反過來時才能明講要 ASC 還是 DESC
+        const ob = sol.match(/ORDER\s+BY\s+([^;]+?)(?:\s+LIMIT\b|;|$)/i);
+        if (ob) expect[step.id].desc = /\bDESC\s*$/i.test(ob[1].trim().split(',').pop());
       }
     }
   }

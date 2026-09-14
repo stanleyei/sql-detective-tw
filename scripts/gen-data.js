@@ -288,9 +288,17 @@ addCctv({ camera_location: '燈塔路停車場', district: '港東區', capture_
 addCctv({ camera_location: '海濱門市前', district: '港西區', capture_time: '2025-04-12 22:41:18', plate_number: 'RBK-7528', note: '銀色汽車停靠' });
 addCctv({ camera_location: '海濱門市前', district: '港西區', capture_time: '2025-04-12 22:53:02', plate_number: 'RBK-7528', note: '銀色汽車快速離開' });
 addCctv({ camera_location: '海濱路與造船街口', district: '港西區', capture_time: '2025-04-12 22:55:47', plate_number: 'RBK-7528', note: '車輛通過' });
+// RBK-7528 平日白天與深夜也出現過：c2-t10 的 CASE 三個分支都要有資料落進去，少寫分支才會被抓到
+addCctv({ camera_location: '港西路橋頭', district: '港西區', capture_time: '2025-04-10 08:12:44', plate_number: 'RBK-7528', note: '車輛通過' });
+addCctv({ camera_location: '海濱路與造船街口', district: '港西區', capture_time: '2025-04-14 01:20:05', plate_number: 'RBK-7528', note: '車輛通過' });
 addCctv({ camera_location: '海濱門市前', district: '港西區', capture_time: '2025-04-12 21:10:30', plate_number: 'TXA-2528', note: '藍色汽車停靠' });
 addCctv({ camera_location: '海濱門市前', district: '港西區', capture_time: '2025-04-12 22:47:15', plate_number: 'QWE-9528', note: '銀色汽車停靠' });
 addCctv({ camera_location: '海濱門市前', district: '港西區', capture_time: '2025-04-12 19:05:22', plate_number: 'LLP-0528', note: '銀色汽車停靠' });
+// 誘餌：前後兩天同地點、同時段也有紀錄，只比「時:分」不比日期的 BETWEEN 會多撈到這幾筆而無法過關
+addCctv({ camera_location: '海濱門市前', district: '港西區', capture_time: '2025-04-11 22:44:09', plate_number: 'GHD-3316', note: '車輛停靠' });
+addCctv({ camera_location: '海濱門市前', district: '港西區', capture_time: '2025-04-13 22:58:51', plate_number: null, note: '行人穿越' });
+// 誘餌：LLP-0528 隔天同時段出現在別處，c2-t7 若漏寫日期會同時撈到兩張車牌
+addCctv({ camera_location: '海濱路與造船街口', district: '港西區', capture_time: '2025-04-13 22:40:33', plate_number: 'LLP-0528', note: '車輛通過' });
 // 第六章
 addCctv({ camera_location: '海景大道口', district: '海濱區', capture_time: '2025-08-15 20:48:10', plate_number: 'KHT-4271', note: '黑色汽車停靠' });
 addCctv({ camera_location: '海景大道口', district: '海濱區', capture_time: '2025-08-15 21:23:55', plate_number: 'KHT-4271', note: '黑色汽車離開' });
@@ -443,6 +451,9 @@ addAccess({ employee_id: empOf[P.c4_culprit], door: '大門', action: '離開', 
 // 另一名業務部員工晚上加班，僅在業務區（干擾項）
 const salesEmp = cpEmps.find((e) => e.department === '業務部' && e.title !== '經理');
 addAccess({ employee_id: salesEmp.id, door: '大門', action: '進入', event_time: '2025-06-20 20:30:00' });
+// 誘餌：兩天前也有人深夜刷機房，c4-t3 若只比「時:分」不比日期會多撈到這兩筆
+addAccess({ employee_id: mgr.id, door: '機房', action: '進入', event_time: '2025-06-18 22:25:00' });
+addAccess({ employee_id: mgr.id, door: '機房', action: '離開', event_time: '2025-06-18 22:52:00' });
 addAccess({ employee_id: salesEmp.id, door: '大門', action: '離開', event_time: '2025-06-20 22:20:00' });
 access.sort((a, b) => (a.event_time < b.event_time ? -1 : 1));
 access.forEach((a, i) => { a.id = i + 1; });

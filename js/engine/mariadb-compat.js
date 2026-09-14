@@ -33,7 +33,9 @@
       const next = sql[i + 1];
       if (/\s/.test(ch)) {
         let j = i; while (j < n && /\s/.test(sql[j])) j++;
-        push('ws', sql.slice(i, j)); i = j; continue;
+        // 中文輸入法切換時很容易打出全形空白（U+3000）或不斷行空白（U+00A0），畫面上與半形幾乎無異，
+        // 但 SQLite 會回「unrecognized token」。這裡只在字串常值以外把它們當一般空白，db.run 會另外加註提醒。
+        push('ws', sql.slice(i, j).replace(/[\u3000\u00a0]/g, ' ')); i = j; continue;
       }
       if (ch === '-' && next === '-') {
         let j = sql.indexOf('\n', i); if (j < 0) j = n;
@@ -75,7 +77,8 @@
         push('number', sql.slice(i, j)); i = j; continue;
       }
       if (/[A-Za-z_\u00C0-\uFFFF@]/.test(ch)) {
-        let j = i; while (j < n && /[A-Za-z0-9_$\u00C0-\uFFFF@]/.test(sql[j])) j++;
+        // U+00C0–U+FFFF 涵蓋中文識別字，但也包住了全形空白（U+3000）與 NBSP，需另外排除，否則 district　FROM 會被吞成一個字
+        let j = i; while (j < n && /[A-Za-z0-9_$\u00C0-\uFFFF@]/.test(sql[j]) && !/\s/.test(sql[j])) j++;
         push('word', sql.slice(i, j)); i = j; continue;
       }
       const three = sql.slice(i, i + 3);
