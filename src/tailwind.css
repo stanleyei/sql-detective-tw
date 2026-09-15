@@ -392,9 +392,47 @@
   .polaroid.is-new { @apply ring-4 ring-amber ring-offset-2 ring-offset-ink-900; }
   .polaroid.is-new::after { content: '新'; @apply absolute -right-2 -top-2 rounded-full bg-amber px-2 py-0.5 text-xs font-black text-ink-950; }
 
-  /* header 證據板按鈕：有未讀線索時右上角亮一顆脈衝小點 */
+  /* header 證據板／偵探檔案按鈕：有未讀線索或新徽章時右上角亮一顆脈衝小點 */
   .board-dot { @apply absolute -right-1 -top-1 hidden size-3 rounded-full bg-amber; }
-  #btn-board.has-new .board-dot { @apply block; animation: cue-pulse 1.6s ease-in-out infinite; }
+  #btn-board.has-new .board-dot, #btn-achievements.has-new .board-dot { @apply block; animation: cue-pulse 1.6s ease-in-out infinite; }
+  /* 文內連結樣式的按鈕（證據板底部指向偵探檔案） */
+  .link-sd { @apply cursor-pointer font-bold text-amber underline decoration-amber/50 underline-offset-2 hover:decoration-amber; }
+
+  /*
+   * 偵探檔案（沿用 .stage + .board-body 的暗牆）。頂欄只有一列、沒有篩選 chip，上緣留白比證據板少。
+   * 卡片用深色卡而不是拍立得：這是玩家自己的檔案，不是牆上的證物。
+   */
+  .achv-body { @apply pt-20; }
+  .achv-rank { @apply flex flex-col gap-6 rounded-2xl border border-amber/40 bg-ink-950/80 p-5 shadow-glow-amber backdrop-blur sm:flex-row sm:items-center sm:p-6; }
+  .achv-stats { @apply grid grid-cols-2 gap-x-8 gap-y-3 sm:shrink-0; }
+  .achv-stats dt { @apply text-eyebrow font-bold uppercase text-ink-300; }
+  .achv-stats dd { @apply text-2xl font-black; }
+  .achv-grid { @apply grid grid-cols-2 gap-3 sm:grid-cols-4; }
+  .achv-card { @apply flex flex-col items-center gap-1.5 rounded-2xl border border-ink-700 bg-ink-900/80 p-4 text-center text-paper shadow-card; }
+  button.achv-card { @apply cursor-pointer transition hover:-translate-y-0.5 hover:border-amber/60 hover:shadow-glow-amber; }
+  .achv-card.is-locked { @apply border-dashed text-ink-300; }
+  .achv-card.is-locked img { @apply opacity-40 grayscale; }
+  .achv-card-sub { @apply mt-1 text-eyebrow font-bold uppercase text-ink-300; }
+  .achv-card-meta { @apply text-xs leading-5 text-ink-300; }
+  .achv-card-cta { @apply mt-1 text-xs font-bold text-amber; }
+  /*
+   * 分享卡：寬度鎖在 24rem 內、直式，手機一屏截得下。深底琥珀邊呼應結案證書；
+   * 兩層 radial 做出證書紙的暈光，CSS 失效時就是 ink-950 實色底。
+   */
+  .share-card {
+    @apply relative mx-auto w-full max-w-sm overflow-hidden rounded-2xl border-2 border-amber/70 bg-ink-950 p-6 text-paper shadow-glow-amber;
+    background-image:
+      radial-gradient(circle at 100% 0%, color-mix(in srgb, var(--color-amber) 18%, transparent), transparent 55%),
+      radial-gradient(circle at 0% 100%, color-mix(in srgb, var(--color-teal) 12%, transparent), transparent 50%);
+  }
+  .share-stats { @apply mt-5 grid grid-cols-4 gap-2 border-y border-ink-700 py-4; }
+  .share-stats dt { @apply text-eyebrow font-bold uppercase text-ink-300; }
+  .share-stats dd { @apply text-2xl font-black leading-tight; }
+  .share-max { @apply ml-0.5 text-xs font-normal text-ink-300; }
+  /* 8 枚縮圖一列排完：24rem 卡扣掉左右 padding 剩 21rem，32px × 8 加間距剛好放得下，不折行 */
+  .share-badges { @apply mt-4 flex justify-between gap-1; }
+  .share-badges .is-locked img { @apply opacity-30 grayscale; }
+  .share-foot { @apply mt-5 flex items-center justify-between gap-3 text-xs text-ink-300; }
 
   /* 新線索提示卡：固定在右下角，不佔版面；手機貼齊左右邊 */
   /*

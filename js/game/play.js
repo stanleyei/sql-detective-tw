@@ -405,7 +405,7 @@
     const verdict = boardMode === 'verdict' && !!chapter;
     $('#board-title').textContent = verdict ? '結案室' : '證據板';
     $('#board-filter').hidden = verdict;
-    $('#board-badges').hidden = verdict;
+    $('#board-foot').hidden = verdict;
     if (verdict) { renderVerdictBoard(board); updateBoardButton(); return; }
     const chIds = [...new Set(state.clues.map((c) => c.ch))].sort((a, b) => b - a);
     // 目前章節沒線索時「本章」沒東西可看，退回全部
@@ -620,23 +620,172 @@
     if (!canAnimate()) { pin(); return; }
     gsap.to('#board .polaroid', { scale: 1.05, duration: 0.18, yoyo: true, repeat: 1, stagger: 0.07, ease: 'power1.inOut', clearProps: 'scale', onComplete: pin });
   }
-  function renderBadges() {
-    const wrap = $('#badge-list');
-    wrap.innerHTML = '';
-    const all = chapters.map((c) => c.badge).concat([{ id: 'master', name: '全星通關', img: './images/badge-master.webp', desc: '完成全部章節。' }]);
-    for (const b of all) {
-      const has = state.badges.includes(b.id);
-      const d = el('div', `flex flex-col items-center gap-1 text-center ${has ? '' : 'opacity-30 grayscale'}`);
-      d.title = `${b.name}：${b.desc}`;
-      d.innerHTML = `<img src="${b.img}" alt="${esc(b.name)}${has ? '' : '（未取得）'}" width="56" height="56" class="size-14 rounded-full object-cover" loading="lazy" /><span class="text-[0.65rem] leading-tight text-ink-300">${esc(b.name)}</span>`;
-      wrap.appendChild(d);
-    }
-    $('#star-total').textContent = `★ ${totalStars()}`;
+  // ---------------------------------------------------------------------------
+  // 偵探檔案：星數、階級、徽章牆、分享卡
+  // ---------------------------------------------------------------------------
+  /*
+   * 成就與線索分開放：證據板是案件的東西，偵探檔案是玩家自己的東西。
+   * 徽章解鎖彈窗只在結案當下跳一次，所以這裡要能重看每枚徽章與結案證書，玩家才有第二次截圖的機會。
+   */
+  const achvStage = $('#achv-stage');
+  const MASTER_BADGE = { id: 'master', name: '結案證書', img: './images/badge-master.webp', desc: '潮港市六起案件全數偵破。' };
+  const allBadges = () => chapters.map((c) => ({ ...c.badge, ch: c })).concat([MASTER_BADGE]);
+  const maxStars = () => chapters.reduce((s, c) => s + tasksOf(c).length * 3, 0);
+  /* 階級門檻用總星數的比例而非絕對值，增減任務時不必調整；階級名稱同時印在結案證書上 */
+  const RANKS = [[0, '實習偵探'], [0.1, '見習偵探'], [0.4, '正式偵探'], [0.7, '資深偵探'], [0.95, '金牌偵探']];
+  function rankOf(earned, max) {
+    const ratio = max ? earned / max : 0;
+    let i = 0;
+    while (i + 1 < RANKS.length && ratio >= RANKS[i + 1][0]) i++;
+    const next = RANKS[i + 1] ? { name: RANKS[i + 1][1], stars: Math.ceil(RANKS[i + 1][0] * max) } : null;
+    return { name: RANKS[i][1], next };
   }
-  function showBadge(badge, extraHtml) {
+  const fmtDate = (iso) => new Date(iso || Date.now()).toLocaleDateString('zh-TW');
+  const siteUrl = () => new URL('./', location.href).href.replace(/^https?:\/\//, '').replace(/\/$/, '');
+  const dim = (html) => `<span class="text-base font-normal text-ink-300">${html}</span>`;
+  let badgeNew = false;
+
+  function updateAchvButton() {
+    $('#star-total').innerHTML = `★ ${totalStars()}<span class="hidden sm:inline"> / ${maxStars()}</span>`;
+    $('#btn-achievements').classList.toggle('has-new', badgeNew);
+    $('#badge-new-sr').textContent = badgeNew ? '，有新徽章' : '';
+  }
+  function unlockBadge(id) {
+    if (!SD.state.addBadge(id)) return false;
+    badgeNew = true;
+    return true;
+  }
+  function certificateHtml() {
+    const total = totalStars(), max = maxStars();
+    return `<div class="w-full rounded-xl border border-amber/40 bg-ink-950 p-4 text-left">
+      <p class="eyebrow">潮港市警察局 · 結案證書</p>
+      <p class="mt-2 text-lg font-bold">資料分析組 ${esc(rankOf(total, max).name)}</p>
+      <p class="mt-1 text-sm text-ink-300">完成章節 ${chapters.length} / ${chapters.length} · 總星數 ${total} / ${max} · 線索 ${state.clues.length} 條 · 徽章 ${state.badges.length} 枚</p>
+      <p class="mt-1 text-xs text-ink-300">${fmtDate(state.badgeAt.master)} · 截圖此畫面即可作為學習紀錄，之後也能在「偵探檔案」重看</p>
+    </div>`;
+  }
+  function shareText() {
+    const total = totalStars(), max = maxStars();
+    const badges = allBadges();
+    const owned = badges.filter((b) => state.badges.includes(b.id));
+    return [
+      '【SQL 偵探：潮港市檔案】偵探檔案',
+      `階級：${rankOf(total, max).name}`,
+      `★ ${total} / ${max} 星 · 結案 ${chapters.filter(isDone).length} / ${chapters.length} · 線索 ${state.clues.length} 條 · 徽章 ${owned.length} / ${badges.length}`,
+      `徽章：${owned.length ? owned.map((b) => b.name).join('、') : '尚未取得'}`,
+      siteUrl(),
+    ].join('\n');
+  }
+  function renderAchievements() {
+    updateAchvButton();
+    if (!achvStage.open) return;
+    const total = totalStars(), max = maxStars();
+    const rank = rankOf(total, max);
+    const doneCount = chapters.filter(isDone).length;
+    const badges = allBadges();
+    const has = (b) => state.badges.includes(b.id);
+    const owned = badges.filter(has);
+    $('#achv-count').textContent = `徽章 ${owned.length} / ${badges.length}`;
+
+    const rankHtml = `<section class="achv-rank" aria-label="偵探階級">
+      <div class="min-w-0 flex-1">
+        <p class="eyebrow">目前階級</p>
+        <h3 class="mt-1 text-3xl font-black sm:text-4xl">${esc(rank.name)}</h3>
+        <p class="mt-2 text-sm leading-6 text-ink-300">${rank.next ? `再拿 <span class="font-bold text-amber">${rank.next.stars - total}</span> 顆星晉升為「${esc(rank.next.name)}」。不看提示解完任務可拿滿 3 星，已完成的任務也能回去重練。` : '已是最高階級。每個任務都拿到 3 星，就是一份完美檔案。'}</p>
+        <div id="achv-progress" class="progress mt-3" aria-hidden="true"><span></span></div>
+      </div>
+      <dl class="achv-stats">
+        <div><dt>總星數</dt><dd><span class="text-amber">★</span> ${total} ${dim(`/ ${max}`)}</dd></div>
+        <div><dt>結案</dt><dd>${doneCount} ${dim(`/ ${chapters.length}`)}</dd></div>
+        <div><dt>線索</dt><dd>${state.clues.length}</dd></div>
+        <div><dt>徽章</dt><dd>${owned.length} ${dim(`/ ${badges.length}`)}</dd></div>
+      </dl>
+    </section>`;
+
+    const cards = badges.map((b) => {
+      const st = b.ch ? SD.state.chapterStars(b.ch.id, tasksOf(b.ch)) : null;
+      const sub = b.ch ? `第 ${b.ch.id} 章 · ${esc(b.ch.title)}` : '全部章節結案';
+      const at = state.badgeAt[b.id] ? ` · ${fmtDate(state.badgeAt[b.id])}` : '';
+      const meta = has(b)
+        ? (st ? `<span class="text-amber">★</span> ${st.earned} / ${st.max}${at}` : `${chapters.length} 章全數結案${at}`)
+        : (b.ch ? `完成第 ${b.ch.id} 章解鎖` : '全部章節結案後解鎖');
+      const inner = `<img src="${b.img}" alt="" width="80" height="80" class="size-20 rounded-full object-cover" loading="lazy" /><p class="achv-card-sub">${sub}</p><h4 class="text-base font-black leading-6">${esc(b.name)}${has(b) ? '' : '<span class="sr-only">（未取得）</span>'}</h4><p class="achv-card-meta">${meta}</p>`;
+      return has(b)
+        ? `<button type="button" class="achv-card" data-badge="${b.id}">${inner}<span class="achv-card-cta">重看 →</span></button>`
+        : `<div class="achv-card is-locked">${inner}</div>`;
+    }).join('');
+    const wallHtml = `<section aria-label="徽章牆">
+      <div class="board-section-title"><p class="eyebrow">徽章牆</p><h3 class="text-xl font-black">已取得 ${owned.length} / ${badges.length}</h3><span class="text-sm text-ink-300">點已取得的徽章可以重看解鎖畫面</span></div>
+      <div class="achv-grid">${cards}</div>
+    </section>`;
+
+    const shareHtml = `<section aria-label="分享">
+      <div class="board-section-title"><p class="eyebrow">分享</p><h3 class="text-xl font-black">偵探名片</h3><span class="text-sm text-ink-300">截圖下面這張卡，或複製文字貼到聊天室</span></div>
+      <div class="share-card">
+        <p class="eyebrow">SQL 偵探：潮港市檔案</p>
+        <p class="mt-4 text-sm text-ink-300">潮港市警察局 · 資料分析組</p>
+        <p class="text-3xl font-black leading-tight">${esc(rank.name)}</p>
+        <dl class="share-stats">
+          <div><dt>星數</dt><dd>${total}<span class="share-max">/${max}</span></dd></div>
+          <div><dt>結案</dt><dd>${doneCount}<span class="share-max">/${chapters.length}</span></dd></div>
+          <div><dt>線索</dt><dd>${state.clues.length}</dd></div>
+          <div><dt>徽章</dt><dd>${owned.length}<span class="share-max">/${badges.length}</span></dd></div>
+        </dl>
+        <ul class="share-badges" aria-label="徽章">${badges.map((b) => `<li${has(b) ? '' : ' class="is-locked"'}><img src="${b.img}" alt="${esc(b.name)}${has(b) ? '' : '（未取得）'}" width="32" height="32" class="size-8 rounded-full object-cover" loading="lazy" /></li>`).join('')}</ul>
+        <p class="share-foot"><span>${fmtDate()}</span><span>${esc(siteUrl())}</span></p>
+      </div>
+      <div class="mt-4 flex flex-wrap justify-center gap-2">
+        <button type="button" class="btn-primary btn-sm" data-share-copy>複製成就文字</button>
+        ${navigator.share ? '<button type="button" class="btn-ghost btn-sm" data-share-native>分享…</button>' : ''}
+      </div>
+      <p id="share-status" class="mt-2 min-h-6 text-center text-sm text-teal" role="status"></p>
+    </section>`;
+
+    $('#achv').innerHTML = rankHtml + wallHtml + shareHtml;
+    // 進度條寬度用 CSSOM 設定：CSP 的 style-src 沒開 unsafe-inline
+    $('#achv-progress > span').style.width = `${max ? Math.round((total / max) * 100) : 0}%`;
+  }
+  function openAchievements() {
+    badgeNew = false;
+    achvStage.showModal();
+    renderAchievements();
+    $('.board-body', achvStage).scrollTop = 0;
+    if (canAnimate()) {
+      gsap.fromTo(achvStage, { opacity: 0 }, { opacity: 1, duration: 0.3 });
+      gsap.from('#achv .achv-rank, #achv .achv-card, #achv .share-card', { y: -24, opacity: 0, duration: 0.45, stagger: 0.04, ease: 'power2.out', clearProps: 'all' });
+    }
+  }
+  $('#btn-achievements').addEventListener('click', openAchievements);
+  $('#achv-close').addEventListener('click', () => achvStage.close());
+  achvStage.addEventListener('close', () => $('#btn-achievements').focus());
+  // 證據板底部的「偵探檔案」：兩個都是 modal，先關證據板再開檔案，避免疊兩層全螢幕
+  boardStage.addEventListener('click', (e) => { if (e.target.closest('[data-open-achievements]')) { boardStage.close(); openAchievements(); } });
+  achvStage.addEventListener('click', async (e) => {
+    const cardBtn = e.target.closest('[data-badge]');
+    if (cardBtn) {
+      const b = allBadges().find((x) => x.id === cardBtn.dataset.badge);
+      if (!b) return;
+      if (!b.ch) { showBadge(MASTER_BADGE, certificateHtml(), '已取得的徽章'); return; }
+      const st = SD.state.chapterStars(b.ch.id, tasksOf(b.ch));
+      showBadge(b, `<p class="text-amber">本章星數 ${st.earned} / ${st.max}</p>${state.badgeAt[b.id] ? `<p class="text-xs text-ink-300">取得日期 ${fmtDate(state.badgeAt[b.id])}</p>` : ''}`, '已取得的徽章');
+      return;
+    }
+    const status = $('#share-status');
+    if (e.target.closest('[data-share-copy]')) {
+      try { await navigator.clipboard.writeText(shareText()); status.textContent = '已複製，貼到聊天室就能分享。'; }
+      catch (err) { status.textContent = '這個瀏覽器不允許複製，請直接截圖分享卡。'; }
+      return;
+    }
+    if (e.target.closest('[data-share-native]')) {
+      // 使用者取消分享會 reject，不是錯誤，靜默即可
+      try { await navigator.share({ title: 'SQL 偵探：潮港市檔案', text: shareText() }); } catch (err) { /* 取消分享 */ }
+    }
+  });
+
+  function showBadge(badge, extraHtml, label = '徽章解鎖') {
     const dlg = $('#dlg-badge');
     $('#badge-body').innerHTML = `
-      <p class="eyebrow">徽章解鎖</p>
+      <p class="eyebrow">${esc(label)}</p>
       <img id="badge-img" src="${badge.img}" alt="" width="160" height="160" class="size-40 rounded-full object-cover shadow-glow-amber" />
       <h2 class="text-2xl font-black">${esc(badge.name)}</h2>
       <p class="max-w-md text-ink-300">${esc(badge.desc)}</p>
@@ -944,7 +1093,7 @@
       if (canAnimate()) gsap.from(fb.firstElementChild, { scale: 0.96, opacity: 0, duration: 0.35, ease: 'back.out(2)' });
       const entry = $('.verdict-entry', card);
       if (entry) entry.outerHTML = verdictEntryHtml(step);
-      renderBadges();
+      renderAchievements();
       updateNav();
       showResultFeedback(true, successMsg, newClue);
       showPane('story');
@@ -1124,32 +1273,23 @@
   function completeChapter() {
     closeStage();
     const p = prog();
-    const firstTime = !p.done;
     p.done = true; SD.state.save();
     const st = SD.state.chapterStars(chapter.id, tasksOf(chapter));
     const nextCh = chapters.find((c) => c.id === chapter.id + 1);
     const allDone = chapters.every(isDone);
     let extra = `<p class="text-amber">本章星數 ${st.earned} / ${st.max}</p>`;
     if (nextCh) extra += `<a href="./play.html#${nextCh.slug}" class="btn-teal mt-2" data-goto="${nextCh.slug}">前往第 ${nextCh.id} 章：${esc(nextCh.title)} →</a>`;
-    SD.state.addBadge(chapter.badge.id);
-    renderBadges();
+    unlockBadge(chapter.badge.id);
     populateSelect();
     if (allDone) {
-      SD.state.addBadge('master');
-      renderBadges();
-      const total = totalStars();
-      const max = chapters.reduce((s, c) => s + tasksOf(c).length * 3, 0);
-      showBadge({ img: './images/badge-master.webp', name: '結案證書', desc: '潮港市六起案件全數偵破。' }, `
-        <div class="w-full rounded-xl border border-amber/40 bg-ink-950 p-4 text-left">
-          <p class="eyebrow">潮港市警察局 · 結案證書</p>
-          <p class="mt-2 text-lg font-bold">資料分析組 實習偵探</p>
-          <p class="mt-1 text-sm text-ink-300">完成章節 ${chapters.length} / ${chapters.length} · 總星數 ${total} / ${max} · 線索 ${state.clues.length} 條 · 徽章 ${state.badges.length} 枚</p>
-          <p class="mt-1 text-xs text-ink-300">${new Date().toLocaleDateString('zh-TW')} · 截圖此畫面即可作為學習紀錄</p>
-        </div>`);
+      unlockBadge('master');
+      renderAchievements();
+      showBadge(MASTER_BADGE, certificateHtml());
       return;
     }
-    if (firstTime) showBadge(chapter.badge, extra);
-    else showBadge(chapter.badge, extra);
+    renderAchievements();
+    extra += '<p class="text-xs text-ink-300">之後想重看徽章，打開右上角的「偵探檔案」。</p>';
+    showBadge(chapter.badge, extra);
     $('#dlg-badge').addEventListener('click', (e) => { const a = e.target.closest('[data-goto]'); if (a) { e.preventDefault(); $('#dlg-badge').close(); loadChapter(chapters.find((c) => c.slug === a.dataset.goto)); } }, { once: true });
   }
 
@@ -1410,7 +1550,7 @@
   async function boot() {
     if (SD.audio) SD.audio.init();
     renderBoard();
-    renderBadges();
+    renderAchievements();
     const { ch, step } = parseHash();
     const start = (ch && unlocked(ch)) ? ch : (chapters.find((c) => unlocked(c) && !isDone(c)) || chapters[0]);
     loadChapter(start, ch && unlocked(ch) ? step : undefined);

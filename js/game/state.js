@@ -9,7 +9,8 @@
   const DRAFT_KEY = 'sd_draft_v1';
   const HISTORY_MAX = 50;
 
-  const empty = () => ({ v: 1, chapters: {}, clues: [], badges: [], updatedAt: null });
+  /* badgeAt 記每枚徽章的取得時間，供偵探檔案顯示日期；舊存檔沒有此欄位時由 empty() 的展開補上空物件 */
+  const empty = () => ({ v: 1, chapters: {}, clues: [], badges: [], badgeAt: {}, updatedAt: null });
   let state = null;
 
   function load() {
@@ -46,7 +47,7 @@
   }
   function addBadge(id) {
     const s = load();
-    if (!s.badges.includes(id)) { s.badges.push(id); save(); return true; }
+    if (!s.badges.includes(id)) { s.badges.push(id); s.badgeAt[id] = new Date().toISOString(); save(); return true; }
     return false;
   }
   /** 章節星數：每個任務 3 星起算，用第 1~2 個提示扣 1 星、看解答扣 2 星 */
