@@ -544,9 +544,11 @@
     const cont = $('#btn-continue', card);
     if (cont) cont.addEventListener('click', next);
   }
+  // 已讀過的劇情只畫卡片（卡片本身列出完整台詞），不再自動開全螢幕舞台：
+  // 舞台是 modal，往回走或深連結時每段劇情都彈出會擋住「上一步」，等於無法回頭練習。想重看按「重看劇情」。
   function renderStory(step) {
     renderStoryCard(step);
-    openStage(step);
+    if (!stepDone(step)) openStage(step);
   }
 
   // ---------------------------------------------------------------------------
@@ -736,17 +738,28 @@
         if (canAnimate()) gsap.from(li, { y: 8, opacity: 0, duration: 0.3 });
       }
     };
-    showHint(hintsUsed);
-    $('#btn-hint', card).addEventListener('click', () => {
-      const cur = prog().hints[step.id] || 0;
-      if (cur >= 3) return;
-      if (cur === 2 && !window.confirm('第 3 個提示是完整解答，看了這題只會得到 1 星。確定要看嗎？')) return;
-      SD.state.useHint(chapter.id, step.id, cur + 1);
-      showHint(cur + 1);
-      $('#btn-hint', card).textContent = `💡 提示（${cur + 1}/3）`;
-      if (cur + 1 >= 3) $('#btn-hint', card).disabled = true;
+    // 已完成的任務回來練習時，提示（含解答）預設收合，按「提示」再逐一展開；
+    // 展開已用過的提示不會增加紀錄的提示數，星數不變
+    let shown = done ? 0 : hintsUsed;
+    showHint(shown);
+    const hintBtn = $('#btn-hint', card);
+    const refreshHintBtn = () => {
+      const used = prog().hints[step.id] || 0;
+      hintBtn.textContent = `💡 提示（${Math.min(used, 3)}/3）`;
+      hintBtn.disabled = shown >= 3;
+    };
+    refreshHintBtn();
+    hintBtn.addEventListener('click', () => {
+      if (shown >= 3) return;
+      const used = prog().hints[step.id] || 0;
+      if (shown >= used) {
+        if (shown === 2 && !window.confirm('第 3 個提示是完整解答，看了這題只會得到 1 星。確定要看嗎？')) return;
+        SD.state.useHint(chapter.id, step.id, shown + 1);
+      }
+      shown++;
+      showHint(shown);
+      refreshHintBtn();
     });
-    if (hintsUsed >= 3) $('#btn-hint', card).disabled = true;
     $('#btn-goto-editor', card).addEventListener('click', () => showPane('editor'));
     // 起始 SQL 只填進空的編輯器；使用者已有內容（含重新整理後還原的草稿）時不覆寫
     if (step.starter && !editor.value.trim()) { editor.value = step.starter; saveDraftSoon(0); }
@@ -1037,6 +1050,47 @@
   }
 
   // ---------------------------------------------------------------------------
+  // 任務清單：讓學員直接跳回已完成的任務練習，不必靠「上一步」逐格倒退。
+  // 可跳轉的條件：本章已結案、該任務已完成，或該任務不在目前進度之後。
+  // ---------------------------------------------------------------------------
+  function taskReachable(task) {
+    if (isDone(chapter)) return true;
+    return stepDone(task) || chapter.steps.indexOf(task) <= (prog().step || 0);
+  }
+  function taskListHtml() {
+    const tasks = tasksOf(chapter);
+    const p = prog();
+    return `<ol class="task-list" aria-label="本章任務">${tasks.map((t, i) => {
+      const idx = chapter.steps.indexOf(t);
+      const done = stepDone(t);
+      const reach = taskReachable(t);
+      const current = idx === stepIndex;
+      const status = done ? stars(starsForHints(p.hints[t.id] || 0)) : reach ? '<span class="text-amber">進行中</span>' : '<span class="text-ink-300">未解鎖</span>';
+      const inner = `<span class="task-list-no">${i + 1}</span><span class="task-list-title">${esc(t.title)}</span><span class="task-list-status">${status}</span>`;
+      if (!reach) return `<li><span class="task-list-item is-locked" aria-disabled="true">${inner}</span></li>`;
+      return `<li><button type="button" class="task-list-item${current ? ' is-current' : ''}" data-step="${idx}"${current ? ' aria-current="step"' : ''}>${inner}</button></li>`;
+    }).join('')}</ol>`;
+  }
+  function bindTaskList(root, before) {
+    root.addEventListener('click', (e) => {
+      const b = e.target.closest('[data-step]');
+      if (!b) return;
+      if (before) before();
+      coachPending = false;
+      stepIndex = Number(b.dataset.step);
+      renderStep();
+      // 手機版可能已捲到查詢區底部，跳轉後要看得到新任務卡
+      window.scrollTo({ top: 0, behavior: 'instant' });
+    });
+  }
+  const dlgTasks = $('#dlg-tasks');
+  $('#step-count').addEventListener('click', () => {
+    $('#tasks-body').innerHTML = taskListHtml();
+    dlgTasks.showModal();
+  });
+  bindTaskList(dlgTasks, () => dlgTasks.close());
+
+  // ---------------------------------------------------------------------------
   // 章節開場
   // ---------------------------------------------------------------------------
   const intro = $('#chapter-intro');
@@ -1076,7 +1130,12 @@
           <div class="intro-stat"><dt>本章星數</dt><dd>${st.earned} / ${st.max}</dd></div>
           <div class="intro-stat"><dt>釘上的線索</dt><dd>${clues}</dd></div>
         </dl>
-      </div>`;
+      </div>
+      ${started ? `<div class="mt-8">
+        <p class="eyebrow">任務清單</p>
+        <p class="mt-1 text-sm text-ink-300">點已完成的任務可以直接回去練習，星數以原本的紀錄為準。</p>
+        <div class="mt-3" id="intro-tasks">${taskListHtml()}</div>
+      </div>` : ''}`;
     closeStage();
     intro.hidden = false;
     main.hidden = true;
@@ -1086,6 +1145,8 @@
     $('#btn-intro-start', intro).addEventListener('click', () => { coachPending = true; renderStep(); });
     const restart = $('#btn-intro-restart', intro);
     if (restart) restart.addEventListener('click', () => { coachPending = true; stepIndex = 0; renderStep(); });
+    const list = $('#intro-tasks', intro);
+    if (list) bindTaskList(list);
     if (canAnimate()) gsap.from(intro.children, { y: 16, opacity: 0, duration: 0.5, stagger: 0.1, ease: 'power2.out' });
   }
   function hideIntro() {
@@ -1093,6 +1154,8 @@
     intro.hidden = true;
     main.hidden = false;
     $('#pane-tabs').hidden = false;
+    // 開場頁的任務清單在頁面底部，不重設捲動位置的話辦案畫面一出現就落在底部；與 showIntro 對稱
+    window.scrollTo({ top: 0, behavior: 'instant' });
   }
 
   // ---------------------------------------------------------------------------

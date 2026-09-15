@@ -296,6 +296,16 @@
   .intro-stat dt { @apply text-eyebrow font-bold uppercase text-ink-300; }
   .intro-stat dd { @apply text-lg font-black text-paper; }
 
+  /* 任務清單（開場頁與步驟計數彈窗共用）：每列是可點的按鈕，未解鎖以 span 呈現並降低對比，鎖定狀態同時以文字「未解鎖」標示 */
+  .task-list { @apply flex flex-col gap-1.5; }
+  .task-list-item { @apply flex min-h-11 w-full items-center gap-3 rounded-lg border border-ink-700 bg-ink-900/70 px-3 py-2 text-left text-sm text-paper; }
+  button.task-list-item { @apply cursor-pointer hover:border-amber hover:text-amber; }
+  .task-list-item.is-current { @apply border-teal/60; }
+  .task-list-item.is-locked { @apply text-ink-300 opacity-70; }
+  .task-list-no { @apply w-6 shrink-0 font-mono text-xs text-ink-300; }
+  .task-list-title { @apply flex-1 font-bold; }
+  .task-list-status { @apply shrink-0 text-xs; }
+
   /* 劇情場景圖與教學主視覺 */
   .scene { @apply -mx-5 -mt-5 mb-4 aspect-[16/9] overflow-hidden rounded-t-2xl border-b border-ink-700; }
   .scene img { @apply size-full object-cover; }
