@@ -450,37 +450,38 @@
 
   /* 新增線索：存檔 → 標新 → 右下角提示卡展示後飛進 header 按鈕 */
   function addClue(clue) {
-    if (!SD.state.addClue(clue)) return;
+    if (!SD.state.addClue(clue)) return false;
     newClueIds.add(clue.id);
     updateBoardButton();
-    revealClue(clue);
+    return true;
   }
+  /* 回傳剛釘上的線索；已釘過或這一步沒有線索則回 null，呼叫端據此決定要不要畫「新線索」列 */
   function pinClue(step) {
-    if (!step.clue) return;
-    addClue({ id: step.id, ch: chapter.id, title: step.clue.title, text: step.clue.text });
+    if (!step.clue) return null;
+    const clue = { id: step.id, ch: chapter.id, title: step.clue.title, text: step.clue.text };
+    return addClue(clue) ? clue : null;
   }
-  let toastTimer = null;
-  function revealClue(clue) {
-    const toast = $('#clue-toast');
-    clearTimeout(toastTimer);
-    toast.innerHTML = '';
-    const card = clueCard(clue, false);
-    card.querySelector('.polaroid-ch').textContent = '新線索已釘上證據板';
-    card.insertAdjacentHTML('beforeend', '<button type="button" class="btn-primary btn-sm absolute bottom-3 right-3" data-open-board>看證據板</button>');
-    toast.appendChild(card);
-    card.querySelector('[data-open-board]').addEventListener('click', () => { dismiss(true); openBoard('browse'); });
+  /*
+   * 新線索不再用右下角浮動卡：答對後視線停在結果區頂端的回饋條（桌機）或劇情面板的回饋（手機），
+   * 浮動卡會壓住結果表格末列與上下步按鈕。改成直接嵌在這兩處回饋裡，再讓縮圖飛進 header 的證據板按鈕。
+   */
+  function clueRowHtml(clue) {
+    return `<div class="clue-inline"><img src="${SD.media.clueIcon(clue.title)}" alt="" width="48" height="48" class="clue-inline-photo" data-clue-photo /><div class="min-w-0 flex-1"><p class="eyebrow text-amber">新線索已釘上證據板</p><p class="mt-0.5 text-sm font-bold leading-6">${esc(clue.title)}</p></div><button type="button" class="btn-ghost btn-sm shrink-0" data-open-board>看證據板</button></div>`;
+  }
+  /* 從目前看得見的那張縮圖複製一份飛向證據板按鈕；桌機兩欄都有縮圖時取結果區那張 */
+  function flyClueToBoard() {
+    if (!canAnimate()) return;
+    const src = [...document.querySelectorAll('[data-clue-photo]')].find((img) => img.offsetParent !== null);
     const btn = $('#btn-board');
-    const dismiss = (now) => {
-      clearTimeout(toastTimer);
-      if (!card.isConnected) return;
-      if (now || !canAnimate()) { card.remove(); return; }
-      // 飛向 header 的證據板按鈕再淡出，讓玩家知道線索收到哪裡去了
-      const from = card.getBoundingClientRect();
-      const to = btn.getBoundingClientRect();
-      gsap.to(card, { x: to.left + to.width / 2 - (from.left + from.width / 2), y: to.top + to.height / 2 - (from.top + from.height / 2), scale: 0.15, opacity: 0, duration: 0.6, ease: 'power2.in', onComplete: () => { card.remove(); gsap.fromTo(btn, { scale: 1.15 }, { scale: 1, duration: 0.4, ease: 'back.out(3)' }); } });
-    };
-    if (canAnimate()) gsap.from(card, { y: 40, opacity: 0, duration: 0.5, ease: 'back.out(1.4)' });
-    toastTimer = setTimeout(() => dismiss(false), 4500);
+    if (!src || !btn) return;
+    const from = src.getBoundingClientRect();
+    const to = btn.getBoundingClientRect();
+    const ghost = src.cloneNode(false);
+    ghost.removeAttribute('data-clue-photo');
+    ghost.className = 'clue-ghost';
+    Object.assign(ghost.style, { left: `${from.left}px`, top: `${from.top}px`, width: `${from.width}px`, height: `${from.height}px` });
+    document.body.appendChild(ghost);
+    gsap.to(ghost, { x: to.left + to.width / 2 - (from.left + from.width / 2), y: to.top + to.height / 2 - (from.top + from.height / 2), scale: 0.3, opacity: 0, duration: 0.7, delay: 0.9, ease: 'power2.in', onComplete: () => { ghost.remove(); gsap.fromTo(btn, { scale: 1.15 }, { scale: 1, duration: 0.4, ease: 'back.out(3)' }); } });
   }
 
   const clueTotal = () => chapter.steps.filter((s) => s.clue || s.type === 'answer').length; // 指認成功會多釘一張「結案」，分母算進去數字才不會超過總數
@@ -580,7 +581,7 @@
   }
   /*
    * 指認成功：牆上的拍立得依序亮一下，再把「結案」卡釘上牆尾。dialog 位於 top layer 之上，
-   * 右下角的新線索提示卡會被蓋住，所以不走 revealClue；主卡片同步重繪成已破案，關掉結案室就是完成狀態。
+   * 所以在牆上就地釘卡而不用回饋條的新線索列；主卡片同步重繪成已破案，關掉結案室就是完成狀態。
    */
   function solveCase(clue) {
     if (SD.state.addClue(clue)) newClueIds.add(clue.id);
@@ -919,17 +920,19 @@
       const wasDone = stepDone(step);
       SD.state.markStep(chapter.id, step.id);
       const h = prog().hints[step.id] || 0;
-      fb.innerHTML = `<div class="rounded-xl border border-teal/50 bg-teal/10 p-3"><p class="font-bold text-teal">✔ 正確！</p><p class="mt-1 text-sm leading-6">${esc(step.type === 'solution' ? step.success : (step.success || '結果符合預期。'))}</p></div>`;
+      const successMsg = step.type === 'solution' ? step.success : (step.success || '結果符合預期。');
+      const newClue = wasDone ? null : pinClue(step);
+      fb.innerHTML = `<div class="rounded-xl border border-teal/50 bg-teal/10 p-3"><p class="font-bold text-teal">✔ 正確！</p><p class="mt-1 text-sm leading-6">${esc(successMsg)}</p>${newClue ? clueRowHtml(newClue) : ''}</div>`;
       const st = $('#task-status', card);
       if (st) { st.className = 'chip border-teal/50 text-teal'; st.innerHTML = `已完成 ${stars(starsForHints(h))}`; }
       if (canAnimate()) gsap.from(fb.firstElementChild, { scale: 0.96, opacity: 0, duration: 0.35, ease: 'back.out(2)' });
-      if (!wasDone) pinClue(step);
       const entry = $('.verdict-entry', card);
       if (entry) entry.outerHTML = verdictEntryHtml(step);
       renderBadges();
       updateNav();
-      showResultFeedback(true, step.type === 'solution' ? step.success : (step.success || '結果符合預期。'));
+      showResultFeedback(true, successMsg, newClue);
       showPane('story');
+      if (newClue) flyClueToBoard();
     } else {
       fb.innerHTML = `<div class="rounded-xl border border-amber/40 bg-amber/5 p-3 text-sm leading-6"><span class="font-bold text-amber">還差一點：</span>${esc(result.message)}</div>`;
       showResultFeedback(false, result.message);
@@ -937,16 +940,19 @@
   }
 
   /* 檢核結果也貼在結果區最上方（桌機視線停在中欄），成功時附「下一步」按鈕，不必回左欄找 */
-  function showResultFeedback(ok, message) {
+  function showResultFeedback(ok, message, clue) {
     const box = $('#result-feedback');
     box.hidden = false;
     const last = stepIndex === chapter.steps.length - 1;
     box.innerHTML = ok
-      ? `<div class="flex flex-wrap items-center gap-3 rounded-xl border border-teal/50 bg-teal/10 p-3"><p class="flex-1 text-sm leading-6"><span class="font-bold text-teal">✔ 正確！</span> ${esc(message)}</p><button type="button" class="btn-teal btn-sm" data-next>${last ? '結束本章 ✔' : '下一步 →'}</button></div>`
+      ? `<div class="rounded-xl border border-teal/50 bg-teal/10 p-3"><div class="flex flex-wrap items-center gap-3"><p class="flex-1 text-sm leading-6"><span class="font-bold text-teal">✔ 正確！</span> ${esc(message)}</p><button type="button" class="btn-teal btn-sm" data-next>${last ? '結束本章 ✔' : '下一步 →'}</button></div>${clue ? clueRowHtml(clue) : ''}</div>`
       : `<div class="rounded-xl border border-amber/40 bg-amber/5 p-3 text-sm leading-6"><span class="font-bold text-amber">還差一點：</span>${esc(message)}</div>`;
     if (canAnimate()) gsap.from(box.firstElementChild, { y: -8, opacity: 0, duration: 0.3 });
   }
-  $('#result-feedback').addEventListener('click', (e) => { if (e.target.closest('[data-next]')) next(); });
+  $('#result-feedback').addEventListener('click', (e) => {
+    if (e.target.closest('[data-next]')) next();
+    else if (e.target.closest('[data-open-board]')) openBoard('browse');
+  });
   function clearResultFeedback() { const box = $('#result-feedback'); box.hidden = true; box.innerHTML = ''; }
 
   function renderBlocks(step) {

@@ -397,11 +397,14 @@
   #btn-board.has-new .board-dot { @apply block; animation: cue-pulse 1.6s ease-in-out infinite; }
 
   /* 新線索提示卡：固定在右下角，不佔版面；手機貼齊左右邊 */
-  .clue-toast { @apply pointer-events-none fixed inset-x-4 bottom-4 z-50 sm:inset-x-auto sm:right-6 sm:w-96; }
-  .clue-toast > * { @apply pointer-events-auto; }
-  /* 底部預留一列給「看證據板」按鈕（絕對定位在右下） */
-  .clue-toast .polaroid { rotate: 0deg; @apply flex-row pb-14 sm:flex-row sm:pb-14; }
-  .clue-toast .polaroid-photo { @apply size-20 sm:aspect-auto sm:size-20; }
+  /*
+   * 新線索列：嵌在「✔ 正確」回饋條裡（結果區頂端與劇情面板各一份），不再用右下角浮動卡——
+   * 浮動卡會壓住結果表格末列與上下步按鈕。縮圖用小拍立得白框呼應證據板。
+   */
+  .clue-inline { @apply mt-3 flex flex-wrap items-center gap-3 border-t border-teal/30 pt-3; }
+  .clue-inline-photo { @apply size-12 shrink-0 rounded-sm border-4 border-paper bg-paper object-cover shadow-card; }
+  /* 飛向證據板按鈕的縮圖分身：fixed 定位由 play.js 依來源位置設定 */
+  .clue-ghost { @apply pointer-events-none fixed z-50 rounded-sm border-4 border-paper bg-paper object-cover shadow-card; }
 
   /* 結案入口：主卡片裡的狀態列 + 進結案室按鈕，琥珀邊呼應結案室的指認卡 */
   .verdict-entry { @apply mt-4 flex flex-wrap items-center gap-3 rounded-xl border border-amber/40 bg-ink-950/60 p-4; }
