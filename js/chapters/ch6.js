@@ -96,7 +96,7 @@ SELECT * FROM solution;</code></pre>` },
       clue: { title: '全案偵破', text: '兇手蔡明哲、主使沈若蘭皆已到案。動機：海景大道土地開發糾紛。' } },
     { type: 'quiz', id: 'c6-q1', question: 'WHERE id = (SELECT ...) 與 WHERE id IN (SELECT ...) 的差別是？', options: ['沒有差別', '= 用於子查詢只回傳一個值，IN 用於可能多個值', 'IN 比較快', '= 只能用在數字'], answer: 1, explain: '子查詢回傳多列時用 = 會出錯，要改用 IN。' },
     { type: 'story', lines: [
-      { who: 'chief', text: '一個月沒進展的案子，你用資料庫一個下午就結了。從今天起，資料分析組正式成立，你是第一位組員。' },
+      { who: 'chief', text: '一個月沒進展的案子，你用資料庫一個下午就結了。從今天起，資料分析組正式納入編制，你是第一位正式組員。' },
       { who: 'mentor', text: '記住你走過的路：SELECT 看資料、WHERE 篩選、函數處理時間與文字、GROUP BY 找異常、JOIN 串證據、子查詢把一切接起來。這些在任何一個 MariaDB 資料庫裡都一樣好用。' },
       { who: 'narrator', text: '潮港市的夜色依舊，霓虹倒映在港灣。而你知道，每一盞燈後面，都有一筆等著被查出來的資料。' },
     ] },

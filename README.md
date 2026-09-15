@@ -1,4 +1,4 @@
-# SQL 偵探事務所：潮港市檔案
+# SQL 偵探：潮港市檔案
 
 以 MariaDB 語法為基準的互動式 SQL 教學遊戲。玩家扮演潮港市警局的資料分析實習生，用 SQL 破解六起案件，從 `SELECT` 一路學到 `JOIN`、子查詢與資料異動，約 8 小時課程。靈感來自 [SQL Murder Mystery](https://mystery.knightlab.com)（Knight Lab，CC BY-SA 4.0）。
 

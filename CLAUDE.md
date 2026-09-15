@@ -8,7 +8,7 @@
 
 ## 專案概述
 
-「SQL 偵探事務所：潮港市檔案」——以 MariaDB 語法為基準的互動式 SQL 教學遊戲，純靜態站部署於 GitHub Pages。頁面：`index.html`（首頁）、`play.html`（遊戲）、`schema.html`（資料表總覽）。查詢引擎為 vendor 進 repo 的 sql.js，`js/engine/mariadb-compat.js` 負責把 MariaDB 語法改寫成 SQLite 並翻譯錯誤。樣式由 Tailwind CSS v4 從 `src/tailwind.css` 建置成 `css/style.css`。沒有框架與 bundler；唯一的自動化測試是 `npm run test:compat`（相容層回歸測試）。
+「SQL 偵探：潮港市檔案」——以 MariaDB 語法為基準的互動式 SQL 教學遊戲，純靜態站部署於 GitHub Pages。頁面：`index.html`（首頁）、`play.html`（遊戲）、`schema.html`（資料表總覽）。查詢引擎為 vendor 進 repo 的 sql.js，`js/engine/mariadb-compat.js` 負責把 MariaDB 語法改寫成 SQLite 並翻譯錯誤。樣式由 Tailwind CSS v4 從 `src/tailwind.css` 建置成 `css/style.css`。沒有框架與 bundler；唯一的自動化測試是 `npm run test:compat`（相容層回歸測試）。
 
 **內容流程**：資料由 `scripts/gen-data.js` 以固定亂數種子產生（劇情關鍵列在檔案下半段釘入），章節在 `js/chapters/chN.js`，每個任務的第三個提示就是標準解答，`scripts/build-tasks.js` 以此算出期望值寫入 `js/chapters/expect.js`。改資料或任務後必跑 `npm run data && npm run tasks && npm run test:compat`。開放式答案在 `scripts/answers.json`。
 

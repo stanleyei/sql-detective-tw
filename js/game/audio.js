@@ -1,4 +1,4 @@
-/* 背景音樂：三段環境聲景（事務所／劇情／結案），依目前步驟類型切換，預設靜音。
+/* 背景音樂：三段環境聲景（檔案室／劇情／結案），依目前步驟類型切換，預設靜音。
  * 用 Web Audio 而非 <audio loop>：後者在檔案接縫有可聽的空隙，低頻 drone 類聲景特別明顯。
  * 瀏覽器禁止未經使用者互動就出聲，所以 AudioContext 只在按下按鈕（或曾開啟者的首次互動）時建立。 */
 (function () {
@@ -150,7 +150,7 @@
     if (enabled) play(name);
   }
 
-  /* 依步驟類型挑聲景：劇情用港邊懸疑，結案（指認／提交）用明亮收尾，其餘一律事務所雨夜 */
+  /* 依步驟類型挑聲景：劇情用港邊懸疑，結案（指認／提交）用明亮收尾，其餘一律檔案室雨夜 */
   function sceneFor(stepType) {
     if (stepType === 'story') return 'story';
     if (stepType === 'answer' || stepType === 'solution') return 'ending';

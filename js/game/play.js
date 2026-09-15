@@ -1152,7 +1152,7 @@
       history.replaceState(null, '', `#${ch.slug}`);
     }
     populateSelect();
-    document.title = `第 ${ch.id} 章 ${ch.title} · SQL 偵探事務所`;
+    document.title = `第 ${ch.id} 章 ${ch.title} · SQL 偵探`;
     renderBoard();
     renderHistory();
     if (ch.resettable) addChapterResetButton(); else removeChapterResetButton();

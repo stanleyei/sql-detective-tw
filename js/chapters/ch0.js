@@ -9,7 +9,7 @@ SD.chapters.push({
   badge: { id: 'rookie', name: '菜鳥實習生', img: './images/badge-rookie.webp', desc: '完成報到，學會用 SELECT 打開資料抽屜。' },
   steps: [
     { type: 'story', lines: [
-      { who: 'narrator', text: '潮港市，一座靠海的港口城市。今天是你到市警局「資料分析組」報到的第一天。' },
+      { who: 'narrator', text: '潮港市，一座靠海的港口城市。今天是你到市警局報到的第一天，被分派到局長剛開始籌備的「資料分析組」。' },
       { who: 'chief', text: '歡迎加入！我們局裡什麼都缺，最缺的就是看得懂資料的人。案子的線索都在資料庫裡，只是沒人會把它們撈出來。' },
       { who: 'mentor', text: '我是林曉青，接下來由我帶你。別緊張，SQL 不是魔法，它只是一種「跟資料庫講話」的方式。我們從最簡單的開始。' },
     ] },

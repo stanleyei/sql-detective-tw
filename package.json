@@ -26,5 +26,5 @@
     "sql.js": "^1.14.2",
     "tailwindcss": "^4.1.0"
   },
-  "description": "SQL 偵探事務所：潮港市檔案 — 以 MariaDB 語法為基準的互動式 SQL 教學遊戲"
+  "description": "SQL 偵探：潮港市檔案 — 以 MariaDB 語法為基準的互動式 SQL 教學遊戲"
 }

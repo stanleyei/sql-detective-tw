@@ -356,7 +356,7 @@
     f('if', (c, a, b) => (c !== null && c !== 0 && c !== '0' && c !== '' ? a : b));
     f('database', () => 'chaogang_police');
     f('schema', () => 'chaogang_police');
-    f('version', () => '11.4.0-MariaDB (SQL 偵探事務所模擬環境)');
+    f('version', () => '11.4.0-MariaDB (SQL 偵探模擬環境)');
     f('user', () => 'trainee@localhost');
     f('current_user', () => 'trainee@localhost');
     f('session_user', () => 'trainee@localhost');

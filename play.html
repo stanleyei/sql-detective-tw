@@ -4,11 +4,11 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; media-src 'self'; connect-src 'self'; object-src 'none'; frame-src 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests" />
-  <title>辦案中 · SQL 偵探事務所</title>
-  <meta name="description" content="SQL 偵探事務所遊戲主畫面：劇情、SQL 查詢區與證據板。" />
+  <title>辦案中 · SQL 偵探</title>
+  <meta name="description" content="SQL 偵探遊戲主畫面：劇情、SQL 查詢區與證據板。" />
   <meta name="robots" content="noindex" />
-  <meta property="og:site_name" content="SQL 偵探事務所" />
-  <meta property="og:title" content="SQL 偵探事務所：潮港市檔案" />
+  <meta property="og:site_name" content="SQL 偵探" />
+  <meta property="og:title" content="SQL 偵探：潮港市檔案" />
   <meta property="og:image" content="./images/og.jpg" />
   <meta property="og:image:alt" content="夜晚的潮港市港口，桌上放著案件檔案夾與放大鏡" />
   <meta property="og:description" content="用 SQL 破解潮港市的六起案件。" />
@@ -18,7 +18,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet" />
   <link rel="icon" href="./favicon.ico" sizes="48x48" />
   <link rel="apple-touch-icon" href="./images/apple-touch-icon.png" />
-  <link rel="stylesheet" href="./css/style.css?v=20260915-07" />
+  <link rel="stylesheet" href="./css/style.css?v=20260915-08" />
 </head>
 <body class="min-h-dvh">
   <a href="#editor" class="sr-only z-60 rounded-lg bg-amber px-6 py-3 font-bold text-ink-950 focus:not-sr-only focus:fixed focus:left-4 focus:top-4">跳至查詢區</a>
@@ -39,7 +39,7 @@
     <div class="mx-auto flex max-w-[1600px] flex-wrap items-center gap-x-4 gap-y-2 px-4 py-2">
       <a href="./" class="flex items-center gap-2 font-black tracking-wide" aria-label="回首頁">
         <img src="./images/icon/icon-badge.svg" alt="" width="28" height="28" class="size-7" />
-        <span class="hidden sm:inline">SQL 偵探事務所</span>
+        <span class="hidden sm:inline">SQL 偵探</span>
       </a>
       <label class="flex items-center gap-2 text-sm text-ink-300">
         <span class="sr-only">選擇章節</span>
@@ -254,25 +254,25 @@
   <script src="./vendor/sql-wasm.js"></script>
   <script src="./vendor/gsap.min.js"></script>
   <script src="./vendor/Flip.min.js"></script>
-  <script src="./js/engine/seed.js?v=20260915-07"></script>
-  <script src="./js/engine/mariadb-compat.js?v=20260915-07"></script>
-  <script src="./js/engine/db.js?v=20260915-07"></script>
-  <script src="./js/game/schema-doc.js?v=20260915-07"></script>
-  <script src="./js/game/cast.js?v=20260915-07"></script>
-  <script src="./js/game/media.js?v=20260915-07"></script>
-  <script src="./js/game/audio.js?v=20260915-07"></script>
-  <script src="./js/chapters/ch0.js?v=20260915-07"></script>
-  <script src="./js/chapters/ch1.js?v=20260915-07"></script>
-  <script src="./js/chapters/ch2.js?v=20260915-07"></script>
-  <script src="./js/chapters/ch3.js?v=20260915-07"></script>
-  <script src="./js/chapters/ch4.js?v=20260915-07"></script>
-  <script src="./js/chapters/ch5.js?v=20260915-07"></script>
-  <script src="./js/chapters/ch6.js?v=20260915-07"></script>
-  <script src="./js/chapters/expect.js?v=20260915-07"></script>
-  <script src="./js/game/state.js?v=20260915-07"></script>
-  <script src="./js/game/check.js?v=20260915-07"></script>
-  <script src="./js/game/cheatsheet.js?v=20260915-07"></script>
-  <script src="./js/game/highlight.js?v=20260915-07"></script>
-  <script src="./js/game/play.js?v=20260915-07" defer></script>
+  <script src="./js/engine/seed.js?v=20260915-08"></script>
+  <script src="./js/engine/mariadb-compat.js?v=20260915-08"></script>
+  <script src="./js/engine/db.js?v=20260915-08"></script>
+  <script src="./js/game/schema-doc.js?v=20260915-08"></script>
+  <script src="./js/game/cast.js?v=20260915-08"></script>
+  <script src="./js/game/media.js?v=20260915-08"></script>
+  <script src="./js/game/audio.js?v=20260915-08"></script>
+  <script src="./js/chapters/ch0.js?v=20260915-08"></script>
+  <script src="./js/chapters/ch1.js?v=20260915-08"></script>
+  <script src="./js/chapters/ch2.js?v=20260915-08"></script>
+  <script src="./js/chapters/ch3.js?v=20260915-08"></script>
+  <script src="./js/chapters/ch4.js?v=20260915-08"></script>
+  <script src="./js/chapters/ch5.js?v=20260915-08"></script>
+  <script src="./js/chapters/ch6.js?v=20260915-08"></script>
+  <script src="./js/chapters/expect.js?v=20260915-08"></script>
+  <script src="./js/game/state.js?v=20260915-08"></script>
+  <script src="./js/game/check.js?v=20260915-08"></script>
+  <script src="./js/game/cheatsheet.js?v=20260915-08"></script>
+  <script src="./js/game/highlight.js?v=20260915-08"></script>
+  <script src="./js/game/play.js?v=20260915-08" defer></script>
 </body>
 </html>
