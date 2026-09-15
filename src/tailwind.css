@@ -403,8 +403,20 @@
   .clue-toast .polaroid { rotate: 0deg; @apply flex-row pb-14 sm:flex-row sm:pb-14; }
   .clue-toast .polaroid-photo { @apply size-20 sm:aspect-auto sm:size-20; }
 
-  /* 結案回顧：指認題面下方列出本章已釘上的線索 */
-  .clue-recap { @apply mt-4 rounded-xl border border-teal/40 bg-ink-950/60 p-3; }
-  .clue-row { @apply flex gap-3 border-t border-ink-800 py-2 first:border-t-0; }
-  .clue-row img { @apply size-10 shrink-0 rounded-md object-cover; }
+  /* 結案入口：主卡片裡的狀態列 + 進結案室按鈕，琥珀邊呼應結案室的指認卡 */
+  .verdict-entry { @apply mt-4 flex flex-wrap items-center gap-3 rounded-xl border border-amber/40 bg-ink-950/60 p-4; }
+  /*
+   * 結案室的指認卡：橫跨整列、深色底配琥珀邊，跟紙白拍立得形成材質差，一眼看出「這是要填的東西」而非證據。
+   * 不旋轉、沒有圖釘，因為它是辦案桌上的表單，不是牆上的證物。
+   */
+  .verdict-card { @apply col-span-full flex flex-wrap items-start gap-4 rounded-2xl border-2 border-amber/70 bg-ink-950/90 p-4 shadow-glow-amber backdrop-blur sm:p-6; }
+  /* 結案室要一屏看完整章線索（最多 12 張）：拍立得改橫式，縮圖在左、文字在右，72rem 寬一列三張 */
+  .board-grid.is-dense { @apply sm:grid-cols-[repeat(auto-fill,minmax(19rem,1fr))] sm:gap-5; }
+  .board-grid.is-dense .polaroid { @apply sm:flex-row sm:pb-3; }
+  .board-grid.is-dense .polaroid-photo { @apply sm:aspect-auto sm:size-24; }
+  /* 空釘位：虛線框、透明底，佔住未取得線索的位置，玩家一眼看出還缺哪幾張；一律直式，按鈕才有地方放 */
+  .polaroid.is-missing { @apply flex-col border-2 border-dashed border-ink-500 bg-transparent text-paper shadow-none; }
+  .polaroid.is-missing::before { @apply bg-ink-500; }
+  .polaroid.is-missing .polaroid-ch { @apply text-amber; }
+  .polaroid.is-missing p.clue-text { @apply text-ink-300; }
 }
