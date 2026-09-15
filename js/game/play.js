@@ -299,15 +299,23 @@
   // ---------------------------------------------------------------------------
   /* 同時只展開一張表，記住上次展開的表名；DDL 後重畫時若該表已被 DROP 就回到收合狀態 */
   let openSchemaTable = null;
-  function renderSchemaCols(t) {
+  /*
+   * 欄位面板的共用渲染器：中欄資料表面板與左欄任務「相關資料表」都用這一份，
+   * 才不會兩邊功能落差（曾經任務區只有欄名、沒有中文說明）。
+   * 標題列放表名、中文名、欄數與「插入表名」按鈕——表 chip 點擊是展開，表名要另有入口才能帶進編輯器。
+   * onGoto：外鍵「→ 表.欄」列被點時要在哪個面板切換到目標表；narrow 讓側欄用較窄的格子。
+   */
+  function renderColumnGrid(container, t, { onGoto, narrow = false } = {}) {
     const s = SD.db.schema();
-    const cols = $('#schema-cols');
-    $('#schema-tabs').querySelectorAll('[data-table]').forEach((b) => b.setAttribute('aria-expanded', String(b.dataset.table === t)));
-    if (!t || !s.byTable[t]) { openSchemaTable = null; cols.hidden = true; cols.innerHTML = ''; return; }
-    openSchemaTable = t;
-    cols.hidden = false;
-    cols.innerHTML = '';
-    const grid = el('div', 'grid gap-1 grid-cols-[repeat(auto-fill,minmax(13rem,1fr))]');
+    const doc = SD.schemaDoc.table(t);
+    const head = el('div', 'flex flex-wrap items-center gap-x-2 gap-y-1 border-b border-ink-800 pb-2 mb-2');
+    head.innerHTML = `<span class="font-mono text-sm text-teal">${esc(t)}</span>${doc && doc.zh ? `<span class="text-xs text-ink-300">${esc(doc.zh)}</span>` : ''}<span class="text-xs text-ink-300">${s.byTable[t].length} 欄</span>`;
+    const ins = el('button', 'btn-ghost btn-sm ml-auto', '插入表名');
+    ins.type = 'button';
+    ins.title = `把 ${t} 插入編輯器游標處`;
+    ins.addEventListener('click', () => insertAtCursor(t));
+    head.appendChild(ins);
+    const grid = el('div', `grid gap-1 ${narrow ? 'grid-cols-[repeat(auto-fill,minmax(10rem,1fr))]' : 'grid-cols-[repeat(auto-fill,minmax(13rem,1fr))]'}`);
     for (const c of s.byTable[t]) {
       const fk = SD.schemaDoc.fk(t, c.name) || c.fk;
       // 外鍵不在第一行放補充：目標與補充合成「→ 表.欄（補充）」獨立成第二行的整行按鈕。
@@ -327,15 +335,26 @@
         go.type = 'button';
         go.title = `前往 ${fk.table}`;
         go.setAttribute('aria-label', `外鍵，前往 ${fk.table} 表的 ${fk.column} 欄${fk.note ? `（${fk.note}）` : ''}`);
-        go.addEventListener('click', () => renderSchemaCols(fk.table));
+        go.addEventListener('click', () => onGoto && onGoto(fk.table));
         cell.appendChild(go);
       }
       grid.appendChild(cell);
     }
+    container.append(head, grid);
+  }
+  function renderSchemaCols(t) {
+    const s = SD.db.schema();
+    const cols = $('#schema-cols');
+    $('#schema-tabs').querySelectorAll('[data-table]').forEach((b) => b.setAttribute('aria-expanded', String(b.dataset.table === t)));
+    if (!t || !s.byTable[t]) { openSchemaTable = null; cols.hidden = true; cols.innerHTML = ''; return; }
+    openSchemaTable = t;
+    cols.hidden = false;
+    cols.innerHTML = '';
+    renderColumnGrid(cols, t, { onGoto: renderSchemaCols });
     const actions = el('div', 'mt-2 flex flex-wrap gap-2');
     const mk = (label, sql, title) => { const b = el('button', 'btn-ghost btn-sm flex-1', label); b.type = 'button'; if (title) b.title = title; b.addEventListener('click', () => { setEditor(sql); runSql(); }); return b; };
     actions.append(mk('DESCRIBE', `DESCRIBE ${t};`), mk('看 5 筆', `SELECT * FROM ${t} LIMIT 5;`), mk('欄位備註', `SHOW FULL COLUMNS FROM ${t};`, 'SHOW FULL COLUMNS：含中文 Comment'));
-    cols.append(grid, actions);
+    cols.appendChild(actions);
   }
   function renderSchemaList() {
     if (!dbReady) return;
@@ -817,22 +836,19 @@
     const tables = taskTables(step);
     if (!tables.length) { wrap.hidden = true; return; }
     wrap.hidden = false;
-    const s = SD.db.schema();
-    wrap.innerHTML = `<p class="text-xs text-ink-300">相關資料表（點開看欄位，點欄位插入編輯器）</p><div class="mt-1 flex flex-wrap gap-2">${tables.map((t) => `<button type="button" class="chip min-h-11 cursor-pointer font-mono text-teal hover:border-amber" data-table="${t}" aria-expanded="false">${esc(t)}</button>`).join('')}</div><div id="task-cols" class="mt-2 flex flex-wrap gap-1.5" hidden></div>`;
+    wrap.innerHTML = `<p class="text-xs text-ink-300">相關資料表（點開看欄位，點欄位插入編輯器）</p><div class="mt-2 flex flex-wrap gap-2">${tables.map((t) => `<button type="button" class="chip min-h-11 cursor-pointer font-mono text-teal hover:border-amber aria-expanded:border-amber aria-expanded:text-amber" data-table="${t}" aria-expanded="false">${esc(t)}</button>`).join('')}</div><div id="task-cols" class="mt-3" hidden></div>`;
     const cols = $('#task-cols', wrap);
+    // 外鍵跳轉也留在任務區內切換，不把玩家拉到中欄；目標表不在本任務清單時（如 person）仍可展開，只是沒有對應 chip 亮起
+    const open = (t) => {
+      wrap.querySelectorAll('[data-table]').forEach((b) => b.setAttribute('aria-expanded', String(b.dataset.table === t)));
+      cols.innerHTML = '';
+      if (!t) { cols.hidden = true; return; }
+      cols.hidden = false;
+      renderColumnGrid(cols, t, { onGoto: open, narrow: true });
+    };
     wrap.addEventListener('click', (e) => {
       const tb = e.target.closest('[data-table]');
-      if (tb) {
-        const open = tb.getAttribute('aria-expanded') === 'true';
-        wrap.querySelectorAll('[data-table]').forEach((b) => b.setAttribute('aria-expanded', 'false'));
-        if (open) { cols.hidden = true; return; }
-        tb.setAttribute('aria-expanded', 'true');
-        cols.hidden = false;
-        cols.innerHTML = s.byTable[tb.dataset.table].map((c) => `<button type="button" class="inline-flex min-h-11 items-center gap-1 rounded border border-ink-700 bg-ink-950/60 px-2 py-1 font-mono text-xs text-paper hover:border-amber" data-col="${esc(c.name)}">${c.pk ? SD.schemaDoc.keyIcon('pk') : SD.schemaDoc.fk(tb.dataset.table, c.name) || c.fk ? SD.schemaDoc.keyIcon('fk') : ''}${esc(c.name)}</button>`).join('');
-        return;
-      }
-      const cb = e.target.closest('[data-col]');
-      if (cb) insertAtCursor(cb.dataset.col);
+      if (tb) open(tb.getAttribute('aria-expanded') === 'true' ? null : tb.dataset.table);
     });
   }
 
