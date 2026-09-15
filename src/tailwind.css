@@ -137,6 +137,12 @@
   .btn-teal {
     @apply inline-flex min-h-11 min-w-11 cursor-pointer items-center justify-center gap-2 rounded-lg px-4 py-2 text-base font-bold transition disabled:cursor-not-allowed disabled:opacity-40 bg-teal text-ink-950 hover:brightness-110;
   }
+  /* 首頁 CTA 文字：js/boot-flag.js 在首次繪製前依 localStorage 進度替 <html> 加 data-resume，
+     這裡純以 CSS 決定顯示「開始辦案」或「繼續辦案」，不必等 main.js 載完再改字（避免有進度的玩家先看到「開始辦案」）。
+     CSS 未載入時兩者會並列顯示，不會誤導。 */
+  .cta-resume { @apply hidden; }
+  html[data-resume] .cta-start { @apply hidden; }
+  html[data-resume] .cta-resume { @apply inline; }
   .btn-sm {
     /* 仍維持 44px 的觸控目標高度（WCAG 2.5.5），只縮小字級與左右留白 */
     @apply px-3 py-1 text-sm;

@@ -59,7 +59,9 @@
     document.getElementById('resume-text').textContent = `上次進度：第 ${cur.id} 章「${cur.title}」。已收集 ${state.clues.length} 條線索、${state.badges.length} 枚徽章。`;
     const href = `./play.html#${cur.slug}`;
     document.getElementById('resume-btn').href = href;
-    for (const id of ['hero-cta', 'nav-play']) { const el = document.getElementById(id); el.textContent = '繼續辦案'; el.href = href; }
+    // 按鈕文字已由 js/boot-flag.js + CSS 在首屏切成「繼續辦案」，這裡只補 href 與保險旗標
+    document.documentElement.setAttribute('data-resume', '');
+    for (const id of ['hero-cta', 'nav-play']) document.getElementById(id).href = href;
     document.getElementById('reset-btn').addEventListener('click', () => {
       // 重新開始會清掉所有進度，先問一次
       if (window.confirm('確定要清除所有進度、線索與徽章，從第 0 章重新開始嗎？')) { SD.state.resetAll(); location.reload(); }

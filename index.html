@@ -17,9 +17,11 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet" />
+  <!-- 同步、放 head：首次繪製前依進度替 <html> 加 data-resume，CTA 文字由 CSS 切換，避免先閃「開始辦案」 -->
+  <script src="./js/boot-flag.js?v=20260916-02"></script>
   <link rel="icon" href="./favicon.ico" sizes="48x48" />
   <link rel="apple-touch-icon" href="./images/apple-touch-icon.png" />
-  <link rel="stylesheet" href="./css/style.css?v=20260916-01" />
+  <link rel="stylesheet" href="./css/style.css?v=20260916-02" />
 </head>
 <body>
   <a href="#main" class="sr-only z-60 rounded-lg bg-amber px-6 py-3 font-bold text-ink-950 focus:not-sr-only focus:fixed focus:left-4 focus:top-4">跳至主要內容</a>
@@ -32,7 +34,7 @@
       </a>
       <div class="flex items-center gap-2">
         <a href="./schema.html" class="btn-ghost btn-sm hidden sm:inline-flex">資料表總覽</a>
-        <a href="./play.html" id="nav-play" class="btn-primary btn-sm">開始辦案</a>
+        <a href="./play.html" id="nav-play" class="btn-primary btn-sm"><span class="cta-start">開始辦案</span><span class="cta-resume">繼續辦案</span></a>
       </div>
     </nav>
   </header>
@@ -53,7 +55,7 @@
           你是警局新來的資料分析實習生。線索都藏在資料庫裡：市民、駕照、監視器、悠遊卡、門禁。從最基本的 <code class="text-teal">SELECT</code> 開始，一路學到 <code class="text-teal">JOIN</code> 與子查詢，最後親手破解一樁命案。
         </p>
         <div class="hero-in flex flex-wrap items-center gap-3">
-          <a href="./play.html" id="hero-cta" class="btn-primary text-lg">開始辦案</a>
+          <a href="./play.html" id="hero-cta" class="btn-primary text-lg"><span class="cta-start">開始辦案</span><span class="cta-resume">繼續辦案</span></a>
           <a href="#chapters" class="btn-ghost">看看六個案件</a>
         </div>
       </div>
@@ -132,15 +134,15 @@
 
   <script src="./vendor/gsap.min.js"></script>
   <script src="./vendor/ScrollTrigger.min.js"></script>
-  <script src="./js/game/cast.js?v=20260916-01"></script>
-  <script src="./js/chapters/ch0.js?v=20260916-01"></script>
-  <script src="./js/chapters/ch1.js?v=20260916-01"></script>
-  <script src="./js/chapters/ch2.js?v=20260916-01"></script>
-  <script src="./js/chapters/ch3.js?v=20260916-01"></script>
-  <script src="./js/chapters/ch4.js?v=20260916-01"></script>
-  <script src="./js/chapters/ch5.js?v=20260916-01"></script>
-  <script src="./js/chapters/ch6.js?v=20260916-01"></script>
-  <script src="./js/game/state.js?v=20260916-01"></script>
-  <script src="./js/main.js?v=20260916-01" defer></script>
+  <script src="./js/game/cast.js?v=20260916-02"></script>
+  <script src="./js/chapters/ch0.js?v=20260916-02"></script>
+  <script src="./js/chapters/ch1.js?v=20260916-02"></script>
+  <script src="./js/chapters/ch2.js?v=20260916-02"></script>
+  <script src="./js/chapters/ch3.js?v=20260916-02"></script>
+  <script src="./js/chapters/ch4.js?v=20260916-02"></script>
+  <script src="./js/chapters/ch5.js?v=20260916-02"></script>
+  <script src="./js/chapters/ch6.js?v=20260916-02"></script>
+  <script src="./js/game/state.js?v=20260916-02"></script>
+  <script src="./js/main.js?v=20260916-02" defer></script>
 </body>
 </html>

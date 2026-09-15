@@ -1504,7 +1504,7 @@
     SD.db.reset(); SD.state.clearDb(); renderSchemaList();
     resultsEl.innerHTML = '';
     resultsEl.appendChild($('#tpl-results-empty').content.cloneNode(true));
-    $('#db-status').textContent = '資料庫已重置。';
+    $('#db-status').textContent = '資料庫已重置。'; $('#db-status').hidden = false;
   });
 
   // 語法小抄
@@ -1560,14 +1560,15 @@
     try {
       await SD.db.init(SD.state.loadDb(), (s) => bootSay(bootStage[s] || '載入中…'));
       dbReady = true;
-      $('#db-status').textContent = '資料庫已就緒：chaogang_police（18 張表）。按 Ctrl + Enter 執行。';
+      // 就緒後不再顯示狀態列；重置與載入失敗時才重新顯示
+      $('#db-status').hidden = true;
       resultsEl.innerHTML = '';
       resultsEl.appendChild($('#tpl-results-empty').content.cloneNode(true));
       renderSchemaList();
       renderTaskTables();
       bootDismiss();
     } catch (e) {
-      $('#db-status').textContent = '資料庫載入失敗：' + e.message;
+      $('#db-status').textContent = '資料庫載入失敗：' + e.message; $('#db-status').hidden = false;
       resultsEl.innerHTML = `<div class="card border-danger/50 text-danger">無法載入 sql.js（${esc(e.message)}）。請確認瀏覽器支援 WebAssembly，或重新整理。</div>`;
       bootFail(e.message);
     }
