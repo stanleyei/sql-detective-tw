@@ -324,7 +324,12 @@
    */
   .stage { @apply fixed inset-0 m-0 h-dvh w-dvw max-h-none max-w-none overflow-hidden border-0 bg-ink-950 p-0 text-paper; }
   .stage::backdrop { @apply bg-ink-950; }
-  .stage-bg { @apply absolute inset-0 size-full object-cover; }
+  /*
+   * 背景圖先透明、載入完成（play.js 加 .is-loaded）再淡入：圖片到達前只看到 .stage 的 ink-950 底色，
+   * 避免網速慢時圖片由上而下硬切出現。reduced-motion 由 @layer base 的全域規則把 transition 縮到 0。
+   */
+  .stage-bg { @apply absolute inset-0 size-full object-cover opacity-0 transition-opacity duration-500 ease-out; }
+  .stage-bg.is-loaded { @apply opacity-100; }
   .stage-top { @apply absolute inset-x-0 top-0 z-10 flex flex-wrap items-center justify-between gap-2 bg-gradient-to-b from-ink-950/80 to-transparent px-4 py-3 sm:px-8; }
   /* pb 取 safe-area 與 1rem 的較大值：手機底部手勢列會蓋住按鈕 */
   .stage-body { @apply absolute inset-0 flex cursor-pointer flex-col justify-end bg-gradient-to-t from-ink-950 via-ink-950/30 to-transparent px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-20 sm:px-8 sm:pb-8; }
@@ -349,7 +354,7 @@
    * 背景用該章封面壓暗到 40%，資訊卡維持 ink-950/90 實色底確保對比。
    */
   .boot { @apply z-60 flex items-center justify-center; }
-  .boot-bg { @apply opacity-40; }
+  .boot-bg.is-loaded { @apply opacity-40; }
   .boot-box { @apply relative mx-4 w-full max-w-md rounded-2xl border border-ink-700 bg-ink-950/90 p-6 text-center shadow-card backdrop-blur; }
 
   /* 首次導覽（coach mark） */

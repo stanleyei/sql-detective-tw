@@ -879,11 +879,25 @@
     });
   }
 
+  /**
+   * 換背景圖並在載入完成後加 .is-loaded 淡入（樣式見 .stage-bg）。
+   * 同一張圖重設 src 不會再觸發 load，所以 src 相同時直接維持已顯示狀態；
+   * 快取命中時 load 仍會非同步觸發，classList 的移除／加回順序因此固定可靠。
+   */
+  function setStageBg(img, src) {
+    if (!src) return;
+    const next = new URL(src, location.href).href;
+    if (img.src === next && img.complete) { img.classList.add('is-loaded'); return; }
+    img.classList.remove('is-loaded');
+    img.onload = () => img.classList.add('is-loaded');
+    img.src = src;
+  }
+
   function openStage(step) {
     stageStep = step;
     stageLine = 0;
     preloadPortraits(step);
-    $('#stage-bg').src = SD.media.scene(chapter, stepIndex) || chapter.cover;
+    setStageBg($('#stage-bg'), SD.media.scene(chapter, stepIndex) || chapter.cover);
     $('#stage-title').textContent = `第 ${chapter.id} 章 · ${chapter.title}`;
     if (!stage.open) stage.showModal();
     stageNext.focus();
@@ -1555,7 +1569,7 @@
     const start = (ch && unlocked(ch)) ? ch : (chapters.find((c) => unlocked(c) && !isDone(c)) || chapters[0]);
     loadChapter(start, ch && unlocked(ch) ? step : undefined);
     const bg = $('#boot-bg');
-    if (start.cover) { bg.src = start.cover; bg.hidden = false; }
+    if (start.cover) { setStageBg(bg, start.cover); bg.hidden = false; }
     resultsEl.appendChild($('#tpl-loading').content.cloneNode(true));
     try {
       await SD.db.init(SD.state.loadDb(), (s) => bootSay(bootStage[s] || '載入中…'));
