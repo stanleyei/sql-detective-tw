@@ -1446,9 +1446,11 @@
   }
 
   // ---------------------------------------------------------------------------
-  // 首次導覽：三張提示卡依序指向劇情卡、編輯器、證據板（手機只提示面板切換）
+  // 首次導覽：提示卡依序指向劇情卡、編輯器、證據板、背景音樂（手機只提示面板切換）。
+  // 背景音樂的首次提示併在這裡而不另做氣泡：兩套獨立計時的首次提示在手機上會疊在同一區域
   // ---------------------------------------------------------------------------
   const COACH_KEY = 'sd_coach_v1';
+  const BGM_TIP = { target: '#btn-bgm', text: '喇叭可以開啟背景音樂，替辦案加點氛圍；不想聽隨時再按一下關掉。' };
   let coachPending = false;
   function startCoachIfPending() { if (!coachPending || stage.open) return; coachPending = false; maybeStartCoach(); }
   function maybeStartCoach() {
@@ -1458,10 +1460,12 @@
         { target: '#step-card', text: '左邊是劇情、教學與任務。看完一段就按「下一步」，任務會告訴你要查什麼。' },
         { target: '#editor-card', text: '中間是查詢區。在這裡輸入 SQL，按 Ctrl + Enter 執行，結果會自動檢核並顯示在下方。' },
         { target: '#btn-board', text: '右上角是證據板。每完成一個任務，線索就會釘上去，最後靠它們指認兇手。' },
+        BGM_TIP,
       ]
       : [
         { target: '#pane-tabs', text: '手機上用這兩個分頁切換「劇情、查詢」。任務卡上的按鈕會直接帶你到查詢區。' },
         { target: '#btn-board', text: '右上角是證據板。每完成一個任務，線索就會釘上去，最後靠它們指認兇手。' },
+        BGM_TIP,
       ];
     let i = 0;
     const overlay = el('div', 'coach');

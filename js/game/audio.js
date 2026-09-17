@@ -6,7 +6,6 @@
   window.SD = window.SD || {};
 
   const PREF_KEY = 'sd-bgm';       // 'on' | 'off'；沒有值代表從未選擇
-  const HINT_KEY = 'sd-bgm-hint';  // 提示氣泡看過一次就不再出現
   const MASTER = 0.4;              // 音檔已正規化到 -23 LUFS，這裡再壓低當背景
   const FADE = 1.5;                // 場景切換與開關的淡入淡出秒數
   /* 三段皆為 CC0 音樂（來源見 audio/CREDITS.md）。loop 是音檔的精確長度；
@@ -26,7 +25,6 @@
   const buffers = {};
   let btn = null;
   let icon = null;
-  let hint = null;
 
   function readPref() { try { return localStorage.getItem(PREF_KEY); } catch (e) { return null; } }
   function savePref(v) { try { localStorage.setItem(PREF_KEY, v); } catch (e) { /* 私密模式忽略，本次仍可用 */ } }
@@ -95,7 +93,6 @@
     }
     enabled = true;
     savePref('on');
-    hideHint();
     render();
     try { await ctx.resume(); } catch (e) { /* 仍在未互動狀態時 resume 會被拒，下一次互動再試 */ }
     play(scene);
@@ -114,7 +111,6 @@
     enabled = false;
     current = null;
     if (btn) { btn.disabled = true; btn.title = reason; btn.setAttribute('aria-label', reason); }
-    hideHint();
   }
 
   function render() {
@@ -122,26 +118,6 @@
     btn.setAttribute('aria-pressed', String(enabled));
     btn.title = enabled ? '關閉背景音樂' : '開啟背景音樂';
     icon.src = enabled ? './images/icon/icon-sound-on.svg' : './images/icon/icon-sound-off.svg';
-  }
-
-  function hideHint() {
-    if (!hint || hint.hidden) return;
-    hint.hidden = true;
-    try { localStorage.setItem(HINT_KEY, '1'); } catch (e) { /* 忽略 */ }
-  }
-
-  function showHintOnce() {
-    let seen = null;
-    try { seen = localStorage.getItem(HINT_KEY); } catch (e) { seen = '1'; }
-    if (seen || readPref() !== null) return;
-    // 等開場過場退場後再冒出來，避免和載入文字搶注意力
-    setTimeout(() => {
-      if (enabled || !hint) return;
-      hint.hidden = false;
-      // 靠右對齊在手機上會衝出左緣，量到超出就改靠左對齊按鈕
-      if (hint.getBoundingClientRect().left < 8) hint.classList.add('bgm-hint-left');
-      setTimeout(hideHint, 20000);
-    }, 2500);
   }
 
   function setScene(name) {
@@ -161,10 +137,7 @@
     btn = document.getElementById('btn-bgm');
     if (!btn) return;
     icon = btn.querySelector('img');
-    hint = document.getElementById('bgm-hint');
     btn.addEventListener('click', () => (enabled ? disable() : enable()));
-    const close = hint && hint.querySelector('button');
-    if (close) close.addEventListener('click', hideHint);
 
     // 上次選擇開啟：頁面載入時無法直接出聲，等第一次任何互動再啟動
     if (readPref() === 'on') {
@@ -175,7 +148,6 @@
       document.addEventListener('keydown', arm, true);
     } else {
       render();
-      showHintOnce();
     }
 
     document.addEventListener('visibilitychange', () => {
