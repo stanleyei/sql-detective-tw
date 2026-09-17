@@ -219,11 +219,13 @@
   .dot { @apply size-2 rounded-full bg-ink-600; }
   .dot.done { @apply bg-teal; }
   .dot.cur { @apply bg-amber ring-2 ring-amber/40; }
-  /* 編輯器 */
+  /* 編輯器：字級刻意不用 --text-code（14px）而用 16px。iOS Safari 對 font-size < 16px 的輸入框在聚焦時
+     會自動放大整頁，「帶入編輯器」程式聚焦後版面就被撐出水平捲軸；鎖 viewport 縮放會違反 WCAG 1.4.4，
+     所以改字級。桌機與手機統一，避免兩邊行數與折行不一致。min-height 隨字級放大以維持約 5 行可見 */
   textarea.sql {
-    @apply block w-full resize-y rounded-xl border border-ink-600 bg-ink-950 p-4 text-code leading-relaxed text-paper placeholder:text-ink-300/70 focus:border-amber;
+    @apply block w-full resize-y rounded-xl border border-ink-600 bg-ink-950 p-4 text-base leading-relaxed text-paper placeholder:text-ink-300/70 focus:border-amber;
     tab-size: 2;
-    min-height: 9rem;
+    min-height: 10rem;
   }
   /* 對話框 */
   dialog.sd {

@@ -9,3 +9,7 @@
 | `bgm-office.*` | 事務所（教學、任務、小測驗） | Moil | ruskerdax | https://opengameart.org/content/moil | 取第 1.0 至 89.0 秒（第一段落，止於樂曲自然停頓），頭尾短淡入淡出 |
 | `bgm-story.*` | 劇情 | Investigation | umplix | https://opengameart.org/content/investigation-0 | 取前 56 秒，尾端 4 秒與開頭交叉淡化成 52 秒無縫循環 |
 | `bgm-ending.*` | 結案（指認、提交） | Forget Me Not in F Major (Looped) | kistol | https://opengameart.org/content/forget-me-not | 原作者提供的循環版，僅調整音量 |
+
+## silence.wav
+
+0.5 秒全靜音 WAV，由腳本產生、非第三方素材。僅供 iOS 16 以下讓音訊 session 轉為媒體播放（見 js/game/audio.js）。
