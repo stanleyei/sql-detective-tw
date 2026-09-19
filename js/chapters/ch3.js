@@ -10,7 +10,7 @@ SD.chapters.push({
   steps: [
     { type: 'story', lines: [
       { who: 'narrator', text: '5 月 20 日，中央區。捷運遺失物中心的站務員送來一份報案。' },
-      { who: 'station', text: '這兩個月一直有人來領高價的遺失物，每次簽的名字都不一樣，但字跡很像，而且每次都講得出正確特徵。我懷疑是同一個人。' },
+      { who: 'station', text: '這兩個月一直有人來領高價的遺失物，每次簽的名字都不一樣，但字跡很像，而且每次都講得出正確特徵。我們事後整理才發現，系統核驗的證件都對應到同一個市民編號。我懷疑是同一個人。' },
       { who: 'mentor', text: '這種案子沒有目擊者、沒有車牌。線索藏在「次數」裡：正常人一年撿回一兩件，冒領的人會多得離譜。要學會讓資料庫幫你數。' },
     ] },
     { type: 'lesson', title: '聚合函數：把很多列變成一個數字', body: `
@@ -24,7 +24,7 @@ MAX(est_value)   -- 最大</code></pre>
 SELECT SUM(est_value), AVG(est_value) FROM lost_item WHERE status = '已領回';</code></pre>
       <p><code>COUNT(*)</code> 數列數；<code>COUNT(欄位)</code> 只數該欄位不是 NULL 的列。</p>` },
     { type: 'task', id: 'c3-t1', title: '總共幾件？', prompt: '<code>lost_item</code>（遺失物）表總共有幾筆紀錄？',
-      hints: ['COUNT(*) 數全部列。', 'SELECT COUNT(*) FROM lost_item;', '<code>SELECT COUNT(*) FROM lost_item;</code>'],
+      hints: ['<code>COUNT(*)</code> 可以計算資料表的全部列數。', '<code>SELECT COUNT(*) FROM ___;</code>', '<code>SELECT COUNT(*) FROM lost_item;</code>'],
       check: { kind: 'value' } },
     { type: 'task', id: 'c3-t2', title: '已領回幾件？', prompt: '其中 <code>status</code> 為<strong>已領回</strong>的有幾件？',
       lead: '同樣是 lost_item 的 COUNT(*)，加一個 WHERE status 條件。',
@@ -95,16 +95,16 @@ GROUP BY station;</code></pre>` },
       lead: 'transit_log 表：WHERE 卡號與方向兩個條件，GROUP BY station，COUNT(*) AS cnt，再 ORDER BY cnt DESC。',
       hints: ["WHERE card_id = 'TC00001' AND direction = '進站'", 'GROUP BY station ORDER BY cnt DESC', "<code>SELECT station, COUNT(*) AS cnt FROM transit_log WHERE card_id = 'TC00001' AND direction = '進站' GROUP BY station ORDER BY cnt DESC;</code>"],
       check: { kind: 'result', cols: null, ordered: false },
-      clue: { title: '行蹤吻合', text: '李建宏的悠遊卡在每個領取日都曾進入對應車站，與冒領紀錄完全吻合。' } },
+      clue: { title: '行蹤重疊', text: '李建宏的悠遊卡頻繁出入這些領取車站，行蹤值得進一步調查。' } },
     { type: 'task', id: 'c3-t13', title: '平均每件多少錢？', prompt: '比較：<strong>全部已領回</strong>物品的平均估價，與 <strong>14 號領走</strong>物品的平均估價。先算前者：<code>status = \'已領回\'</code> 的 <code>AVG(est_value)</code>，用 <code>ROUND(..., 0)</code> 四捨五入到整數。',
       lead: 'lost_item 表，SELECT ROUND(AVG(est_value), 0) 加 WHERE status 條件。',
       hints: ['ROUND(AVG(est_value), 0)', "WHERE status = '已領回'", "<code>SELECT ROUND(AVG(est_value), 0) FROM lost_item WHERE status = '已領回';</code>"],
       check: { kind: 'value' },
-      clue: { title: '價值異常', text: '一般領回物品平均約數千元，李建宏領走的平均超過兩萬元，專挑高價品下手。' } },
+      clue: { title: '全體平均估價', text: '全部已領回物品的平均估價為 12,353 元。李建宏領取的物品是否特別高價，仍需結合前面查到的明細與估價進一步判斷。' } },
     { type: 'quiz', id: 'c3-q1', question: '想找「件數超過 5 的車站」，條件應該寫在？', options: ['WHERE COUNT(*) > 5', 'HAVING COUNT(*) > 5', 'GROUP BY COUNT(*) > 5', 'ORDER BY COUNT(*) > 5'], answer: 1, explain: '對聚合結果的篩選要用 HAVING；WHERE 只能篩原始列。' },
     { type: 'quiz', id: 'c3-q2', question: 'SELECT station, COUNT(*) FROM lost_item; 這句少了什麼？', options: ['WHERE', 'GROUP BY station', 'LIMIT', 'DISTINCT'], answer: 1, explain: 'SELECT 裡有未聚合的欄位 station，就必須 GROUP BY station。' },
     { type: 'answer', id: 'c3-answer', prompt: '從「次數異常」出發，一路查到姓名與行蹤。<strong>冒領遺失物的人是誰？</strong>',
-      success: '李建宏在兩個月內用不同假名冒領 7 件高價遺失物，悠遊卡紀錄證明他每次都親自到站。站務員調出簽名比對後，他被依侵占罪送辦。',
+      success: '李建宏在兩個月內用不同假名冒領 7 件高價遺失物，悠遊卡行蹤與多個領取車站重疊。站務員調出簽名比對後，確認是同一人，他也被依侵占罪送辦。',
       fail: '回頭看 HAVING 那一題：領超過 2 件的只有一個編號，再用 person 表查他的名字。' },
     { type: 'story', lines: [
       { who: 'station', text: '原來是他！每次都西裝筆挺、彬彬有禮，我們完全沒懷疑。' },

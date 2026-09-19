@@ -628,7 +628,7 @@
    * 徽章解鎖彈窗只在結案當下跳一次，所以這裡要能重看每枚徽章與結案證書，玩家才有第二次截圖的機會。
    */
   const achvStage = $('#achv-stage');
-  const MASTER_BADGE = { id: 'master', name: '結案證書', img: './images/badge-master.webp', desc: '潮港市六起案件全數偵破。' };
+  const MASTER_BADGE = { id: 'master', name: '結案證書', img: './images/badge-master.webp', desc: '潮港市五起案件全數偵破，並完成全部訓練。' };
   const allBadges = () => chapters.map((c) => ({ ...c.badge, ch: c })).concat([MASTER_BADGE]);
   const maxStars = () => chapters.reduce((s, c) => s + tasksOf(c).length * 3, 0);
   /* 階級門檻用總星數的比例而非絕對值，增減任務時不必調整；階級名稱同時印在結案證書上 */

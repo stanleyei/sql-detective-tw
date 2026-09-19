@@ -1,4 +1,4 @@
-/* 第 6 章 潮港市命案：子查詢、EXISTS、綜合推理、INSERT INTO solution */
+/* 第 6 章 潮港市命案：子查詢、綜合推理、INSERT INTO solution */
 SD.chapters.push({
   id: 6,
   slug: 'ch6',
@@ -11,7 +11,7 @@ SD.chapters.push({
     { type: 'story', lines: [
       { who: 'narrator', text: '8 月 15 日，雨夜。海濱區海景大道「海景大樓」。住戶游致遠被發現死在自家客廳。' },
       { who: 'chief', text: '這案子我們查了一個月，卡在一開始：報案紀錄只寫了「兩名目擊者」，沒寫名字。你有資料庫，去把他們找出來。' },
-      { who: 'mentor', text: '這章我不會給你每一步的 SQL。線索在證詞裡，方法你都學過。需要新招時我會補一課。從 crime_report 開始。' },
+      { who: 'mentor', text: '這章不會先把每一步拆開教；線索在證詞裡，方法你都學過。卡住時仍可使用提示，需要新招時我會補一課。從 crime_report 開始。' },
     ] },
     { type: 'task', id: 'c6-t1', title: '案件檔案', prompt: '從 <code>crime_report</code> 找出 <code>crime_type</code> 為<strong>命案</strong>的案件，顯示 <code>id</code>、<code>report_date</code>、<code>description</code>。',
       lead: 'crime_report 表，WHERE crime_type = 文字。',
@@ -52,13 +52,13 @@ WHERE street = '海濱路'
       lead: 'person p JOIN driver_license d ON d.id = p.license_id，WHERE p.id IN (...) AND d.plate_number LIKE ...。',
       hints: ["車牌格式是 ABC-1234：LIKE '%H%-42%'", 'WHERE p.id IN (22, 23) AND d.plate_number LIKE ...', "<code>SELECT p.name, d.plate_number, d.car_color FROM person p JOIN driver_license d ON d.id = p.license_id WHERE p.id IN (22, 23) AND d.plate_number LIKE '%H%-42%';</code>"],
       check: { kind: 'result', cols: ['name', 'plate_number', 'car_color'], ordered: false },
-      clue: { title: '兇手鎖定', text: '蔡明哲，黑色汽車 KHT-4271。監視器也記錄到這輛車案發當晚出現在海景大道口。' } },
+      clue: { title: '兇手鎖定', text: '蔡明哲，黑色汽車 KHT-4271。' } },
     { type: 'lesson', title: '提交答案：INSERT INTO solution', body: `
-      <p>局裡的結案系統是一張叫 <code>solution</code> 的表。把你認定的兇手姓名<strong>新增</strong>進去，系統會告訢你對不對：</p>
+      <p>局裡的結案系統是一張叫 <code>solution</code> 的表。把你認定的兇手姓名<strong>新增</strong>進去，系統會告訴你對不對：</p>
       <pre><code>INSERT INTO solution (answer) VALUES ('姓名');
 SELECT * FROM solution;</code></pre>` },
     { type: 'solution', id: 'c6-s1', title: '提交兇手', prompt: '用 <code>INSERT INTO solution (answer) VALUES (\'姓名\');</code> 提交你認定的<strong>兇手</strong>。',
-      hints: ['車牌那題的結果就是答案。', '', "<code>INSERT INTO solution (answer) VALUES ('蔡明哲');</code>"],
+      hints: ['車牌那題查到的姓名就是要提交的答案。', "<code>INSERT INTO solution (answer) VALUES ('___');</code>", "<code>INSERT INTO solution (answer) VALUES ('蔡明哲');</code>"],
       success: '沒錯，兇手是蔡明哲。但他被逮捕後只說了一句話：「我是收錢辦事的。」這案子還沒完。',
       fail: '不是這個人。回頭看車牌那一題：字母含 H、數字 42 開頭的是哪一輛？',
       clue: { title: '兇手落網', text: '蔡明哲承認行兇，但聲稱受人雇用，拒絕說出雇主姓名。' } },
@@ -90,7 +90,7 @@ SELECT * FROM solution;</code></pre>` },
       hints: ['把上兩題合併：外層 JOIN 條件 + AND p.id IN ( ... )', '子查詢就是 c6-t10 那句，但只 SELECT person_id。', "<code>SELECT p.name FROM person p JOIN driver_license d ON d.id = p.license_id WHERE d.hair_color = '紅' AND d.car_brand = 'Tesla' AND d.car_model = 'Model S' AND d.height_cm BETWEEN 165 AND 168 AND p.id IN (SELECT person_id FROM event_checkin WHERE event_name = '潮港交響音樂會' AND event_date LIKE '2025-07%' GROUP BY person_id HAVING COUNT(*) = 3);</code>"],
       check: { kind: 'value' } },
     { type: 'solution', id: 'c6-s2', title: '提交幕後主使', prompt: '再一次 <code>INSERT INTO solution (answer) VALUES (\'姓名\');</code> 提交<strong>幕後主使</strong>。',
-      hints: ['三名紅髮 Tesla 車主中，只有一位 7 月去了三次音樂會。', '', "<code>INSERT INTO solution (answer) VALUES ('沈若蘭');</code>"],
+      hints: ['三名紅髮 Tesla 車主中，只有一位 7 月去了三次音樂會。', "<code>INSERT INTO solution (answer) VALUES ('___');</code>", "<code>INSERT INTO solution (answer) VALUES ('沈若蘭');</code>"],
       success: '破案！沈若蘭因土地糾紛買兇殺害鄰居游致遠。你從兩句模糊的證詞出發，用 SQL 一路追到雇主。潮港市警局從今天起有了真正的資料偵探。',
       fail: '不是她。用 HAVING COUNT(*) = 3 那題的 person_id 對回 person 表。',
       clue: { title: '全案偵破', text: '兇手蔡明哲、主使沈若蘭皆已到案。動機：海景大道土地開發糾紛。' } },

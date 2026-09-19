@@ -10,7 +10,7 @@ SD.chapters.push({
   steps: [
     { type: 'story', lines: [
       { who: 'narrator', text: '6 月 21 日早上，山城區「潮港科技」的法務打電話進來：昨晚 22:00 到 23:00 之間，機房裡的客戶資料被複製外流。' },
-      { who: 'manager', text: '門禁系統只記錄員工編號，不會記名字。你們要自己對照員工表跟市民表。對了，我昨天六點多就下班了。' },
+      { who: 'manager', text: '門禁系統只記錄員工編號，不會記名字。你們要自己對照員工表跟市民表。對了，我昨天六點多就離開公司了，晚上十點左右才從山城站搭捷運回家。' },
       { who: 'mentor', text: '注意到了嗎？門禁表 access_log 記的是 employee_id，員工表 employee 記的是 person_id，名字在 person。三張表，三把鑰匙。這章學 JOIN。' },
     ] },
     { type: 'task', id: 'c4-t1', title: '公司編號', prompt: '從 <code>company</code> 找出名稱以<strong>潮港科技</strong>開頭的公司，顯示 <code>id</code>、<code>name</code>、<code>district</code>。',
@@ -51,7 +51,7 @@ WHERE a.door = '機房';</code></pre>
       check: { kind: 'result', cols: ['name', 'title', 'action', 'event_time'], ordered: false },
       clue: { title: '經理的卡', text: '刷進機房的是研發部經理許國棟的門禁卡。但他說他六點就下班了。' } },
     { type: 'story', lines: [
-      { who: 'manager', text: '我的卡？我……我好像把它放在辦公桌抽屜裡沒帶走。我真的六點多就搭捷運回家了，山城站上車。' },
+      { who: 'manager', text: '我的卡？我……我好像把它放在辦公桌抽屜裡沒帶走。我六點多就離開公司了，晚上十點左右才從山城站搭捷運回家。' },
       { who: 'mentor', text: '他說搭捷運。捷運資料我們有。把 transit_log、transit_card、person 接起來，看他的卡那天晚上在哪裡。' },
     ] },
     { type: 'task', id: 'c4-t5', title: '經理的捷運紀錄', prompt: '接起 <code>transit_log</code>（別名 t）、<code>transit_card</code>（別名 c，用 <code>card_id</code> 對應）、<code>person</code>（別名 p，用 <code>person_id</code> 對應），找出 <strong>許國棟</strong> 在 <strong>2025-06-20</strong> 的進出站紀錄，顯示 <code>t.station</code>、<code>t.direction</code>、<code>t.log_time</code>。',

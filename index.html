@@ -5,23 +5,23 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; media-src 'self'; connect-src 'self'; object-src 'none'; frame-src 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests" />
   <title>SQL 偵探：潮港市檔案</title>
-  <meta name="description" content="用 SQL 破解潮港市的六起案件。以 MariaDB 語法為基準、從 SELECT 到 JOIN 與子查詢的互動式偵探遊戲，8 小時完整課程，全程在瀏覽器中執行。" />
+  <meta name="description" content="透過七個章節，用 SQL 破解潮港市五起案件，並完成報到訓練與資料室實作。以 MariaDB 語法為基準，8 小時完整課程，全程在瀏覽器中執行。" />
   <meta name="author" content="SQL 偵探" />
   <meta property="og:site_name" content="SQL 偵探" />
   <meta property="og:title" content="SQL 偵探：潮港市檔案" />
   <meta property="og:image" content="./images/og.jpg" />
   <meta property="og:image:alt" content="夜晚的潮港市港口，桌上放著案件檔案夾與放大鏡" />
-  <meta property="og:description" content="用 SQL 破解六起案件：夜市失竊、超商搶案、捷運冒領、公司內鬼、資料室整理，最後是海景大樓命案。" />
+  <meta property="og:description" content="七個章節、五起案件：從報到訓練開始，破解夜市失竊、超商搶案、捷運冒領、公司內鬼與海景大樓命案，並完成資料室實作。" />
   <meta property="og:type" content="website" />
 
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet" />
   <!-- 同步、放 head：首次繪製前依進度替 <html> 加 data-resume，CTA 文字由 CSS 切換，避免先閃「開始辦案」 -->
-  <script src="./js/boot-flag.js?v=20260917-02"></script>
+  <script src="./js/boot-flag.js?v=20260919-04"></script>
   <link rel="icon" href="./favicon.ico" sizes="48x48" />
   <link rel="apple-touch-icon" href="./images/apple-touch-icon.png" />
-  <link rel="stylesheet" href="./css/style.css?v=20260917-02" />
+  <link rel="stylesheet" href="./css/style.css?v=20260919-04" />
 </head>
 <body>
   <a href="#main" class="sr-only z-60 rounded-lg bg-amber px-6 py-3 font-bold text-ink-950 focus:not-sr-only focus:fixed focus:left-4 focus:top-4">跳至主要內容</a>
@@ -49,7 +49,7 @@
       <div class="relative mx-auto flex max-w-6xl flex-col items-start gap-6 px-4 pb-20 pt-24 sm:pt-36 md:pb-28">
         <p class="eyebrow hero-in">潮港市警察局 · 資料分析組</p>
         <h1 class="hero-in max-w-3xl text-4xl font-black leading-tight sm:text-6xl">
-          用 <span class="text-amber">SQL</span> 破案。<br />六起案件，一座港都。
+          用 <span class="text-amber">SQL</span> 破案。<br />五起案件，一座港都。
         </h1>
         <p class="hero-in max-w-2xl text-lg leading-8 text-ink-300">
           你是警局新來的資料分析實習生。線索都藏在資料庫裡：市民、駕照、監視器、悠遊卡、門禁。從最基本的 <code class="text-teal">SELECT</code> 開始，一路學到 <code class="text-teal">JOIN</code> 與子查詢，最後親手破解一樁命案。
@@ -79,7 +79,7 @@
     <section id="chapters" class="mx-auto max-w-6xl px-4 py-20">
       <p class="eyebrow">案件檔案</p>
       <h2 class="mt-2 text-3xl font-black sm:text-4xl">七個章節，循序把 SQL 練起來</h2>
-      <p class="mt-3 max-w-2xl text-ink-300">每章一個案件、一組語法。每完成一章解鎖下一章與一枚徽章。你可以隨時回來，進度會存在這台裝置的瀏覽器裡。</p>
+      <p class="mt-3 max-w-2xl text-ink-300">五起案件，加上報到訓練與資料室實作；每章聚焦一組語法。完成一章就會解鎖下一章與一枚徽章。你可以隨時回來，進度會存在這台裝置的瀏覽器裡。</p>
       <div id="chapter-grid" class="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3"></div>
     </section>
 
@@ -111,10 +111,10 @@
       <div class="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <div class="card reveal"><h3 class="font-bold text-amber">查詢</h3><p class="mt-2 text-sm leading-6 text-ink-300">SELECT、FROM、WHERE、ORDER BY、LIMIT、DISTINCT、AS</p></div>
         <div class="card reveal"><h3 class="font-bold text-amber">條件</h3><p class="mt-2 text-sm leading-6 text-ink-300">AND / OR / NOT、LIKE、IN、BETWEEN、IS NULL、CASE WHEN</p></div>
-        <div class="card reveal"><h3 class="font-bold text-amber">函數</h3><p class="mt-2 text-sm leading-6 text-ink-300">日期時間、INTERVAL、字串、數學、IF / IFNULL</p></div>
+        <div class="card reveal"><h3 class="font-bold text-amber">函數</h3><p class="mt-2 text-sm leading-6 text-ink-300">日期時間、INTERVAL、字串、數學</p></div>
         <div class="card reveal"><h3 class="font-bold text-amber">統計</h3><p class="mt-2 text-sm leading-6 text-ink-300">COUNT / SUM / AVG / MIN / MAX、GROUP BY、HAVING、GROUP_CONCAT</p></div>
         <div class="card reveal"><h3 class="font-bold text-amber">連結</h3><p class="mt-2 text-sm leading-6 text-ink-300">INNER JOIN、LEFT JOIN、多表、SELF JOIN</p></div>
-        <div class="card reveal"><h3 class="font-bold text-amber">子查詢</h3><p class="mt-2 text-sm leading-6 text-ink-300">= (SELECT)、IN (SELECT)、EXISTS</p></div>
+        <div class="card reveal"><h3 class="font-bold text-amber">子查詢</h3><p class="mt-2 text-sm leading-6 text-ink-300">= (SELECT)、IN (SELECT)、MAX 子查詢</p></div>
         <div class="card reveal"><h3 class="font-bold text-amber">資料異動</h3><p class="mt-2 text-sm leading-6 text-ink-300">INSERT、UPDATE、DELETE、INSERT ... SELECT</p></div>
         <div class="card reveal"><h3 class="font-bold text-amber">資料表</h3><p class="mt-2 text-sm leading-6 text-ink-300">CREATE TABLE、AUTO_INCREMENT、ALTER、DROP、FOREIGN KEY</p></div>
       </div>
@@ -134,15 +134,15 @@
 
   <script src="./vendor/gsap.min.js"></script>
   <script src="./vendor/ScrollTrigger.min.js"></script>
-  <script src="./js/game/cast.js?v=20260917-02"></script>
-  <script src="./js/chapters/ch0.js?v=20260917-02"></script>
-  <script src="./js/chapters/ch1.js?v=20260917-02"></script>
-  <script src="./js/chapters/ch2.js?v=20260917-02"></script>
-  <script src="./js/chapters/ch3.js?v=20260917-02"></script>
-  <script src="./js/chapters/ch4.js?v=20260917-02"></script>
-  <script src="./js/chapters/ch5.js?v=20260917-02"></script>
-  <script src="./js/chapters/ch6.js?v=20260917-02"></script>
-  <script src="./js/game/state.js?v=20260917-02"></script>
-  <script src="./js/main.js?v=20260917-02" defer></script>
+  <script src="./js/game/cast.js?v=20260919-04"></script>
+  <script src="./js/chapters/ch0.js?v=20260919-04"></script>
+  <script src="./js/chapters/ch1.js?v=20260919-04"></script>
+  <script src="./js/chapters/ch2.js?v=20260919-04"></script>
+  <script src="./js/chapters/ch3.js?v=20260919-04"></script>
+  <script src="./js/chapters/ch4.js?v=20260919-04"></script>
+  <script src="./js/chapters/ch5.js?v=20260919-04"></script>
+  <script src="./js/chapters/ch6.js?v=20260919-04"></script>
+  <script src="./js/game/state.js?v=20260919-04"></script>
+  <script src="./js/main.js?v=20260919-04" defer></script>
 </body>
 </html>

@@ -35,7 +35,7 @@ SD.chapters.push({
       clue: { title: '證物登錄系統上線', text: 'evidence 表建立完成，共 6 個欄位，id 自動編號。' } },
     { type: 'task', id: 'c5-t2', title: '確認結構', prompt: '用 <code>DESCRIBE</code> 檢查 <code>evidence</code> 表，確認 <code>id</code> 的 Key 是 PRI、Extra 是 auto_increment。',
       lead: 'DESCRIBE 表名; 就會列出每個欄位的 Type、Null、Key、Default、Extra。',
-      hints: ['DESCRIBE evidence;', 'DESC evidence; 也行。', '<code>DESCRIBE evidence;</code>'],
+      hints: ['查看欄位結構要用 <code>DESCRIBE</code>，也可以簡寫成 <code>DESC</code>。', '<code>DESCRIBE ___;</code>', '<code>DESCRIBE evidence;</code>'],
       check: { kind: 'regex', pattern: '^\\s*(DESCRIBE|DESC|SHOW\\s+(FULL\\s+)?COLUMNS\\s+FROM)\\s+`?evidence`?' } },
     { type: 'lesson', title: 'INSERT：新增資料', body: `
       <p>新增一列，指定欄位與對應的值；沒列出的欄位會用預設值（自動編號、DEFAULT 或 NULL）：</p>
@@ -51,7 +51,7 @@ VALUES (36, '空展示盒', '金鑫手機配件攤位');</code></pre>
       clue: { title: '三件證物入庫', text: 'id 自動編為 1、2、3，status 自動填入「保管中」。' } },
     { type: 'task', id: 'c5-t4', title: '看看結果', prompt: '查詢 <code>evidence</code> 全部欄位，確認 <code>id</code> 自動編號、<code>status</code> 有預設值。',
       lead: 'SELECT * FROM evidence; 看剛新增的三筆。',
-      hints: ['SELECT * FROM evidence;', '沒有條件、不用 WHERE，星號代表全部欄位。', '<code>SELECT * FROM evidence;</code>'],
+      hints: ['星號 <code>*</code> 可以取出資料表的全部欄位。', '<code>SELECT * FROM ___;</code>，這題不需要 WHERE。', '<code>SELECT * FROM evidence;</code>'],
       check: { kind: 'result', cols: ['id', 'report_id', 'item_name', 'location', 'status', 'logged_at'], ordered: false } },
     { type: 'lesson', title: 'UPDATE：修改資料（一定要 WHERE）', body: `
       <pre><code>UPDATE evidence
@@ -69,7 +69,7 @@ WHERE item_name = '監視器畫面';</code></pre>
       <pre><code>DELETE FROM evidence WHERE item_name = '收銀機';</code></pre>
       <p>沒有 WHERE 的 DELETE 會清空整張表。刪除前同樣先 SELECT 確認。</p>` },
     { type: 'task', id: 'c5-t7', title: '歸還收銀機', prompt: '收銀機已歸還店家，把 <code>item_name</code> 為<strong>收銀機</strong>的那筆<strong>刪除</strong>。',
-      hints: ["DELETE FROM evidence WHERE item_name = '收銀機';", '刪除後 SELECT * FROM evidence 應剩 2 筆。', "<code>DELETE FROM evidence WHERE item_name = '收銀機';</code>"],
+      hints: ['刪除指定列要用 DELETE FROM 搭配 WHERE，避免清空整張表。', '<code>DELETE FROM evidence WHERE item_name = ___;</code>', "<code>DELETE FROM evidence WHERE item_name = '收銀機';</code>"],
       check: { kind: 'probe', probe: 'SELECT id, report_id, item_name, location, status, logged_at FROM evidence ORDER BY id' },
       clue: { title: '刪除不會重編號', text: '刪掉 id 3 之後，下一筆新增會是 id 4，而不是回填 3。AUTO_INCREMENT 只會往前走。' } },
     { type: 'lesson', title: 'INSERT ... SELECT：從別的表搬資料', body: `
@@ -89,11 +89,11 @@ ALTER TABLE evidence MODIFY COLUMN location VARCHAR(200); -- 改型別
 ALTER TABLE evidence DROP COLUMN weight_g;             -- 刪欄位
 ALTER TABLE evidence RENAME COLUMN location TO found_at; -- 改名</code></pre>` },
     { type: 'task', id: 'c5-t9', title: '加一個重量欄位', prompt: '鑑識組要記錄證物重量。在 <code>evidence</code> 加一個 <code>weight_g</code> 欄位，型別 <code>INT</code>。',
-      hints: ['ALTER TABLE evidence ADD COLUMN weight_g INT;', 'ADD 後面的 COLUMN 可以省略。', '<code>ALTER TABLE evidence ADD COLUMN weight_g INT;</code>'],
+      hints: ['新增欄位要用 ALTER TABLE 搭配 ADD COLUMN。', '<code>ALTER TABLE evidence ADD COLUMN ___ INT;</code>', '<code>ALTER TABLE evidence ADD COLUMN weight_g INT;</code>'],
       check: { kind: 'probe', probe: "SELECT GROUP_CONCAT(name) FROM pragma_table_info('evidence')" } },
     { type: 'task', id: 'c5-t10', title: '登記重量', prompt: '把 <code>item_name</code> 為 <strong>MacBook Air</strong> 的證物 <code>weight_g</code> 改成 <strong>1240</strong>。',
       lead: 'UPDATE evidence SET weight_g = 數字 WHERE item_name = ...，數字不加引號。',
-      hints: ["UPDATE evidence SET weight_g = 1240 WHERE item_name = 'MacBook Air';", '數字不用引號。', "<code>UPDATE evidence SET weight_g = 1240 WHERE item_name = 'MacBook Air';</code>"],
+      hints: ['用 UPDATE 設定重量，再用 WHERE 鎖定 MacBook Air；數字不用引號。', '<code>UPDATE evidence SET weight_g = ___ WHERE item_name = ___;</code>', "<code>UPDATE evidence SET weight_g = 1240 WHERE item_name = 'MacBook Air';</code>"],
       check: { kind: 'probe', probe: 'SELECT item_name, weight_g FROM evidence WHERE weight_g IS NOT NULL' } },
     { type: 'lesson', title: '第二張表與外鍵', body: `
       <p>證物照片是「一件證物、多張照片」，另開一張表，用<strong>外鍵 FOREIGN KEY</strong> 指回 evidence：</p>
@@ -109,7 +109,7 @@ ALTER TABLE evidence RENAME COLUMN location TO found_at; -- 改名</code></pre>`
       check: { kind: 'probe', probe: "SELECT (SELECT GROUP_CONCAT(name) FROM pragma_table_info('evidence_photo')) AS cols, (SELECT COUNT(*) FROM pragma_foreign_key_list('evidence_photo')) AS fks" } },
     { type: 'task', id: 'c5-t12', title: '新增照片並 JOIN 回來', prompt: '先新增一筆照片：<code>evidence_id</code> 為 1、<code>file_name</code> 為 <code>\'box-001.jpg\'</code>。然後用 JOIN 查出這張照片對應的證物名稱：顯示 <code>ph.file_name</code>、<code>ev.item_name</code>。',
       lead: '兩句 SQL：先 INSERT INTO evidence_photo (...) VALUES (...);，再 SELECT ... FROM evidence_photo ph JOIN evidence ev ON ev.id = ph.evidence_id。',
-      hints: ["INSERT INTO evidence_photo (evidence_id, file_name) VALUES (1, 'box-001.jpg');", 'SELECT ph.file_name, ev.item_name FROM evidence_photo ph JOIN evidence ev ON ev.id = ph.evidence_id;', "<code>INSERT INTO evidence_photo (evidence_id, file_name) VALUES (1, 'box-001.jpg'); SELECT ph.file_name, ev.item_name FROM evidence_photo ph JOIN evidence ev ON ev.id = ph.evidence_id;</code>"],
+      hints: ['這題要執行兩句 SQL：先 INSERT 照片，再用 evidence_id JOIN 回證物表。', '<code>INSERT INTO evidence_photo (...) VALUES (...); SELECT ph.file_name, ev.item_name FROM evidence_photo ph JOIN evidence ev ON ___;</code>', "<code>INSERT INTO evidence_photo (evidence_id, file_name) VALUES (1, 'box-001.jpg'); SELECT ph.file_name, ev.item_name FROM evidence_photo ph JOIN evidence ev ON ev.id = ph.evidence_id;</code>"],
       check: { kind: 'probe', probe: 'SELECT ph.file_name, ev.item_name FROM evidence_photo ph JOIN evidence ev ON ev.id = ph.evidence_id ORDER BY ph.id' } },
     { type: 'lesson', title: 'DROP、TRUNCATE、DELETE 的差別', body: `
       <ul>
@@ -119,14 +119,14 @@ ALTER TABLE evidence RENAME COLUMN location TO found_at; -- 改名</code></pre>`
       </ul>
       <p>三個都不可逆，實務上會先備份。</p>` },
     { type: 'task', id: 'c5-t13', title: '撤掉照片表', prompt: '照片決定改存到雲端系統。把 <code>evidence_photo</code> 表整張<strong>刪除</strong>。',
-      hints: ['DROP TABLE evidence_photo;', '這會連結構一起刪掉。', '<code>DROP TABLE evidence_photo;</code>'],
+      hints: ['要連資料與結構一起刪除，使用 DROP TABLE。', '<code>DROP TABLE ___;</code>', '<code>DROP TABLE evidence_photo;</code>'],
       check: { kind: 'probe', probe: "SELECT COUNT(*) FROM sqlite_master WHERE type = 'table' AND name = 'evidence_photo'" } },
     { type: 'quiz', id: 'c5-q1', question: '執行 UPDATE evidence SET status = \'已結案\'; 會發生什麼？', options: ['只改第一筆', '出現錯誤', '整張表每一筆都被改成已結案', '什麼都不會發生'], answer: 2, explain: '沒有 WHERE 的 UPDATE 會影響所有列，執行前務必確認。' },
     { type: 'quiz', id: 'c5-q2', question: '想「清空整張表但保留結構、自動編號歸零」，用？', options: ['DROP TABLE', 'TRUNCATE TABLE', 'DELETE FROM t WHERE id > 0', 'ALTER TABLE'], answer: 1, explain: 'TRUNCATE 清空並重設 AUTO_INCREMENT；DROP 會連表一起刪。' },
     { type: 'story', lines: [
       { who: 'tech', text: '證物系統可以用了！這樣我就不用再翻那本快散掉的登記簿了。' },
       { who: 'chief', text: '很好。現在，我要交給你一件從你報到那天就一直放在那裡的案子。' },
-      { who: 'mentor', text: '海景大樓命案。這次沒有一步一步的提示，只有目擊者的證詞與你學過的所有東西。準備好了嗎？' },
+      { who: 'mentor', text: '海景大樓命案。這次不會先把每一步拆開教，只有目擊者的證詞與你學過的所有東西；卡住時仍可使用提示。準備好了嗎？' },
     ] },
   ],
 });

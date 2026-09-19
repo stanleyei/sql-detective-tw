@@ -20,7 +20,7 @@ SD.chapters.push({
       <pre><code>SHOW TABLES;</code></pre>
       <p>把它貼到右邊的查詢區，按「執行」（或 Ctrl + Enter）。每一句 SQL 結尾習慣加分號 <code>;</code>。</p>` },
     { type: 'task', id: 'c0-t1', title: '打開檔案櫃', prompt: '列出資料庫裡所有的資料表。',
-      hints: ['指令就是上面那一行，直接輸入試試。', '關鍵字大小寫都可以：<code>show tables;</code> 也行。', '<code>SHOW TABLES;</code>'],
+      hints: ['列出資料表要用 MariaDB 的專用指令，不需要 SELECT。', '<code>SHOW</code> 後面接 <code>TABLES</code>，關鍵字大小寫都可以。', '<code>SHOW TABLES;</code>'],
       check: { kind: 'regex', pattern: '^\\s*SHOW\\s+(FULL\\s+)?TABLES\\b' },
       clue: { title: '資料庫總覽', text: '警局資料庫共有 18 張資料表，包含市民 person、案件 crime_report、駕照 driver_license、監視器 cctv_log 等。' } },
     { type: 'lesson', title: '看看抽屜裡有哪些欄位', body: `
@@ -28,7 +28,7 @@ SD.chapters.push({
       <pre><code>DESCRIBE person;</code></pre>
       <p>結果會列出每個欄位的名稱（Field）、型別（Type）、能不能是空值（Null）、是否為主鍵（Key）。<strong>主鍵 PRI</strong> 就是每筆資料獨一無二的編號，像市民的身分證字號。</p>` },
     { type: 'task', id: 'c0-t2', title: '檢查市民資料表', prompt: '查看 <code>person</code>（市民）資料表有哪些欄位。',
-      hints: ['用 DESCRIBE 加上表名。', '<code>DESC person;</code> 也可以。', '<code>DESCRIBE person;</code>'],
+      hints: ['查看資料表結構要用 <code>DESCRIBE</code>，也可以簡寫成 <code>DESC</code>。', '<code>DESCRIBE 表名;</code>，這題的表名是 <code>person</code>。', '<code>DESCRIBE person;</code>'],
       check: { kind: 'regex', pattern: '^\\s*(DESCRIBE|DESC|SHOW\\s+(FULL\\s+)?COLUMNS\\s+FROM)\\s+`?person`?\\s*;?\\s*$' },
       clue: { title: 'person 表結構', text: 'person 有 id、name、gender、birth_year、district、street、house_no、phone、license_id 九個欄位。' } },
     { type: 'lesson', title: 'SELECT：把資料撈出來', body: `
@@ -44,14 +44,14 @@ LIMIT  最多幾筆;</code></pre>
       answer: 'SELECT * FROM crime_report LIMIT 5;' },
     { type: 'task', id: 'c0-t3', title: '先看五件案子', prompt: '從 <code>crime_report</code> 表取出<strong>全部欄位</strong>，只看前 5 筆。',
       lead: 'SELECT * 取全部欄位，最後用 LIMIT 控制筆數。',
-      hints: ['剛剛拼好的那一句，直接輸入。', '<code>SELECT * FROM crime_report LIMIT 5;</code>', '<code>SELECT * FROM crime_report LIMIT 5;</code>'],
+      hints: ['句型是 SELECT 欄位、FROM 資料表、LIMIT 筆數。', '<code>SELECT * FROM crime_report LIMIT ___;</code>', '<code>SELECT * FROM crime_report LIMIT 5;</code>'],
       check: { kind: 'result', cols: ['id', 'report_date', 'crime_type', 'district', 'description'], ordered: true } },
     { type: 'lesson', title: '只挑你要的欄位', body: `
       <p><code>*</code> 會把所有欄位都倒出來，很快就眼花。實務上會<strong>只列出需要的欄位</strong>，用逗號分開：</p>
       <pre><code>SELECT name, district FROM person;</code></pre>
       <p>注意：最後一個欄位後面<strong>不能</strong>有逗號，這是初學者最常見的錯誤之一。</p>` },
     { type: 'task', id: 'c0-t4', title: '市民名冊', prompt: '列出所有市民的 <code>name</code> 與 <code>district</code> 兩個欄位（不加 LIMIT，看看總共幾筆）。',
-      hints: ['SELECT 後面放兩個欄位名稱，用逗號分開。', '<code>SELECT name, district FROM person;</code>', '<code>SELECT name, district FROM person;</code>'],
+      hints: ['SELECT 後面放兩個欄位名稱，用逗號分開。', '<code>SELECT ___, ___ FROM person;</code>', '<code>SELECT name, district FROM person;</code>'],
       check: { kind: 'result', cols: ['name', 'district'], ordered: false },
       clue: { title: '潮港市有五個行政區', text: '港東區、港西區、山城區、中央區、海濱區，共 420 位登記市民。' } },
     { type: 'lesson', title: 'WHERE：只留下符合條件的', body: `
@@ -94,7 +94,7 @@ WHERE district = '港東區';</code></pre>
     { type: 'quiz', id: 'c0-q2', question: '下面哪一句是正確的？', options: ["SELECT name FROM person WHERE district = 港東區;", "SELECT name FROM person WHERE district = '港東區';", "SELECT name WHERE district = '港東區' FROM person;", "SELECT name, FROM person;"], answer: 1, explain: '文字要用單引號；WHERE 必須在 FROM 之後；欄位清單最後不能有多餘的逗號。' },
     { type: 'story', lines: [
       { who: 'chief', text: '第一天就能自己撈資料，不錯。明天港東夜市有個案子要處理，正好給你練手。' },
-      { who: 'mentor', text: '今天記住四個字就夠了：SELECT、FROM、WHERE、LIMIT。明天我們開始真正辦案。' },
+      { who: 'mentor', text: '今天記住四個關鍵字就夠了：SELECT、FROM、WHERE、LIMIT。明天我們開始真正辦案。' },
     ] },
   ],
 });
