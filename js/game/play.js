@@ -924,7 +924,8 @@
 
   /*
    * 劇情步驟：對話在全螢幕舞台（#story-stage）逐句播放，左欄卡片只放腳本。
-   * 讀完後卡片列出全部句子供回看並提供「下一步」；未讀完只給重新開啟舞台的入口。
+   * 讀完後卡片列出全部句子供回看；「下一步」統一由步驟導覽列（#btn-next，讀完才顯示）推進，
+   * 桌機版導覽列黏在視窗底部，長劇情讀完也不必往下捲。未讀完只給重新開啟舞台的入口。
    */
   function renderStoryCard(step) {
     const done = stepDone(step);
@@ -938,12 +939,9 @@
     card.innerHTML = `${scene}<p class="eyebrow">第 ${chapter.id} 章 · ${esc(chapter.title)}</p>
       ${done ? `<ul class="mt-4 flex flex-col gap-4">${script}</ul>` : `<p class="mt-4 leading-7 text-ink-300">這段劇情共 ${step.lines.length} 句，在全螢幕舞台播放。看完才能進入下一步。</p>`}
       <div class="mt-4 flex flex-wrap justify-end gap-2">
-        <button type="button" id="btn-replay" class="btn-ghost btn-sm">${done ? '重看劇情' : '開啟劇情'}</button>
-        ${done ? `<button type="button" id="btn-continue" class="btn-primary btn-sm">${nextLabel()}</button>` : ''}
+        <button type="button" id="btn-replay" class="${done ? 'btn-ghost' : 'btn-primary'} btn-sm">${done ? '重看劇情' : '開啟劇情'}</button>
       </div>`;
     $('#btn-replay', card).addEventListener('click', () => openStage(step));
-    const cont = $('#btn-continue', card);
-    if (cont) cont.addEventListener('click', next);
   }
   // 已讀過的劇情只畫卡片（卡片本身列出完整台詞），不再自動開全螢幕舞台：
   // 舞台是 modal，往回走或深連結時每段劇情都彈出會擋住「上一步」，等於無法回頭練習。想重看按「重看劇情」。
@@ -1541,8 +1539,8 @@
     $('#btn-prev').disabled = stepIndex === 0;
     const blocked = needsCompletion(step) && !stepDone(step);
     const nextBtn = $('#btn-next');
-    // 劇情步驟一律由卡片內的按鈕推進（讀完變成「下一步」），避免同時出現兩個主要按鈕
-    nextBtn.hidden = step.type === 'story';
+    // 劇情未讀完時整顆隱藏而非 disabled：主要動作是卡片內的「開啟劇情」，不讓兩顆主要按鈕並列
+    nextBtn.hidden = step.type === 'story' && blocked;
     nextBtn.disabled = blocked;
     nextBtn.textContent = blocked ? (step.type === 'task' || step.type === 'solution' ? '完成任務後繼續' : '完成本步驟後繼續') : nextLabel();
     renderProgress();

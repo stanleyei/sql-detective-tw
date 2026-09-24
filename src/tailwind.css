@@ -295,6 +295,17 @@
     #main[data-focus="read"] #pane-editor:hover,
     #main[data-focus="read"] #pane-editor:focus-within { @apply opacity-100 saturate-100; }
     #main[data-focus="write"] #editor-card { @apply border-amber/60 shadow-glow-amber; }
+    /*
+     * 步驟導覽列黏在視窗底部：任務答對後左卡會塞入「✔ 正確」與線索卡而長高，長題目或開了提示時
+     * 「下一步」會被推出視窗，玩家得往下捲才找得到。sticky 讓卡片短時導覽列留在原位、卡片長時
+     * 貼底；只限桌機，手機是單欄分頁且底部另有 pane-tabs。
+     * 負邊距＋內距讓底色蓋住捲過去的卡片邊緣；向上漸層透明避免像一塊硬板壓在卡片上。
+     * 實測 1366×700 第 4 章任務 5（最長題目）完成後按鈕落在視窗內，不必捲動。
+     */
+    #step-nav {
+      @apply sticky bottom-0 z-30 -mx-2 px-2 pt-6 pb-3;
+      background-image: linear-gradient(to top, var(--color-ink-950) 55%, transparent);
+    }
   }
 
   /* 章節開場 */
