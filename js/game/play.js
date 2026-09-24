@@ -1515,10 +1515,12 @@
     const mk = (text) => { const b = el('button', 'block-chip', esc(text)); b.type = 'button'; b.draggable = true; b.dataset.v = text; return b; };
     const move = (b) => { (b.parentElement === pool ? slot : pool).appendChild(b); if (canAnimate()) gsap.from(b, { scale: 0.8, duration: 0.2 }); };
     (done ? step.blocks : shuffled).forEach((t) => (done ? slot : pool).appendChild(mk(t)));
-    card.addEventListener('click', (e) => { const b = e.target.closest('.block-chip'); if (b) move(b); });
     let dragging = null;
-    card.addEventListener('dragstart', (e) => { dragging = e.target.closest('.block-chip'); });
+    // 監聽掛在每次渲染重建的 slot / pool 上，不掛常駐的 card：card 上的監聽不會隨重繪移除，
+    // 重複進入積木題後會累積多個閉包，點一下就被舊監聽搬去已脫離 DOM 的舊 pool 再被搬回來，看起來像沒放進去
     for (const zone of [slot, pool]) {
+      zone.addEventListener('click', (e) => { const b = e.target.closest('.block-chip'); if (b) move(b); });
+      zone.addEventListener('dragstart', (e) => { dragging = e.target.closest('.block-chip'); });
       zone.addEventListener('dragover', (e) => { e.preventDefault(); zone.classList.add('over'); });
       zone.addEventListener('dragleave', () => zone.classList.remove('over'));
       zone.addEventListener('drop', (e) => { e.preventDefault(); zone.classList.remove('over'); if (dragging) { const after = e.target.closest('.block-chip'); if (after && after.parentElement === zone) zone.insertBefore(dragging, after); else zone.appendChild(dragging); } });
