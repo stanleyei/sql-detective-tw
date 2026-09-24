@@ -528,11 +528,22 @@
   .polaroid.is-missing::before { @apply bg-ink-500; }
   .polaroid.is-missing .polaroid-ch { @apply text-amber; }
   .polaroid.is-missing p.clue-text { @apply text-ink-300; }
-  /* 已釘入證據鏈的拍立得：青綠色環，跟「新」的琥珀環區分；拖曳中略透明 */
+  /* 已釘入證據鏈的拍立得：青綠色環，跟「新」的琥珀環區分；判定不在鏈上改琥珀環，與槽位、紅線的 is-wrong 同色同義 */
   .polaroid.is-chained { @apply ring-4 ring-teal ring-offset-2 ring-offset-ink-900; }
-  .polaroid[draggable="true"] { @apply cursor-grab active:cursor-grabbing; }
-  /* 拍立得上的「釘入證據鏈」：紙白底上用深字，不能沿用白字的 btn-ghost */
-  .chain-add-btn { @apply mt-2 inline-flex min-h-11 cursor-pointer items-center rounded-lg border border-ink-700 px-3 text-sm font-bold text-ink-950 transition hover:border-teal-deep hover:text-teal-deep; }
+  .polaroid.is-chained.is-wrong { @apply ring-amber; }
+  /* 可釘入的卡整張可點（點擊轉給卡上的 toggle），也可拖進槽位：游標用 pointer 提示可點，按住時才換成抓取 */
+  .polaroid.is-pickable { @apply cursor-pointer active:cursor-grabbing; }
+  /*
+   * 拍立得上的釘入／移出 toggle：紙白底上用深字，不能沿用白字的 btn-ghost。
+   * mt-auto + self-end 讓它沉到文字欄（flex-col）右下角，位置不隨線索文字長短漂移；
+   * aria-pressed 為已釘入態，青綠實底白字；is-wrong 為判定不在鏈上，琥珀底深字並帶 ✘ 字樣（不單靠顏色）。
+   * 兩種已釘入態 hover 都轉紅底預告「按下去是移出」，與槽位 hover 的 danger 同一套語言。
+   */
+  .chain-toggle { @apply mt-auto inline-flex min-h-11 cursor-pointer items-center self-end rounded-lg border border-ink-700 px-3 text-sm font-bold text-ink-950 transition hover:border-teal-deep hover:text-teal-deep; }
+  .chain-toggle[aria-pressed="true"] { @apply border-teal-deep bg-teal-deep text-paper hover:border-danger hover:bg-danger hover:text-ink-950; }
+  .chain-toggle.is-wrong { @apply border-amber bg-amber text-ink-950 hover:border-danger hover:bg-danger; }
+  /* mt-auto 只負責沉底不保證最小間距：文字最長那張卡的按鈕會貼著內文，改由內文補底部內距 */
+  .polaroid.is-pickable p.clue-text { @apply pb-3; }
   /*
    * 證據鏈槽位：指認卡上的一排虛線框，放進線索後變成實框帶縮圖。
    * 槽位是 button（可點移出），高度至少 44px 符合觸控目標。

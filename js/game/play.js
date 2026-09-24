@@ -556,18 +556,27 @@
     const grid = el('div', 'board-grid is-dense');
     grid.appendChild(verdictCard(step));
     const chaining = step.type === 'answer' && !stepDone(step);
+    // 槽位填滿卻沒成立才逐張判定，與指認卡槽位的 is-wrong 同一條件，牆上的卡才會跟槽位打一樣的 ✘
+    const judged = chaining && !chainOk && chained.length >= step.chain.length;
     for (const t of clueSteps(chapter)) {
       const saved = state.clues.find((c) => c.ch === chapter.id && c.id === t.id);
       if (!saved) { grid.appendChild(missingCard(t)); continue; }
       const cardEl = clueCard(saved, newClueIds.has(saved.id));
       if (step.type === 'answer') {
         const inChain = chained.includes(t.id);
+        const wrong = judged && inChain && !step.chain.includes(t.id);
         cardEl.classList.toggle('is-chained', inChain);
+        cardEl.classList.toggle('is-wrong', wrong);
         cardEl.dataset.clueId = t.id; // 紅線層靠它找圖釘位置，破案後也要找得到
         if (chaining) {
           cardEl.draggable = true;
+          cardEl.classList.add('is-pickable');
+          // 釘入／移出是同一顆 toggle，放在文字欄尾端並以 mt-auto 沉到卡片右下角：
+          // 文字欄改成 flex-col 後，按鈕位置不再隨線索文字長短漂移，同一列的按鈕對齊在同一高度。
           // 放進文字欄而不是卡片末端：橫式拍立得的第三個 flex 子元素會擠在右側；且卡片是紙白底，不能用白字的 btn-ghost
-          cardEl.querySelector('.min-w-0').insertAdjacentHTML('beforeend', inChain ? '<p class="mt-2 text-xs font-bold text-teal-deep">✔ 已在證據鏈</p>' : `<button type="button" class="chain-add-btn" data-chain-add="${t.id}">釘入證據鏈</button>`);
+          const body = cardEl.querySelector('.min-w-0');
+          body.classList.add('flex', 'flex-col');
+          body.insertAdjacentHTML('beforeend', chainToggleHtml(t.id, inChain, wrong));
         }
       }
       grid.appendChild(cardEl);
@@ -718,7 +727,15 @@
   function chainAdd(id) {
     const step = chapter.steps[stepIndex];
     if (step.type !== 'answer' || stepDone(step) || chained.includes(id)) return;
-    if (chained.length >= step.chain.length) { const fbEl = $('#chain-feedback', boardStage); if (fbEl) fbEl.innerHTML = '<p class="mt-2 text-sm text-amber">槽位已滿，先點一張移出。</p>'; return; }
+    if (chained.length >= step.chain.length) {
+      // 玩家多半正捲在牆下方，指認卡的回饋區在視野外：托盤狀態列也一併換成這句並抖一下，人才看得到
+      const msg = '槽位已滿，先點一張已釘入的卡移出。';
+      const fbEl = $('#chain-feedback', boardStage);
+      if (fbEl) fbEl.innerHTML = `<p class="mt-2 text-sm text-amber">${msg}</p>`;
+      const st = $('.tray-status', trayEl);
+      if (st && !trayEl.hidden) { st.innerHTML = `<span class="font-bold text-amber">${msg}</span>`; if (canAnimate()) gsap.fromTo(trayEl, { x: -6 }, { x: 0, duration: 0.4, ease: 'elastic.out(1, 0.3)' }); }
+      return;
+    }
     stringAnimId = id;
     chainSet([...chained, id]);
   }
@@ -780,7 +797,27 @@
   }
   new ResizeObserver(() => { if (boardStage.open) drawStrings(); }).observe($('#board'));
   smMQ.addEventListener('change', () => { if (boardStage.open) drawStrings(); });
-  boardStage.addEventListener('click', (e) => { const b = e.target.closest('[data-chain-add]'); if (b) chainAdd(b.dataset.chainAdd); });
+  /*
+   * 線索卡上的釘入／移出鈕：三態（未釘入、已釘入、判定不在鏈上）都是同一顆 toggle，aria-pressed 表示是否已釘入。
+   * 語意與焦點留在 button 上；整張卡可點只是把點擊轉給這顆鈕，讀屏器不會把整張卡的標題內文唸成按鈕名。
+   */
+  function chainToggleHtml(id, inChain, wrong) {
+    const label = wrong ? '✘ 不在鏈上 · 移出' : inChain ? '✔ 已釘入 · 移出' : '釘入證據鏈';
+    return `<button type="button" class="chain-toggle${wrong ? ' is-wrong' : ''}" data-chain-toggle="${id}" aria-pressed="${inChain}">${label}</button>`;
+  }
+  function chainToggle(id) {
+    if (chained.includes(id)) chainSet(chained.filter((x) => x !== id));
+    else chainAdd(id);
+  }
+  boardStage.addEventListener('click', (e) => {
+    const b = e.target.closest('[data-chain-toggle]');
+    if (b) { chainToggle(b.dataset.chainToggle); return; }
+    // 點在卡片其他地方視同點按鈕；使用者正在選取線索文字時不動作，免得拖選一段字就把卡釘進去
+    const card = e.target.closest('.polaroid.is-pickable');
+    if (!card || String(window.getSelection && window.getSelection()).length) return;
+    const btn = card.querySelector('[data-chain-toggle]');
+    if (btn) chainToggle(btn.dataset.chainToggle);
+  });
   boardStage.addEventListener('dragstart', (e) => { const p = e.target.closest('.polaroid[draggable="true"]'); if (p) e.dataTransfer.setData('text/plain', p.dataset.clueId); });
 
   function verdictCard(step) {
@@ -799,7 +836,7 @@
       // 桌機分兩欄：左欄槽位沉到卡片底邊，右欄放回饋與嫌疑人。這樣紅線從牆牽上來進槽位時，卡內沒有任何文字被線穿過；DOM 順序仍是提示 → 槽位 → 回饋 → 指認
       c.classList.add('is-split');
       c.innerHTML = `<div class="verdict-main"><p class="eyebrow">結案 · 指認</p><div class="prose-sd mt-2">${step.prompt}</div>
-        <p class="mt-3 text-sm leading-6 text-ink-300"><span class="font-bold text-amber">第一步</span> 從牆上挑出 ${n} 張能串成一條證據鏈的線索：點線索卡上的「釘入證據鏈」，或直接拖進槽位。點槽位可移出。</p>
+        <p class="mt-3 text-sm leading-6 text-ink-300"><span class="font-bold text-amber">第一步</span> 從牆上挑出 ${n} 張能串成一條證據鏈的線索：點線索卡釘入，再點一次移出；也可直接拖進槽位，或點槽位移出。</p>
         <div id="chain" class="chain" aria-label="證據鏈">${filled()}</div></div>
         <div class="verdict-side"><div id="chain-feedback" aria-live="polite"></div>
         <div id="suspects" class="mt-3" ${done || chainOk ? '' : 'hidden'}>
@@ -831,8 +868,8 @@
         SD.state.markStep(chapter.id, step.id);
         $$('[data-suspect]', c).forEach((b) => { b.disabled = true; if (b !== sb) b.classList.add('opacity-50'); });
         // 破案後牆上的「釘入」按鈕與拖曳失效；不整面重繪，讓 solveCase 的釘卡動畫能接著播
-        $$('[data-chain-add]', boardStage).forEach((b) => b.remove());
-        $$('.polaroid[draggable="true"]', boardStage).forEach((p) => { p.draggable = false; });
+        $$('[data-chain-toggle]', boardStage).forEach((b) => b.remove());
+        $$('.polaroid.is-pickable', boardStage).forEach((p) => { p.draggable = false; p.classList.remove('is-pickable'); });
         success();
         drawStrings(); // 成功區塊撐高指認卡，槽位位置變了
         if (canAnimate()) gsap.from(fb.firstElementChild, { scale: 0.9, opacity: 0, duration: 0.5, ease: 'back.out(2)' });
