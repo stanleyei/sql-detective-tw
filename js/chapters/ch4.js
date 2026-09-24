@@ -53,7 +53,7 @@ JOIN employee AS e ON e.id = a.employee_id
 JOIN person   AS p ON p.id = e.person_id
 WHERE a.door = '機房';</code></pre>
       <p>每多一張表，就多一行 <code>JOIN ... ON ...</code>。</p>` },
-    { type: 'task', id: 'c4-t4', title: '那張卡是誰的？', prompt: '把上一題的機房紀錄接上員工與市民，顯示 <code>p.name</code>、<code>e.title</code>、<code>a.action</code>、<code>a.event_time</code>（access_log 別名 a）。',
+    { type: 'task', id: 'c4-t4', after: { step: 'c4-t3', use: 'sql' }, title: '那張卡是誰的？', prompt: '把上一題的機房紀錄接上員工與市民，顯示 <code>p.name</code>、<code>e.title</code>、<code>a.action</code>、<code>a.event_time</code>（access_log 別名 a）。',
       hints: ['FROM access_log a JOIN employee e ON e.id = a.employee_id JOIN person p ON p.id = e.person_id', '時間與門的條件放 WHERE，記得用 a. 前綴。', "<code>SELECT p.name, e.title, a.action, a.event_time FROM access_log a JOIN employee e ON e.id = a.employee_id JOIN person p ON p.id = e.person_id WHERE a.door = '機房' AND a.event_time BETWEEN '2025-06-20 22:00:00' AND '2025-06-20 23:00:00';</code>"],
       check: { kind: 'result', cols: ['name', 'title', 'action', 'event_time'], ordered: false },
       clue: { title: '經理的卡', text: '刷進機房的是研發部經理許國棟的門禁卡。但他說他六點就下班了。' } },

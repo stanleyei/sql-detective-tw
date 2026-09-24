@@ -37,6 +37,12 @@ const decode = (html) => html.replace(/<[^>]+>/g, '').replace(/&gt;/g, '>').repl
         continue;
       }
       if (step.type !== 'task') continue;
+      // 接續題的依賴必須指向同章、排在前面的任務，且用法只有 sql / result 兩種
+      if (step.after) {
+        const idx = ch.steps.indexOf(step);
+        const prior = ch.steps.findIndex((s) => s.type === 'task' && s.id === step.after.step);
+        if (prior < 0 || prior >= idx || !['sql', 'result'].includes(step.after.use)) { console.log(`after 設定有誤 ${step.id}: ${JSON.stringify(step.after)}`); problems++; }
+      }
       const sol = decode(step.hints[2] || '');
       if (!sol) { console.log(`缺少解答：${step.id}`); problems++; continue; }
       const results = SD.db.run(sol);

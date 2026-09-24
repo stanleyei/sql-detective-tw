@@ -45,11 +45,11 @@ WHERE plate_number LIKE '___-1234' -- 三個任意字元加 -1234</code></pre>` 
       <p>「是這幾個值之一」用 <code>IN</code>，取代一長串 OR：</p>
       <pre><code>WHERE district IN ('港東區', '港西區', '海濱區')
 WHERE id IN (10001, 10002)</code></pre>` },
-    { type: 'task', id: 'c1-t3', title: '縮小範圍', prompt: '在上一題的基礎上，只留下 <code>car_color</code> 為 <code>\'白\'</code>（資料表用單字，不是「白色」）、<code>vehicle_type</code> 為 <code>\'機車\'</code>、身高 <code>height_cm</code> 在 <strong>175 到 180</strong> 之間的駕照，顯示 <code>id</code>、<code>plate_number</code>、<code>person_id</code>。',
+    { type: 'task', id: 'c1-t3', after: { step: 'c1-t2', use: 'sql' }, title: '縮小範圍', prompt: '在上一題的基礎上，只留下 <code>car_color</code> 為 <code>\'白\'</code>（資料表用單字，不是「白色」）、<code>vehicle_type</code> 為 <code>\'機車\'</code>、身高 <code>height_cm</code> 在 <strong>175 到 180</strong> 之間的駕照，顯示 <code>id</code>、<code>plate_number</code>、<code>person_id</code>。',
       hints: ['四個條件全部用 AND 串起來。', "car_color = '白' AND vehicle_type = '機車' AND height_cm BETWEEN 175 AND 180", "<code>SELECT id, plate_number, person_id FROM driver_license WHERE plate_number LIKE 'MKJ%' AND car_color = '白' AND vehicle_type = '機車' AND height_cm BETWEEN 175 AND 180;</code>"],
       check: { kind: 'result', cols: ['plate_number', 'person_id'], ordered: false },
       clue: { title: '兩名嫌疑車主', text: 'MKJ-5821（車主編號 4）與 MKJ-3390（車主編號 5）符合所有目擊特徵。' } },
-    { type: 'task', id: 'c1-t4', title: '車主是誰？', prompt: '用上一題查到的 <code>person_id</code>，從 <code>person</code> 找出這兩位市民，顯示 <code>id</code>、<code>name</code>、<code>district</code>、<code>phone</code>。',
+    { type: 'task', id: 'c1-t4', after: { step: 'c1-t3', use: 'result' }, title: '車主是誰？', prompt: '用上一題查到的 <code>person_id</code>，從 <code>person</code> 找出這兩位市民，顯示 <code>id</code>、<code>name</code>、<code>district</code>、<code>phone</code>。',
       lead: '查 person 表，用 WHERE id IN (...) 一次帶入兩個編號。',
       hints: ['person 的 id 就是駕照上的 person_id。', 'WHERE id IN (4, 5)', '<code>SELECT id, name, district, phone FROM person WHERE id IN (4, 5);</code>'],
       check: { kind: 'result', cols: ['id', 'name', 'district', 'phone'], ordered: false },
@@ -99,7 +99,7 @@ LIMIT 3;</code></pre>
       hints: ['WHERE person_id = 5', 'SELECT id, membership_status ...', '<code>SELECT id, membership_status FROM gym_member WHERE person_id = 5;</code>'],
       check: { kind: 'result', cols: ['id', 'membership_status'], ordered: false },
       clue: { title: '蘇建豪的會員編號', text: '蘇建豪（5 號）的健身房會員編號是 YX4BY（銀卡）。下一題要用這個編號查打卡紀錄。' } },
-    { type: 'task', id: 'c1-t10', title: '打卡紀錄', prompt: '用上一題查到的會員編號（<code>membership_id</code>，忘了可看線索板），在 <code>gym_checkin</code> 找出 <strong>2025-03-08</strong> 的打卡，顯示 <code>checkin_time</code> 與 <code>checkout_time</code>。',
+    { type: 'task', id: 'c1-t10', after: { step: 'c1-t9', use: 'result' }, title: '打卡紀錄', prompt: '用上一題查到的會員編號（<code>membership_id</code>，忘了可看線索板），在 <code>gym_checkin</code> 找出 <strong>2025-03-08</strong> 的打卡，顯示 <code>checkin_time</code> 與 <code>checkout_time</code>。',
       lead: 'gym_checkin 表，兩個條件用 AND：會員編號是文字要加引號，日期欄是 checkin_date。',
       hints: ['會員編號是文字，要加單引號。', "AND checkin_date = '2025-03-08'", "<code>SELECT checkin_time, checkout_time FROM gym_checkin WHERE membership_id = 'YX4BY' AND checkin_date = '2025-03-08';</code>"],
       check: { kind: 'result', cols: ['checkin_time', 'checkout_time'], ordered: false },

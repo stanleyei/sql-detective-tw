@@ -64,7 +64,7 @@ UPPER(x)  LOWER(x)  TRIM(x) -- 大寫、小寫、去頭尾空白</code></pre>
       hints: ["用 RIGHT(plate_number, 3) = '528'，或 LIKE '%528'。", '兩種寫法都對，試試看結果一樣嗎？', "<code>SELECT plate_number, car_color, gender, person_id FROM driver_license WHERE RIGHT(plate_number, 3) = '528';</code>"],
       check: { kind: 'result', cols: ['plate_number', 'car_color', 'gender', 'person_id'], ordered: false },
       clue: { title: '四張 528 車牌', text: 'RBK-7528 銀/女、TXA-2528 藍/女、QWE-9528 銀/男、LLP-0528 銀/女。' } },
-    { type: 'task', id: 'c2-t6', title: '銀色、女性', prompt: '同上，但只留下 <code>car_color</code> 為 <code>\'銀\'</code> 且 <code>gender</code> 為 <code>\'女\'</code>（資料表用單字）的駕照，顯示 <code>plate_number</code> 與 <code>person_id</code>。',
+    { type: 'task', id: 'c2-t6', after: { step: 'c2-t5', use: 'sql' }, title: '銀色、女性', prompt: '同上，但只留下 <code>car_color</code> 為 <code>\'銀\'</code> 且 <code>gender</code> 為 <code>\'女\'</code>（資料表用單字）的駕照，顯示 <code>plate_number</code> 與 <code>person_id</code>。',
       lead: '沿用上一題的 driver_license 查詢，在 WHERE 後面再 AND 兩個條件。',
       hints: ["加上 AND car_color = '銀' AND gender = '女'。", '三個條件都要成立。', "<code>SELECT plate_number, person_id FROM driver_license WHERE RIGHT(plate_number, 3) = '528' AND car_color = '銀' AND gender = '女';</code>"],
       check: { kind: 'result', cols: ['plate_number', 'person_id'], ordered: false },

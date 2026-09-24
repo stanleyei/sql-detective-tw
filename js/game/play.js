@@ -1097,11 +1097,45 @@
     });
   }
 
+  // ---------------------------------------------------------------------------
+  // 接續題：step.after = { step, use: 'sql' | 'result' }
+  // 「上一題」原本只存在題目文字裡，關閉重開或恍神後結果區是空的、編輯器也未必是上一題那句。
+  // 這裡把依賴當資料處理：'sql' 直接把上一題通關的 SQL 帶進編輯器；'result' 把上一題的結果重跑一次貼在結果區。
+  // ---------------------------------------------------------------------------
+  const codeText = (html) => { const c = el('div', '', html || '').querySelector('code'); return c ? c.textContent.trim() : ''; };
+  function priorOf(step) {
+    if (!step.after) return null;
+    const prior = chapter.steps.find((s) => s.id === step.after.step);
+    if (!prior || !stepDone(prior)) return null;
+    // 舊存檔沒有 sql 欄位時退回標準解答（第三個提示）；兩者結果相同，只是少了玩家自己的寫法
+    const rec = prog().steps[prior.id] || {};
+    const sql = (rec.sql || '').trim() || codeText(prior.hints && prior.hints[2]);
+    return sql ? { step: prior, sql, no: tasksOf(chapter).indexOf(prior) + 1 } : null;
+  }
+  /* 上一題的結果卡：只重跑不寫入紀錄、不觸發檢核，貼在結果區最上方；下一次執行 SQL 時 renderResults 會整區重畫而自然移除 */
+  function showPriorResult(prior) {
+    if (!dbReady) return;
+    const old = $('#prior-result');
+    if (old) old.remove();
+    if (!lastResults.length) resultsEl.innerHTML = '';
+    const res = [...SD.db.run(prior.sql)].reverse().find((r) => r.type === 'result');
+    const c = el('div', 'card flex flex-col gap-3 border-amber/40 p-4');
+    c.id = 'prior-result';
+    c.innerHTML = `<div class="flex flex-wrap items-center justify-between gap-2"><p class="eyebrow text-amber">上一題 · 任務 ${prior.no} 的結果</p><span class="chip">${res ? `${res.total} 筆` : '沒有結果'}</span></div><pre class="prose-sd m-0 rounded-lg bg-ink-950 p-2 text-code"><code>${SD.highlight(prior.sql)}</code></pre>`;
+    if (res && res.values.length) c.appendChild(renderTable(res));
+    resultsEl.prepend(c);
+    if (canAnimate()) gsap.from(c, { y: 12, opacity: 0, duration: 0.35, ease: 'power2.out' });
+  }
+  /* 同一次工作階段每題只自動帶入一次：去看教學再回來不會又把改到一半的內容換掉；重開頁面後會再帶入一次（可復原） */
+  const autoFilled = new Set();
+
   function renderTask(step) {
     const p = prog();
     const done = stepDone(step);
     const hintsUsed = p.hints[step.id] || 0;
     const idx = tasksOf(chapter).indexOf(step) + 1;
+    const prior = priorOf(step);
+    if (prior) prior.use = step.after.use;
     card.innerHTML = `
       <div class="flex items-start justify-between gap-2">
         <p class="eyebrow">${step.variant === 'debug' ? '找錯任務' : '任務'} ${idx} / ${tasksOf(chapter).length}</p>
@@ -1116,6 +1150,7 @@
       <div class="mt-5 flex flex-wrap gap-2 border-t border-ink-700 pt-4">
         <button type="button" id="btn-goto-editor" class="btn-primary btn-sm lg:hidden">前往查詢區寫 SQL →</button>
         <button type="button" id="btn-hint" class="btn-ghost btn-sm">💡 提示（${Math.min(hintsUsed, 3)}/3）</button>
+        ${prior ? `<button type="button" id="btn-prior" class="btn-ghost btn-sm">${prior.use === 'sql' ? '↩ 帶入上一題的 SQL' : `📋 上一題結果（任務 ${prior.no}）`}</button>` : ''}
       </div>
       <ol id="hints" class="mt-3 flex flex-col gap-2"></ol>
       <p class="mt-4 text-xs text-ink-300">在查詢區執行 SQL 後會自動檢核。「說明」不算提示；不看提示 3 星、看第 1～2 個提示 2 星、看解答 1 星。</p>`;
@@ -1164,6 +1199,21 @@
     if (reload) reload.addEventListener('click', () => replaceEditor(step.starter, '已重新帶入題目的 SQL。'));
     if (step.variant === 'debug' && !done && editor.value.trim() !== step.starter.trim()) replaceEditor(step.starter, '已帶入題目的 SQL，原本的內容存在紀錄裡。');
     else if (step.starter && !editor.value.trim()) { editor.value = step.starter; saveDraftSoon(0); }
+    if (prior) {
+      const priorBtn = $('#btn-prior', card);
+      if (prior.use === 'sql') {
+        priorBtn.addEventListener('click', () => replaceEditor(prior.sql, `已帶入任務 ${prior.no} 通過的 SQL。`));
+        if (!done && !autoFilled.has(step.id) && editor.value.trim() !== prior.sql) {
+          autoFilled.add(step.id);
+          if (!editor.value.trim()) { editor.value = prior.sql; saveDraftSoon(0); }
+          else replaceEditor(prior.sql, `已帶入任務 ${prior.no} 通過的 SQL，原本的內容存在紀錄裡。`);
+        }
+      } else {
+        priorBtn.addEventListener('click', () => { showPriorResult(prior); showPane('editor'); });
+        // 重開頁面或恍神回來時結果區多半是空的，直接把上一題的結果擺好，不必記得也不必去翻線索板
+        if (!done && !lastResults.length) showPriorResult(prior);
+      }
+    }
   }
 
   async function evaluateStep(step) {
@@ -1184,7 +1234,8 @@
     }
     if (result.ok) {
       const wasDone = stepDone(step);
-      SD.state.markStep(chapter.id, step.id);
+      // 存下通關的 SQL，接續題（step.after）才能沿用玩家自己的寫法，而不是只能退回標準解答
+      SD.state.markStep(chapter.id, step.id, { sql: lastSql });
       const h = prog().hints[step.id] || 0;
       const successMsg = step.type === 'solution' ? step.success : (step.success || '結果符合預期。');
       const newClue = wasDone ? null : pinClue(step);
@@ -1788,6 +1839,9 @@
       resultsEl.appendChild($('#tpl-results-empty').content.cloneNode(true));
       renderSchemaList();
       renderTaskTables();
+      // 開頁時 renderStep 早於資料庫就緒，接續題的「上一題結果」要等到這裡才補貼
+      const cur = chapter && chapter.steps[stepIndex];
+      if (cur && cur.type === 'task' && cur.after && cur.after.use === 'result' && !stepDone(cur)) { const p = priorOf(cur); if (p) showPriorResult(p); }
       bootDismiss();
     } catch (e) {
       $('#db-status').textContent = '資料庫載入失敗：' + e.message; $('#db-status').hidden = false;
