@@ -405,6 +405,7 @@
     $('#board-title').textContent = verdict ? '結案室' : '證據板';
     $('#board-filter').hidden = verdict;
     $('#board-foot').hidden = verdict;
+    hideTray(); // 重繪先收托盤；結案模式在 renderVerdictBoard 依步驟狀態重新掛回
     if (verdict) { renderVerdictBoard(board); updateBoardButton(); return; }
     const chIds = [...new Set(state.clues.map((c) => c.ch))].sort((a, b) => b - a);
     // 目前章節沒線索時「本章」沒東西可看，退回全部
@@ -474,6 +475,7 @@
   $('#board-close').addEventListener('click', () => boardStage.close());
   boardStage.addEventListener('close', () => {
     boardMode = 'browse';
+    hideTray();
     newClueIds.clear();
     updateBoardButton();
     // 從結案室回來焦點回到「進入結案室」按鈕；主卡片可能已重繪，找不到原按鈕就退回 header
@@ -589,9 +591,73 @@
       }).filter(Boolean);
     };
     mountStrings(board);
+    mountTray(step, $('.verdict-card', board));
     $('#board-empty').hidden = true;
     $('#board-count').textContent = '';
   }
+  /*
+   * 證據鏈托盤：指認卡很高，捲下去看牆時槽位與「指認」都在視野外，拖放也沒有目標。
+   * 不把卡片 sticky（會吃掉半個視窗，手機上牆就不見了），改成卡片離開視野時浮現一列精簡版：
+   * 槽位縮圖鏡射卡片狀態、可直接拖放釘入、按鈕捲回卡片。移出仍回卡片操作，避免兩套控制項重複朗讀。
+   * 每次 renderVerdictBoard 都重建，狀態自然與卡片同步；破案後或非指認步驟不掛。
+   */
+  const trayEl = $('#verdict-tray');
+  const boardBody = $('.board-body', boardStage);
+  const boardBar = $('.board-bar', boardStage);
+  const mdMQ = window.matchMedia('(min-width: 48rem)');
+  let trayObserver = null;
+  let trayRaf = 0;
+  function hideTray() {
+    if (trayRaf) { cancelAnimationFrame(trayRaf); trayRaf = 0; }
+    if (trayObserver) { trayObserver.disconnect(); trayObserver = null; }
+    trayEl.hidden = true;
+    boardBody.classList.remove('has-tray');
+  }
+  function mountTray(step, cardEl) {
+    if (step.type !== 'answer' || stepDone(step) || !cardEl) return;
+    const n = step.chain.length;
+    const judged = !chainOk && chained.length >= n;
+    const chainSteps = clueSteps(chapter);
+    const titleOf = (id) => { const s = chainSteps.find((x) => x.id === id); return s ? s.clue.title : id; };
+    const slots = chained.map((id) => `<span class="tray-slot is-filled${judged && !step.chain.includes(id) ? ' is-wrong' : ''}"><img src="${SD.media.clueIcon(titleOf(id))}" alt="" width="36" height="36" /></span>`).join('')
+      + Array.from({ length: Math.max(0, n - chained.length) }, (_, i) => `<span class="tray-slot">${chained.length + i + 1}</span>`).join('');
+    const wrongN = judged ? chained.filter((id) => !step.chain.includes(id)).length : 0;
+    const status = chainOk ? '<span class="font-bold text-teal">✔ 證據鏈成立</span>，回去指認嫌疑人。' : judged ? `<span class="font-bold text-amber">有 ${wrongN} 張不在鏈上</span>，回去換卡。` : `證據鏈 <span class="font-bold text-paper">${chained.length} / ${n}</span>${mdMQ.matches ? '，可把線索卡拖到這裡釘入。' : ''}`;
+    trayEl.innerHTML = `<div class="tray-slots" aria-hidden="true">${slots}</div><p class="tray-status">${status}</p><button type="button" class="btn-primary ml-auto min-h-11 shrink-0" data-tray-jump>${chainOk ? '指認嫌疑人 ↑' : '回到指認 ↑'}</button>`;
+    // 觀察的是槽位列而不是整張卡：托盤代替的正是槽位與指認入口，題目文字捲走不算。
+    // root 是 .board-body（dialog 內真正捲動的容器）；board-bar 以 absolute 壓在 body 頂端，
+    // 藏在 bar 底下的部分算不可見，故 rootMargin 上緣扣掉 bar 高度。
+    // 延到下一幀才建 observer：openBoard 是先 renderBoard 再 showModal，dialog 還沒顯示時 root 沒有版面，
+    // Chrome 對這種 root 建的 observer 之後就不會再回報（實測捲動到底也不觸發）；bar 高度也要等顯示後才量得到
+    trayRaf = requestAnimationFrame(() => {
+      trayRaf = 0;
+      if (!boardStage.open || !cardEl.isConnected) return;
+      // 直接量 bar 而不讀 CSS 變數：dialog 剛顯示時 ResizeObserver 還沒來得及把變數寫進去
+      const barH = boardBar.offsetHeight;
+      trayObserver = new IntersectionObserver(([entry]) => {
+        const show = !entry.isIntersecting;
+        if (show === !trayEl.hidden) return;
+        trayEl.hidden = !show;
+        boardBody.classList.toggle('has-tray', show);
+        if (show && canAnimate()) gsap.from(trayEl, { y: mdMQ.matches ? -12 : 12, opacity: 0, duration: 0.25, ease: 'power2.out', clearProps: 'all' });
+      }, { root: boardBody, rootMargin: `-${barH}px 0px 0px 0px` });
+      trayObserver.observe($('#chain', cardEl) || cardEl);
+    });
+    // 卡片本身可收焦點：捲回去時把焦點交給卡片，讀屏器從「結案 · 指認」開始唸，而不是停在已消失的托盤按鈕上
+    cardEl.tabIndex = -1;
+  }
+  trayEl.addEventListener('click', (e) => {
+    if (!e.target.closest('[data-tray-jump]')) return;
+    const cardEl = $('#board .verdict-card');
+    if (!cardEl) return;
+    cardEl.scrollIntoView({ block: 'start', behavior: reduce ? 'auto' : 'smooth' });
+    cardEl.focus({ preventScroll: true });
+  });
+  trayEl.addEventListener('dragover', (e) => { e.preventDefault(); trayEl.classList.add('over'); });
+  trayEl.addEventListener('dragleave', () => trayEl.classList.remove('over'));
+  trayEl.addEventListener('drop', (e) => { e.preventDefault(); trayEl.classList.remove('over'); const id = e.dataTransfer.getData('text/plain'); if (id) chainAdd(id); });
+  // board-bar 是 absolute 且會 flex-wrap，高度寫進 CSS 變數給托盤定位與卡片 scroll-margin 用
+  new ResizeObserver(([entry]) => { boardStage.style.setProperty('--board-bar-h', `${Math.ceil(entry.target.offsetHeight)}px`); }).observe(boardBar);
   function missingCard(entry) {
     const task = entry.task || entry;
     const idx = entry.stepIndex !== undefined ? entry.stepIndex : chapter.steps.indexOf(task);

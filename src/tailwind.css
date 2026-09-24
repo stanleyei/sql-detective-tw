@@ -488,6 +488,34 @@
    * 右欄在還沒判定前是空的，留白即可，不加邊框免得像缺了東西。
    */
   .verdict-card.is-split { @apply md:grid md:grid-cols-[minmax(0,3fr)_minmax(0,2fr)] md:items-stretch md:gap-x-6; }
+  /* 托盤「回到指認」用 scrollIntoView 捲回來時，卡片頂邊要落在 absolute 的 board-bar 下方而不是被它蓋住 */
+  .verdict-card { scroll-margin-top: calc(var(--board-bar-h, 4rem) + 1rem); }
+  .verdict-card:focus { @apply outline-none; }
+  .verdict-card:focus-visible { @apply outline-2 outline-offset-2 outline-amber; }
+  /*
+   * 證據鏈托盤：指認卡整張很高（題目 + 槽位 + 回饋 + 嫌疑人），直接 sticky 會吃掉半個視窗，
+   * 手機上牆就看不見了。改成卡片捲出視野時才浮現的一列精簡版：槽位縮圖鏡射卡片狀態、可當拖放目標、
+   * 一鍵捲回指認卡。手機貼底（拇指區，與劇情面板 #step-nav 貼底同一套慣例）；md 起貼在 board-bar 下方，
+   * 高度由 play.js 量 board-bar 寫進 --board-bar-h，bar 會 flex-wrap 所以不能寫死。
+   * 用 fixed 而非 sticky：dialog 在 top layer 且滿版，fixed 等同相對 dialog；sticky 貼底得放在容器尾端才有效。
+   * 實色底不用 backdrop-blur：托盤在旋轉的拍立得上方持續捲動，手機上 blur 會掉幀。
+   */
+  .verdict-tray {
+    @apply fixed inset-x-0 bottom-0 z-20 flex flex-wrap items-center gap-x-3 gap-y-2 border-t-2 border-amber/70 bg-ink-950 px-4 pt-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] text-paper shadow-glow-amber transition;
+    @apply md:inset-x-0 md:bottom-auto md:top-[var(--board-bar-h,4rem)] md:mx-auto md:w-[calc(100%-4rem)] md:max-w-6xl md:rounded-b-2xl md:border-x-2 md:border-b-2 md:border-t-0 md:px-5 md:py-2;
+  }
+  .verdict-tray.over { @apply border-amber bg-amber/15; }
+  .tray-slots { @apply flex items-center gap-1.5; }
+  /* 手機寬度不夠三段並排：槽位與按鈕一列、狀態文字整行放在下方；md 起狀態文字回到中間撐開 */
+  .tray-status { @apply order-last basis-full text-sm leading-6 text-ink-300 md:order-none md:min-w-0 md:flex-1 md:basis-auto; }
+  /* 托盤槽位是純狀態鏡射（aria-hidden），44px 只為了和卡片槽位縮圖一致的視覺份量 */
+  .tray-slot { @apply inline-flex size-11 items-center justify-center rounded-lg border-2 border-dashed border-ink-500 text-xs text-ink-300; }
+  .tray-slot.is-filled { @apply border-solid border-teal bg-teal/10; }
+  .tray-slot.is-filled.is-wrong { @apply relative border-amber bg-amber/10; }
+  .tray-slot.is-filled.is-wrong::after { @apply absolute -top-1.5 -right-1.5 inline-flex size-4 items-center justify-center rounded-full bg-amber text-[0.625rem] font-black text-ink-950 content-['✘']; }
+  .tray-slot img { @apply size-9 rounded-sm bg-ink-900 object-cover; }
+  /* 托盤貼底時牆最後一列會被蓋住，body 多留一段底部內距；md 起托盤在頂端不需要 */
+  .board-body.has-tray { @apply pb-32 md:pb-[max(2rem,env(safe-area-inset-bottom))]; }
   .verdict-main { @apply flex min-w-0 flex-col; }
   .verdict-main .chain { @apply md:mt-auto md:pt-4; }
   .verdict-side { @apply min-w-0; }

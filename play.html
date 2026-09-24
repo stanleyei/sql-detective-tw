@@ -26,8 +26,8 @@
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet" />
   <link rel="icon" href="./favicon.ico" sizes="48x48" />
   <link rel="apple-touch-icon" href="./images/apple-touch-icon.png" />
-  <script src="./js/boot-cover.js?v=20260924-16"></script>
-  <link rel="stylesheet" href="./css/style.css?v=20260924-16" />
+  <script src="./js/boot-cover.js?v=20260924-17"></script>
+  <link rel="stylesheet" href="./css/style.css?v=20260924-17" />
 </head>
 <body class="min-h-dvh">
   <a href="#editor" class="sr-only z-60 rounded-lg bg-amber px-6 py-3 font-bold text-ink-950 focus:not-sr-only focus:fixed focus:left-4 focus:top-4">跳至查詢區</a>
@@ -226,6 +226,8 @@
       </div>
       <p id="board-foot" class="mx-auto mt-12 w-full max-w-6xl border-t border-ink-800 pt-4 text-sm text-ink-300">徽章與星數收在<button type="button" class="link-sd" data-open-achievements>偵探檔案</button>。</p>
     </div>
+    <!-- 證據鏈托盤：結案室的指認卡捲出視野時才浮現，內容由 play.js 填入；fixed 定位在 dialog 的 top layer 內等同相對視窗 -->
+    <div id="verdict-tray" class="verdict-tray" aria-label="證據鏈進度" hidden></div>
   </dialog>
 
   <!-- 偵探檔案：全螢幕覆蓋層（沿用證據板機制），內容由 js/game/play.js 渲染：階級、徽章牆、可截圖的分享卡 -->
@@ -286,25 +288,25 @@
   <script src="./vendor/sql-wasm.js" defer></script>
   <script src="./vendor/gsap.min.js" defer></script>
   <script src="./vendor/Flip.min.js" defer></script>
-  <script src="./js/engine/seed.js?v=20260924-16" defer></script>
-  <script src="./js/engine/mariadb-compat.js?v=20260924-16" defer></script>
-  <script src="./js/engine/db.js?v=20260924-16" defer></script>
-  <script src="./js/game/schema-doc.js?v=20260924-16" defer></script>
-  <script src="./js/game/cast.js?v=20260924-16" defer></script>
-  <script src="./js/game/media.js?v=20260924-16" defer></script>
-  <script src="./js/game/audio.js?v=20260924-16" defer></script>
-  <script src="./js/chapters/ch0.js?v=20260924-16" defer></script>
-  <script src="./js/chapters/ch1.js?v=20260924-16" defer></script>
-  <script src="./js/chapters/ch2.js?v=20260924-16" defer></script>
-  <script src="./js/chapters/ch3.js?v=20260924-16" defer></script>
-  <script src="./js/chapters/ch4.js?v=20260924-16" defer></script>
-  <script src="./js/chapters/ch5.js?v=20260924-16" defer></script>
-  <script src="./js/chapters/ch6.js?v=20260924-16" defer></script>
-  <script src="./js/chapters/expect.js?v=20260924-16" defer></script>
-  <script src="./js/game/state.js?v=20260924-16" defer></script>
-  <script src="./js/game/check.js?v=20260924-16" defer></script>
-  <script src="./js/game/cheatsheet.js?v=20260924-16" defer></script>
-  <script src="./js/game/highlight.js?v=20260924-16" defer></script>
-  <script src="./js/game/play.js?v=20260924-16" defer></script>
+  <script src="./js/engine/seed.js?v=20260924-17" defer></script>
+  <script src="./js/engine/mariadb-compat.js?v=20260924-17" defer></script>
+  <script src="./js/engine/db.js?v=20260924-17" defer></script>
+  <script src="./js/game/schema-doc.js?v=20260924-17" defer></script>
+  <script src="./js/game/cast.js?v=20260924-17" defer></script>
+  <script src="./js/game/media.js?v=20260924-17" defer></script>
+  <script src="./js/game/audio.js?v=20260924-17" defer></script>
+  <script src="./js/chapters/ch0.js?v=20260924-17" defer></script>
+  <script src="./js/chapters/ch1.js?v=20260924-17" defer></script>
+  <script src="./js/chapters/ch2.js?v=20260924-17" defer></script>
+  <script src="./js/chapters/ch3.js?v=20260924-17" defer></script>
+  <script src="./js/chapters/ch4.js?v=20260924-17" defer></script>
+  <script src="./js/chapters/ch5.js?v=20260924-17" defer></script>
+  <script src="./js/chapters/ch6.js?v=20260924-17" defer></script>
+  <script src="./js/chapters/expect.js?v=20260924-17" defer></script>
+  <script src="./js/game/state.js?v=20260924-17" defer></script>
+  <script src="./js/game/check.js?v=20260924-17" defer></script>
+  <script src="./js/game/cheatsheet.js?v=20260924-17" defer></script>
+  <script src="./js/game/highlight.js?v=20260924-17" defer></script>
+  <script src="./js/game/play.js?v=20260924-17" defer></script>
 </body>
 </html>
