@@ -31,6 +31,8 @@ WHERE e.company_id = 1;</code></pre>
       </ul>` },
     { type: 'blocks', id: 'c4-b1', title: '拼出第一個 JOIN', prompt: '組出「列出潮港科技（company_id = 1）員工的 <code>p.name</code> 與 <code>e.title</code>」。有一塊積木是多餘的。',
       blocks: ['SELECT', 'p.name, e.title', 'FROM', 'employee AS e', 'JOIN', 'person AS p', 'ON', 'p.id = e.person_id', 'WHERE', 'e.company_id = 1;'], distractors: ['ON e.company_id = 1'],
+      // 內部 JOIN 兩表可互換，person 在前、employee 在後同樣正確
+      answers: ['SELECT p.name, e.title FROM person AS p JOIN employee AS e ON p.id = e.person_id WHERE e.company_id = 1;'],
       wrong: 'JOIN 的順序：FROM 表 A → JOIN 表 B → ON 兩表怎麼對上 → WHERE 篩選條件。ON 放對應關係，WHERE 放篩選。' },
     { type: 'task', id: 'c4-t2', title: '員工名冊', prompt: '列出 <code>company_id = 1</code> 的所有員工：顯示 <code>e.id</code>、<code>p.name</code>、<code>e.department</code>、<code>e.title</code>（employee 別名 e、person 別名 p）。',
       hints: ['FROM employee e JOIN person p ON p.id = e.person_id', 'WHERE e.company_id = 1', '<code>SELECT e.id, p.name, e.department, e.title FROM employee e JOIN person p ON p.id = e.person_id WHERE e.company_id = 1;</code>'],
