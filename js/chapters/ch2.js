@@ -128,7 +128,7 @@ FROM cctv_log;</code></pre>
         'c2-t11': '逃逸路線是補強，證據鏈需要的是「哪張車牌」與「車牌是誰的」。',
       },
       suspects: ['黃雅婷', '周佳穎', '謝欣怡', '郭俊傑'] },
-    { type: 'story', lines: [
+    { type: 'story', scene: './images/scene/ch2-store-end.webp', lines: [
       { who: 'clerk', text: '原來真的是她……謝謝你們。我下次一定看時鐘。' },
       { who: 'mentor', text: '你把「打烊前四十分鐘」變成了一段可以查的時間區間，這就是資料分析。接下來的案子沒有明確嫌犯，得從幾百筆資料裡「數」出異常。' },
     ] },

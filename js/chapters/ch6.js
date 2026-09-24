@@ -67,7 +67,7 @@ SELECT * FROM solution;</code></pre>` },
       success: '沒錯，兇手是蔡明哲。但他被逮捕後起初只說了一句話：「我是收錢辦事的。」這案子還沒完。',
       fail: '不是這個人。回頭看車牌那一題：字母含 H、數字 42 開頭的是哪一輛？',
       clue: { title: '兇手落網', text: '蔡明哲承認行兇，但聲稱受人雇用，拒絕說出雇主姓名。' } },
-    { type: 'story', lines: [
+    { type: 'story', scene: './images/scene/ch6-interrogation.webp', lines: [
       { who: 'suspect', text: '我不會告訴你們她的名字。她很有錢，身高大概 165 到 168，一頭紅髮，開 Tesla Model S。她 7 月去聽了三次「潮港交響音樂會」，事情就是在那裡談的。' },
       { who: 'mentor', text: '他以為這樣說等於沒說。他不知道我們有駕照資料、活動打卡、收入資料，還有一個會寫 SQL 的人。' },
     ] },
@@ -95,7 +95,7 @@ SELECT * FROM solution;</code></pre>` },
       fail: '不是她。用 HAVING COUNT(*) = 3 那題的 person_id 對回 person 表。',
       clue: { title: '全案偵破', text: '兇手蔡明哲、主使沈若蘭皆已到案。動機：海景大道土地開發糾紛。' } },
     { type: 'quiz', id: 'c6-q1', question: 'WHERE id = (SELECT ...) 與 WHERE id IN (SELECT ...) 的差別是？', options: ['沒有差別', '= 用於子查詢只回傳一個值，IN 用於可能多個值', 'IN 比較快', '= 只能用在數字'], answer: 1, explain: '子查詢回傳多列時用 = 會出錯，要改用 IN。' },
-    { type: 'story', lines: [
+    { type: 'story', scene: './images/scene/ch6-harbor-end.webp', lines: [
       { who: 'chief', text: '一個月沒進展的案子，你用資料庫一個下午就結了。從今天起，資料分析組正式納入編制，你是第一位正式組員。' },
       { who: 'mentor', text: '記住你走過的路：SELECT 看資料、WHERE 篩選、函數處理時間與文字、GROUP BY 找異常、JOIN 串證據、子查詢把一切接起來。這些在任何一個 MariaDB 資料庫裡都一樣好用。' },
       { who: 'narrator', text: '潮港市的夜色依舊，霓虹倒映在港灣。而你知道，每一盞燈後面，都有一筆等著被查出來的資料。' },

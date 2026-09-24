@@ -3,21 +3,6 @@
   'use strict';
   window.SD = window.SD || {};
 
-  /* 劇情步驟 → 場景圖。key 為「章節 slug/步驟索引」；各章第一段劇情沿用章節封面（見 scene()）。 */
-  const scenes = {
-    'ch0/15': './images/scene/ch0-office.webp',
-    'ch0/19': './images/scene/ch0-lobby.webp',
-    'ch1/10': './images/scene/ch1-forensics.webp',
-    'ch1/23': './images/scene/ch1-nightmarket-end.webp',
-    'ch2/21': './images/scene/ch2-store-end.webp',
-    'ch3/22': './images/scene/ch3-lostfound.webp',
-    'ch4/7': './images/scene/ch4-drawer.webp',
-    'ch4/21': './images/scene/ch4-serverroom.webp',
-    'ch5/24': './images/scene/ch5-evidence-room.webp',
-    'ch6/11': './images/scene/ch6-interrogation.webp',
-    'ch6/19': './images/scene/ch6-harbor-end.webp',
-  };
-
   /* 每章教學卡右上角的主視覺（象徵該章語法主題） */
   const lessonArt = {
     0: './images/lesson/ch0-cabinet.webp',
@@ -41,12 +26,14 @@
     [/嫌疑|人|會員|女性|主使|兇手|經理|員工|清單|直屬|落網|符合/, 'person'],
   ];
 
+  /* 劇情步驟的場景圖：寫在各章 story 步驟的 scene 欄位；沒寫的第一段劇情沿用章節封面。
+     不用「步驟索引」對照，因為章節中間插入題目就會讓索引漂移、場景圖無聲失效。 */
   function scene(chapter, stepIndex) {
     const step = chapter.steps[stepIndex];
     if (!step || step.type !== 'story') return null;
+    if (step.scene) return step.scene;
     const firstStory = chapter.steps.findIndex((s) => s.type === 'story');
-    if (stepIndex === firstStory) return chapter.cover || null;
-    return scenes[`${chapter.slug}/${stepIndex}`] || null;
+    return stepIndex === firstStory ? chapter.cover || null : null;
   }
 
   function clueIcon(title) {

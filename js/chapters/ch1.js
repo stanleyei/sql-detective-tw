@@ -67,7 +67,7 @@ WHERE phone IS NOT NULL</code></pre>
       hints: ['沒有錯誤訊息不代表沒錯。看看 phone 的條件是怎麼寫的。', 'NULL 不能用 = 比較，要用 IS NULL。', "<code>SELECT name FROM person WHERE phone IS NULL AND district = '港東區';</code>"],
       check: { kind: 'result', cols: ['name'], ordered: false } },
     { type: 'predict', id: 'c1-p1', title: 'NULL 會不會被「不等於」選到？', sql: "SELECT name FROM person WHERE phone <> '0912345678';", question: '吳志豪的電話是 NULL。他會出現在結果裡嗎？', options: ['會，NULL 當然不等於那個號碼', '不會，NULL 跟任何值比較都不算「真」', '會出錯，NULL 不能比較'], answer: 1, explain: 'NULL 代表「未知」，未知不等於任何值，也不「不等於」任何值，所以 <> 會把他排除。要把沒電話的人也算進來，得加上 OR phone IS NULL。' },
-    { type: 'story', lines: [
+    { type: 'story', scene: './images/scene/ch1-forensics.webp', lines: [
       { who: 'tech', text: '嗨，我是鑑識組的張哲。夜市周邊的監視器紀錄都已經匯進 cctv_log 表了，車牌辨識也做好了，你可以直接查。' },
     ] },
     { type: 'task', id: 'c1-t6', title: '監視器抓到誰？', prompt: '從 <code>cctv_log</code> 找出 <strong>3 月 8 日</strong>（<code>capture_time</code> 以 <code>2025-03-08</code> 開頭）、車牌為 <strong>MKJ-5821 或 MKJ-3390</strong> 的紀錄，顯示 <code>capture_time</code>、<code>camera_location</code>、<code>plate_number</code>、<code>note</code>。',
@@ -125,7 +125,7 @@ LIMIT 3;</code></pre>
         'c1-t9': '會員編號只是查打卡的中繼站，打卡結果才是證據。',
       },
       suspects: ['吳志豪', '蘇建豪', '賴世偉', '簡冠霖'] },
-    { type: 'story', lines: [
+    { type: 'story', scene: './images/scene/ch1-nightmarket-end.webp', lines: [
       { who: 'vendor', text: '太感謝了！耳機找回來，我請你們吃蚵仔煎！' },
       { who: 'mentor', text: '不錯。你已經會用 AND、LIKE、IN、BETWEEN 這些條件從幾百筆資料裡撈出兩個人。下一個案子的關鍵不在「是誰」，而在「什麼時候」。' },
     ] },

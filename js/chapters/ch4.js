@@ -59,7 +59,7 @@ WHERE a.door = '機房';</code></pre>
       hints: ['FROM access_log a JOIN employee e ON e.id = a.employee_id JOIN person p ON p.id = e.person_id', '時間與門的條件放 WHERE，記得用 a. 前綴。', "<code>SELECT p.name, e.title, a.action, a.event_time FROM access_log a JOIN employee e ON e.id = a.employee_id JOIN person p ON p.id = e.person_id WHERE a.door = '機房' AND a.event_time BETWEEN '2025-06-20 22:00:00' AND '2025-06-20 23:00:00';</code>"],
       check: { kind: 'result', cols: ['name', 'title', 'action', 'event_time'], ordered: false },
       clue: { title: '經理的卡', text: '刷進機房的是研發部經理許國棟的門禁卡。但他說他六點就下班了。' } },
-    { type: 'story', lines: [
+    { type: 'story', scene: './images/scene/ch4-drawer.webp', lines: [
       { who: 'manager', text: '我的卡？我……我好像把它放在辦公桌抽屜裡沒帶走。那天我六點多就離開公司，在附近吃飯，晚上十點左右從山城站搭捷運去港東找朋友。' },
       { who: 'mentor', text: '他說搭捷運去港東。捷運資料我們有。把 transit_log、transit_card、person 接起來，看他的卡那天晚上在哪裡。' },
     ] },
@@ -134,7 +134,7 @@ GROUP BY c.name;</code></pre>` },
         'c4-t9': '直屬關係只說明「有機會拿到卡」，是動機補強，不能取代門禁上的矛盾。',
       },
       suspects: ['周文傑', '許國棟', '郭曼玲', '曾宜蓁'] },
-    { type: 'story', lines: [
+    { type: 'story', scene: './images/scene/ch4-serverroom.webp', lines: [
       { who: 'manager', text: '是文傑……他跟了我六年。我以後不會再把卡放抽屜了。' },
       { who: 'mentor', text: '這一案你把四張表串成了一條證據鏈，這是資料庫最強的地方。休息一下，下一章不辦案，我們來整理資料室。' },
     ] },

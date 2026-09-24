@@ -131,7 +131,7 @@ ALTER TABLE evidence RENAME COLUMN location TO found_at; -- 改名</code></pre>`
       check: { kind: 'probe', probe: "SELECT report_id, item_name, location, status FROM evidence WHERE item_name = '收據'" } },
     { type: 'quiz', id: 'c5-q1', question: '執行 UPDATE evidence SET status = \'已結案\'; 會發生什麼？', options: ['只改第一筆', '出現錯誤', '整張表每一筆都被改成已結案', '什麼都不會發生'], answer: 2, explain: '沒有 WHERE 的 UPDATE 會影響所有列，執行前務必確認。' },
     { type: 'quiz', id: 'c5-q2', question: '想「清空整張表但保留結構、自動編號歸零」，用？', options: ['DROP TABLE', 'TRUNCATE TABLE', 'DELETE FROM t WHERE id > 0', 'ALTER TABLE'], answer: 1, explain: 'TRUNCATE 清空並重設 AUTO_INCREMENT；DROP 會連表一起刪。' },
-    { type: 'story', lines: [
+    { type: 'story', scene: './images/scene/ch5-evidence-room.webp', lines: [
       { who: 'tech', text: '證物系統可以用了！這樣我就不用再翻那本快散掉的登記簿了。' },
       { who: 'chief', text: '很好。現在，我要交給你一件從你報到那天就一直放在那裡的案子。' },
       { who: 'mentor', text: '海景大樓命案。這次沒有拆好的步驟，只有目擊者的證詞與你學過的所有東西；需要新招時我會補一課。準備好了嗎？' },

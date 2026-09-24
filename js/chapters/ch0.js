@@ -86,7 +86,7 @@ WHERE district = '港東區';</code></pre>
       hints: ['主鍵 id 是數字。', 'WHERE id = 1', '<code>SELECT name FROM person WHERE id = 1;</code>'],
       check: { kind: 'value' },
       clue: { title: '編號 1 號', text: '市民編號 1 號正是你的指導警官林曉青。資料庫裡連警察自己都有紀錄。' } },
-    { type: 'story', lines: [
+    { type: 'story', scene: './images/scene/ch0-office.webp', lines: [
       { who: 'mentor', text: '對，1 號就是我。資料庫裡沒有秘密，只有你會不會問。' },
       { who: 'mentor', text: '最後一題。案件表裡有一種案件類型叫「命案」。查出來看看，但先別急著碰，那件案子等你練好功夫再說。' },
     ] },
@@ -97,7 +97,7 @@ WHERE district = '港東區';</code></pre>
       clue: { title: '海景大樓命案', text: '2025-08-15 海濱區「海景大樓」發生命案，死者游致遠。兩名目擊者：海濱路門牌最大那戶的住戶、住中央路的林姓市民。' } },
     { type: 'quiz', id: 'c0-q1', question: '想「只看住在山城區的人」，條件應該寫在哪個關鍵字後面？', options: ['SELECT', 'FROM', 'WHERE', 'LIMIT'], answer: 2, explain: 'WHERE 負責篩選列；SELECT 決定看哪些欄位、FROM 決定哪張表、LIMIT 限制筆數。' },
     { type: 'quiz', id: 'c0-q2', question: '下面哪一句是正確的？', options: ["SELECT name FROM person WHERE district = 港東區;", "SELECT name FROM person WHERE district = '港東區';", "SELECT name WHERE district = '港東區' FROM person;", "SELECT name, FROM person;"], answer: 1, explain: '文字要用單引號；WHERE 必須在 FROM 之後；欄位清單最後不能有多餘的逗號。' },
-    { type: 'story', lines: [
+    { type: 'story', scene: './images/scene/ch0-lobby.webp', lines: [
       { who: 'chief', text: '第一天就能自己撈資料，不錯。明天從三月港東夜市那件積案開始，一件一件重查，正好給你練手。' },
       { who: 'mentor', text: '今天記住四個關鍵字就夠了：SELECT、FROM、WHERE、LIMIT。明天我們翻開檔案櫃，開始真正辦案。' },
     ] },

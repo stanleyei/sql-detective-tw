@@ -130,7 +130,7 @@ GROUP BY station;</code></pre>` },
         'c3-t14': '專挑高價品說明手法，但「他當天真的在那個車站」才把人釘在現場。',
       },
       suspects: ['李建宏', '胡育誠', '邱冠宇', '葉信宏'] },
-    { type: 'story', lines: [
+    { type: 'story', scene: './images/scene/ch3-lostfound.webp', lines: [
       { who: 'station', text: '原來是他！每次都西裝筆挺、彬彬有禮，我們完全沒懷疑。' },
       { who: 'mentor', text: '你學會的是資料分析最核心的動作：分組、計數、找異常。下一案，資料分散在四張表裡，得把它們「接」起來。' },
     ] },
