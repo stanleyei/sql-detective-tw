@@ -21,7 +21,7 @@ description: 圖片素材的處理與使用流程。當新增或更換圖片素�
 
 - `photo`：照片類（人像、風景、商品），2400px / webp q82
 - `graphic`：線稿、UI 截圖、含文字的圖，2400px / webp 無損
-- `og`：社群分享圖，固定 1200×630 且會裁切；產出後填入 `index.html` 的 `og:image`，並確認 `og:image:alt` 有內容
+- `og`：社群分享圖，固定 1200×630 且會裁切；產出後填入 `index.html` 的 `og:image`，並確認 `og:image:alt` 有內容。現行的 `images/og-v2.jpg` 是由 `npm run og`（`scripts/make-og.js`）以 codex 底圖加程式疊字合成，改文案或版面請改該腳本再 `npm run og -- --compose`，換圖後檔名要遞增（`og-v3.jpg`）並同步三頁的 `og:image` / `twitter:image`，因為 FB、LINE 對 OG 圖有各自的快取
 - `raw`：preset 不合用時的逃生口
 
 preset 數值可用 `--max-width`、`--quality`、`--format` 覆寫，`--out` 指定輸出位置；完整選項見 `npm run img -- --help`。腳本內建的通則（不放大、不覆寫來源、保留 ICC、產出變大即捨棄、SVG 跳過）不需另外交代。

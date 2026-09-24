@@ -13,6 +13,7 @@
     "serve": "serve . -l 3000",
     "prebuild": "node scripts/gen-data.js && node scripts/build-tasks.js",
     "img:gen": "node scripts/gen-images.js",
+    "og": "node scripts/make-og.js",
     "test:tasks": "node scripts/test-tasks.js",
     "bump": "node scripts/bump-version.js",
     "bump:check": "node scripts/bump-version.js --check",
