@@ -511,7 +511,9 @@
     });
     return out;
   }
-  const clueTotal = () => clueSteps(chapter).length + chapter.steps.filter((s) => s.type === 'answer').length; // 指認成功會多釘一張「結案」，分母算進去數字才不會超過總數
+  // 指認成功會多釘一張以指認步驟 id 存檔的「結案」卡。分母只在那張卡已釘上時才把它算進去：
+  // 指認前顯示 10 / 10 才與「線索已齊」一致，指認後 11 / 11 也不會超過總數。
+  const clueTotal = () => clueSteps(chapter).length + chapter.steps.filter((s) => s.type === 'answer' && state.clues.some((c) => c.ch === chapter.id && c.id === s.id)).length;
 
   /* 結案入口：主卡片只放線索齊備狀態與進結案室的按鈕；線索本體在結案室以拍立得牆呈現，不在窄欄裡塞清單 */
   function verdictEntryHtml(step) {
