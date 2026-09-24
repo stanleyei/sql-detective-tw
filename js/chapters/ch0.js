@@ -9,8 +9,8 @@ SD.chapters.push({
   badge: { id: 'rookie', name: '菜鳥實習生', img: './images/badge-rookie.webp', desc: '完成報到，學會用 SELECT 打開資料抽屜。' },
   steps: [
     { type: 'story', lines: [
-      { who: 'narrator', text: '潮港市，一座靠海的港口城市。今天是你到市警局報到的第一天，被分派到局長剛開始籌備的「資料分析組」。' },
-      { who: 'chief', text: '歡迎加入！我們局裡什麼都缺，最缺的就是看得懂資料的人。案子的線索都在資料庫裡，只是沒人會把它們撈出來。' },
+      { who: 'narrator', text: '潮港市，一座靠海的港口城市。九月，今天是你到市警局報到的第一天，被分派到局長剛開始籌備的「資料分析組」。' },
+      { who: 'chief', text: '歡迎加入！我們局裡什麼都缺，最缺的就是看得懂資料的人。今年積了一疊沒破的案子，線索其實都在資料庫裡，只是沒人會把它們撈出來。' },
       { who: 'mentor', text: '我是林曉青，接下來由我帶你。別緊張，SQL 不是魔法，它只是一種「跟資料庫講話」的方式。我們從最簡單的開始。' },
     ] },
     { type: 'lesson', title: '資料庫是一整櫃檔案', body: `
@@ -93,8 +93,8 @@ WHERE district = '港東區';</code></pre>
     { type: 'quiz', id: 'c0-q1', question: '想「只看住在山城區的人」，條件應該寫在哪個關鍵字後面？', options: ['SELECT', 'FROM', 'WHERE', 'LIMIT'], answer: 2, explain: 'WHERE 負責篩選列；SELECT 決定看哪些欄位、FROM 決定哪張表、LIMIT 限制筆數。' },
     { type: 'quiz', id: 'c0-q2', question: '下面哪一句是正確的？', options: ["SELECT name FROM person WHERE district = 港東區;", "SELECT name FROM person WHERE district = '港東區';", "SELECT name WHERE district = '港東區' FROM person;", "SELECT name, FROM person;"], answer: 1, explain: '文字要用單引號；WHERE 必須在 FROM 之後；欄位清單最後不能有多餘的逗號。' },
     { type: 'story', lines: [
-      { who: 'chief', text: '第一天就能自己撈資料，不錯。明天港東夜市有個案子要處理，正好給你練手。' },
-      { who: 'mentor', text: '今天記住四個關鍵字就夠了：SELECT、FROM、WHERE、LIMIT。明天我們開始真正辦案。' },
+      { who: 'chief', text: '第一天就能自己撈資料，不錯。明天從三月港東夜市那件積案開始，一件一件重查，正好給你練手。' },
+      { who: 'mentor', text: '今天記住四個關鍵字就夠了：SELECT、FROM、WHERE、LIMIT。明天我們翻開檔案櫃，開始真正辦案。' },
     ] },
   ],
 });

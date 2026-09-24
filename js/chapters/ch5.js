@@ -126,7 +126,7 @@ ALTER TABLE evidence RENAME COLUMN location TO found_at; -- 改名</code></pre>`
     { type: 'story', lines: [
       { who: 'tech', text: '證物系統可以用了！這樣我就不用再翻那本快散掉的登記簿了。' },
       { who: 'chief', text: '很好。現在，我要交給你一件從你報到那天就一直放在那裡的案子。' },
-      { who: 'mentor', text: '海景大樓命案。這次不會先把每一步拆開教，只有目擊者的證詞與你學過的所有東西；卡住時仍可使用提示。準備好了嗎？' },
+      { who: 'mentor', text: '海景大樓命案。這次沒有拆好的步驟，只有目擊者的證詞與你學過的所有東西；需要新招時我會補一課。準備好了嗎？' },
     ] },
   ],
 });

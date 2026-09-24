@@ -9,8 +9,8 @@ SD.chapters.push({
   badge: { id: 'join', name: '連結專家', img: './images/badge-join.webp', desc: '用 JOIN 把門禁、員工、市民、捷運四張表串成一條證據鏈。' },
   steps: [
     { type: 'story', lines: [
-      { who: 'narrator', text: '6 月 21 日早上，山城區「潮港科技」的法務打電話進來：昨晚 22:00 到 23:00 之間，機房裡的客戶資料被複製外流。' },
-      { who: 'manager', text: '門禁系統只記錄員工編號，不會記名字。你們要自己對照員工表跟市民表。對了，我昨天六點多就離開公司了，晚上十點左右才從山城站搭捷運回家。' },
+      { who: 'narrator', text: '第四份積案。6 月 21 日早上，山城區「潮港科技」的法務報案：前一晚 22:00 到 23:00 之間，機房裡的客戶資料被複製外流。研發部經理今天陪同法務到局裡：' },
+      { who: 'manager', text: '門禁系統只記錄員工編號，不會記名字。你們要自己對照員工表跟市民表。資料外流三個月了，客戶天天在催。' },
       { who: 'mentor', text: '注意到了嗎？門禁表 access_log 記的是 employee_id，員工表 employee 記的是 person_id，名字在 person。三張表，三把鑰匙。這章學 JOIN。' },
     ] },
     { type: 'task', id: 'c4-t1', title: '公司編號', prompt: '從 <code>company</code> 找出名稱以<strong>潮港科技</strong>開頭的公司，顯示 <code>id</code>、<code>name</code>、<code>district</code>。',
@@ -51,8 +51,8 @@ WHERE a.door = '機房';</code></pre>
       check: { kind: 'result', cols: ['name', 'title', 'action', 'event_time'], ordered: false },
       clue: { title: '經理的卡', text: '刷進機房的是研發部經理許國棟的門禁卡。但他說他六點就下班了。' } },
     { type: 'story', lines: [
-      { who: 'manager', text: '我的卡？我……我好像把它放在辦公桌抽屜裡沒帶走。我六點多就離開公司了，晚上十點左右才從山城站搭捷運回家。' },
-      { who: 'mentor', text: '他說搭捷運。捷運資料我們有。把 transit_log、transit_card、person 接起來，看他的卡那天晚上在哪裡。' },
+      { who: 'manager', text: '我的卡？我……我好像把它放在辦公桌抽屜裡沒帶走。那天我六點多就離開公司，在附近吃飯，晚上十點左右從山城站搭捷運去港東找朋友。' },
+      { who: 'mentor', text: '他說搭捷運去港東。捷運資料我們有。把 transit_log、transit_card、person 接起來，看他的卡那天晚上在哪裡。' },
     ] },
     { type: 'task', id: 'c4-t5', title: '經理的捷運紀錄', prompt: '接起 <code>transit_log</code>（別名 t）、<code>transit_card</code>（別名 c，用 <code>card_id</code> 對應）、<code>person</code>（別名 p，用 <code>person_id</code> 對應），找出 <strong>許國棟</strong> 在 <strong>2025-06-20</strong> 的進出站紀錄，顯示 <code>t.station</code>、<code>t.direction</code>、<code>t.log_time</code>。',
       lead: '三張表兩個 JOIN：transit_log → transit_card（card_id）→ person（person_id），WHERE 放姓名與日期。',
@@ -74,7 +74,7 @@ WHERE e.company_id = 1 AND e.department = '研發部';</code></pre>
       check: { kind: 'result', cols: ['name', 'door', 'event_time'], ordered: false },
       clue: { title: '研發部當晚動態', text: '2025-06-20 當晚只有兩人有紀錄：許國棟（研發區、機房）與周文傑（大門 21:55 進、23:05 出）。其餘研發部員工當晚都沒有回公司。' } },
     { type: 'task', id: 'c4-t7', title: '整棟樓還有誰？', prompt: '不限部門：列出 <strong>6 月 20 日 20:00 到 23:59:59</strong> 之間有任何門禁紀錄的<strong>不重複</strong>員工姓名 <code>p.name</code>。',
-      lead: '同上一題的三表 JOIN，WHERE 只留時間範圍，SELECT DISTINCT p.name。',
+      lead: '改從 access_log 出發，一般 JOIN 接 employee 與 person，WHERE 只留時間範圍，SELECT DISTINCT p.name。',
       hints: ['FROM access_log a JOIN employee e ... JOIN person p ...', 'SELECT DISTINCT p.name', "<code>SELECT DISTINCT p.name FROM access_log a JOIN employee e ON e.id = a.employee_id JOIN person p ON p.id = e.person_id WHERE a.event_time BETWEEN '2025-06-20 20:00:00' AND '2025-06-20 23:59:59';</code>"],
       check: { kind: 'result', cols: ['name'], ordered: false },
       clue: { title: '當晚在場名單', text: '2025-06-20 當晚在場：許國棟（卡片，本人不在）、周文傑、以及一位業務部員工郭曼玲（22:20 就離開了）。' } },
@@ -82,7 +82,7 @@ WHERE e.company_id = 1 AND e.department = '研發部';</code></pre>
       lead: 'interview JOIN person ON p.id = i.person_id，WHERE p.name IN (...)。',
       hints: ["WHERE p.name IN ('許國棟', '周文傑')", 'JOIN person p ON p.id = i.person_id', "<code>SELECT p.name, i.transcript FROM interview i JOIN person p ON p.id = i.person_id WHERE p.name IN ('許國棟', '周文傑');</code>"],
       check: { kind: 'result', cols: ['name', 'transcript'], ordered: false },
-      clue: { title: '周文傑說謊', text: '周文傑聲稱「加班到十點就回家」，但門禁顯示他 2025-06-20 的 21:55 才進大門、23:05 才離開，中間正是機房被刷開的時段。' } },
+      clue: { title: '周文傑說謊', text: '周文傑聲稱「加班到十點就回家」，但門禁顯示他 2025-06-20 的 18:20 已離開，21:55 又進大門、23:05 才離開，中間正是機房被刷開的時段。' } },
     { type: 'lesson', title: 'SELF JOIN：員工與他的主管在同一張表', body: `
       <p><code>employee.manager_id</code> 指向<strong>同一張表</strong>的另一列。要列出「員工與主管姓名」，就把 employee 跟自己 JOIN 一次，用兩個不同別名：</p>
       <pre><code>SELECT p.name AS employee, m.name AS manager
@@ -115,7 +115,7 @@ GROUP BY c.name;</code></pre>` },
       success: '周文傑趁經理下班後，從抽屜取出門禁卡刷進機房複製資料。捷運紀錄替許國棟洗清嫌疑，門禁紀錄則戳破周文傑「十點就回家」的說法。公司在他的私人硬碟中找到外流資料。',
       fail: '看看 LEFT JOIN 那題：研發部裡除了經理的卡，還有誰當晚有大門紀錄？他的筆錄跟門禁對得上嗎？' },
     { type: 'story', lines: [
-      { who: 'manager', text: '是文傑……他跟了我五年。我以後不會再把卡放抽屜了。' },
+      { who: 'manager', text: '是文傑……他跟了我六年。我以後不會再把卡放抽屜了。' },
       { who: 'mentor', text: '這一案你把四張表串成了一條證據鏈，這是資料庫最強的地方。休息一下，下一章不辦案，我們來整理資料室。' },
     ] },
   ],

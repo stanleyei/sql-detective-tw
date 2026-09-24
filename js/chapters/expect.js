@@ -30,7 +30,7 @@ SD.expect = {
   "rows": 1
  },
  "c1-t1": {
-  "hash": "f60551361589dc7ef26033a985110f4007e0764b6a683b9abc97d5e27891dea9",
+  "hash": "589b8aa4859e709b2fa7fc4554484d05c90b2dfc906881ee3b51c1d548452e89",
   "rows": 1
  },
  "c1-t2": {
@@ -184,11 +184,15 @@ SD.expect = {
   "rows": 1
  },
  "c3-t12": {
-  "hash": "9241f334a6dbd20d61dcee3bf9cdebaec2ca8b4bf537dc7249866f4932ff2c8c",
+  "hash": "61d323aeee207e28803661ca0e7d28a8249bb2b78d930100e59dc8f606d1c0dd",
   "rows": 8
  },
  "c3-t13": {
   "hash": "0a2b2171bebd4bbfee8c5d1bdebf34793867b45e795ad4bc06795d755c989e83",
+  "rows": 1
+ },
+ "c3-t14": {
+  "hash": "e826f586c1d1a5babdbe61eb98eda89bc0e2732ca03d845c7d5fe26f28b9dd1a",
   "rows": 1
  },
  "c3-answer": {
@@ -223,7 +227,7 @@ SD.expect = {
   "rows": 3
  },
  "c4-t8": {
-  "hash": "bafeb554400baa062a2f309716373e0d121251fb58a17a007a95a290f661ed26",
+  "hash": "964a5d84d4c3bc6ad74079bb7a3c77c20ff18ad11d252fb136d1c5938d035ceb",
   "rows": 2
  },
  "c4-t9": {

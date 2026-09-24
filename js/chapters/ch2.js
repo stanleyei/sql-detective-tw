@@ -9,7 +9,7 @@ SD.chapters.push({
   badge: { id: 'time', name: '時間旅人', img: './images/badge-time.webp', desc: '用日期時間函數重建案發時間線。' },
   steps: [
     { type: 'story', lines: [
-      { who: 'narrator', text: '4 月 12 日深夜，港西區「海濱門市」便利商店。打烊前，一名戴口罩的女子衝進店裡，抓走收銀機裡的現金。' },
+      { who: 'narrator', text: '第二份積案，案發於 4 月 12 日深夜，港西區「海濱門市」便利商店。打烊前，一名戴口罩的女子衝進店裡，抓走收銀機裡的現金。當班店員回憶：' },
       { who: 'clerk', text: '我……我只記得她開一台銀色的車，車牌最後三碼是 528。時間大概是打烊前四十分鐘吧？我沒看時鐘。' },
       { who: 'mentor', text: '「打烊前四十分鐘」不是一個時間，是一道算式。這章要學的就是讓資料庫幫你算時間。' },
     ] },
@@ -22,7 +22,7 @@ SD.chapters.push({
       lead: 'store 表，用 WHERE name = 比對店名。',
       hints: ["WHERE name = '海濱門市'", '店名是文字，記得單引號。', "<code>SELECT name, open_time, close_time FROM store WHERE name = '海濱門市';</code>"],
       check: { kind: 'result', cols: ['name', 'open_time', 'close_time'], ordered: false },
-      clue: { title: '海濱門市營業時間', text: '06:00 開店、23:30 打烊。案發約在 22:50 前後。' } },
+      clue: { title: '海濱門市營業時間', text: '06:00 開店、23:30 打烊。「打烊前四十分鐘」要從 23:30 往前推。' } },
     { type: 'lesson', title: '讓資料庫幫你算時間', body: `
       <p>MariaDB 有一整組日期時間函數。最常用的：</p>
       <pre><code>NOW()                          -- 現在的日期時間

@@ -9,9 +9,9 @@ SD.chapters.push({
   badge: { id: 'filter', name: '篩選大師', img: './images/badge-filter.webp', desc: '用 WHERE 的各種條件從人海中撈出嫌疑人。' },
   steps: [
     { type: 'story', lines: [
-      { who: 'narrator', text: '3 月 8 日，星期六晚上。港東夜市人聲鼎沸，直到「金鑫手機配件」的老闆娘尖叫一聲。' },
-      { who: 'vendor', text: '警官！我轉身拿貨才幾秒，回頭展示盒就被打開了，五副耳機全沒了！有個穿黑外套的男生跳上白色機車跑掉，車牌開頭是 MKJ！' },
-      { who: 'mentor', text: '目擊描述都記在報案紀錄裡了。第一步永遠一樣：把案件本身找出來。這次條件不只一個，你需要 AND。' },
+      { who: 'narrator', text: '第一份積案，案發於 3 月 8 日，星期六晚上。港東夜市人聲鼎沸，直到「金鑫手機配件」的老闆娘尖叫一聲。老闆娘今天再次來局裡陳述：' },
+      { who: 'vendor', text: '警官！我轉身拿貨才幾秒，回頭展示盒就被打開了，裡面的耳機全沒了！有個穿黑外套的男生跳上白色機車跑掉，車牌開頭是 MKJ！這案子擱了半年，拜託你們。' },
+      { who: 'mentor', text: '目擊描述當時都記在報案紀錄裡了。第一步永遠一樣：把案件本身找出來。這次條件不只一個，你需要 AND。' },
     ] },
     { type: 'lesson', title: 'AND、OR、NOT：組合多個條件', body: `
       <p>條件可以用 <code>AND</code>（而且）、<code>OR</code>（或者）串起來，用 <code>NOT</code> 反過來：</p>
@@ -56,7 +56,7 @@ WHERE id IN (10001, 10002)</code></pre>` },
       <pre><code>WHERE phone IS NULL
 WHERE phone IS NOT NULL</code></pre>
       <p>同理，<code>&lt;&gt;</code>（或 <code>!=</code>）也<strong>選不到</strong> NULL：<code>WHERE phone &lt;&gt; '0900-000000'</code> 不會列出沒登記電話的人，因為 NULL 跟任何值比較的結果都不是「真」。要把他們也算進來，得另外加上 <code>OR phone IS NULL</code>。</p>` },
-    { type: 'task', id: 'c1-t5', title: '沒留電話的人', prompt: '找出 <code>person</code> 中<strong>沒有登記電話</strong>的市民有幾位？先列出他們的 <code>name</code>。',
+    { type: 'task', id: 'c1-t5', title: '沒留電話的人', prompt: '找出 <code>person</code> 中<strong>沒有登記電話</strong>的市民，列出他們的 <code>name</code>。',
       hints: ['NULL 要用 IS NULL。', 'WHERE phone IS NULL', '<code>SELECT name FROM person WHERE phone IS NULL;</code>'],
       check: { kind: 'result', cols: ['name'], ordered: false } },
     { type: 'story', lines: [
@@ -75,10 +75,10 @@ WHERE store_id = 1
 ORDER BY amount DESC
 LIMIT 3;</code></pre>
       <p>ORDER BY 永遠寫在 WHERE 之後、LIMIT 之前。可以排多個欄位：<code>ORDER BY sale_date DESC, amount DESC</code>。</p>` },
-    { type: 'task', id: 'c1-t7', title: '損失最大的一筆', prompt: '「金鑫手機配件」的 <code>store_id</code> 是 1。從 <code>store_sale</code> 找出這家店<strong>金額最高的一筆</strong>銷售，顯示 <code>sale_date</code>、<code>item_name</code>、<code>amount</code>。',
+    { type: 'task', id: 'c1-t7', title: '當晚賣最好的一筆', prompt: '「金鑫手機配件」的 <code>store_id</code> 是 1。從 <code>store_sale</code> 找出這家店<strong>金額最高的一筆</strong>銷售，顯示 <code>sale_date</code>、<code>item_name</code>、<code>amount</code>。',
       hints: ['先篩 store_id = 1，再依 amount 由大到小排。', 'ORDER BY amount DESC LIMIT 1', '<code>SELECT sale_date, item_name, amount FROM store_sale WHERE store_id = 1 ORDER BY amount DESC LIMIT 1;</code>'],
       check: { kind: 'result', cols: ['sale_date', 'item_name', 'amount'], ordered: true },
-      clue: { title: '當晚熱賣品', text: '3 月 8 日當晚耳機賣出 5 副共 6,450 元，被偷的正是展示盒裡剩下的耳機。' } },
+      clue: { title: '當晚熱賣品', text: '3 月 8 日當晚耳機賣出 5 副共 6,450 元，是攤位的熱賣品；被偷的正是展示盒裡剩下的耳機存貨。' } },
     { type: 'task', id: 'c1-t8', title: '嫌疑人筆錄', prompt: '從 <code>interview</code>（筆錄）找出 <code>person_id</code> 為 <strong>4 或 5</strong> 的筆錄，顯示 <code>person_id</code>、<code>transcript</code>，並依 <code>person_id</code> <strong>由小到大</strong>排序（ASC，可省略）。',
       lead: 'interview 表，IN 篩兩個人，最後加 ORDER BY。',
       hints: ['IN (4, 5)', 'ORDER BY person_id（不寫 DESC 就是由小到大）', '<code>SELECT person_id, transcript FROM interview WHERE person_id IN (4, 5) ORDER BY person_id;</code>'],

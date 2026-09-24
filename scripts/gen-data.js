@@ -58,7 +58,7 @@ function plate(letters = 3) {
 // 這些人物會先佔用 person 表前段 id，方便釘入其他表的關聯資料。
 const KEY_PEOPLE = [
   { key: 'mentor', name: '林曉青', gender: '女', birth: 1990, district: '中央區', street: '市府路', no: 12 },
-  { key: 'chief', name: '陳大川', gender: '男', birth: 1968, district: '中央區', street: '市府路', no: 12 },
+  { key: 'chief', name: '陳大川', gender: '男', birth: 1968, district: '中央區', street: '文化街', no: 88 },
   { key: 'tech', name: '張哲', gender: '男', birth: 1998, district: '港東區', street: '朝陽街', no: 45 },
   // 第一章 夜市失竊
   { key: 'c1_culprit', name: '吳志豪', gender: '男', birth: 1996, district: '港東區', street: '漁市街', no: 77, phone: null },
@@ -205,7 +205,7 @@ for (let i = 0; i < 110; i++) {
   });
 }
 const R = {};
-R.c1 = addReport({ report_date: '2025-03-08', crime_type: '竊盜', district: '港東區', description: '港東夜市「金鑫手機配件」攤位於晚間 21:30 左右遭竊，損失約 3 萬元。目擊者表示嫌犯身高約 175 到 180 公分，騎白色機車逃逸，車牌開頭為 MKJ。' });
+R.c1 = addReport({ report_date: '2025-03-08', crime_type: '竊盜', district: '港東區', description: '港東夜市「金鑫手機配件」攤位於晚間 21:30 左右遭竊，損失約 1 萬元。目擊者表示嫌犯身高約 175 到 180 公分，騎白色機車逃逸，車牌開頭為 MKJ。' });
 R.c2 = addReport({ report_date: '2025-04-12', crime_type: '搶奪', district: '港西區', description: '港西區「海濱門市」便利商店於打烊前約 40 分鐘，遭一名戴口罩女子搶走收銀機現金。店員記得對方開一輛銀色汽車，車牌後三碼為 528。' });
 R.c3 = addReport({ report_date: '2025-05-20', crime_type: '侵占', district: '中央區', description: '捷運遺失物中心通報：近兩個月有多件高價遺失物被同一人以不同名義冒領，站務員懷疑為有組織的冒領行為，請協助從資料庫中找出可疑領取人。' });
 R.c4 = addReport({ report_date: '2025-06-21', crime_type: '侵占', district: '山城區', description: '潮港科技股份有限公司通報：6 月 20 日 22:00 至 23:00 之間，機房內的客戶資料被非法複製外流。門禁紀錄顯示有人刷卡進入機房，請比對員工與門禁資料。' });
@@ -235,8 +235,15 @@ const stores = [
 for (const s of stores) {
   if (s.owner_id === null) s.owner_id = ri(30, 420);
 }
+// 夜市攤位各賣各的，依 store.id 指定品項；其他店家依 kind 共用
+const STALL_ITEMS = {
+  1: [['手機殼', 250], ['充電線', 199], ['行動電源', 890], ['耳機', 1290]],
+  2: [['蚵仔煎', 80], ['蚵仔麵線', 60]],
+  3: [['珍珠奶茶', 60], ['冬瓜茶', 40]],
+  4: [['烤魷魚', 150], ['烤玉米', 60]],
+  5: [['T 恤', 390], ['帽子', 290]],
+};
 const ITEMS = {
-  夜市攤位: [['手機殼', 250], ['充電線', 199], ['行動電源', 890], ['耳機', 1290], ['蚵仔煎', 80], ['珍珠奶茶', 60], ['烤魷魚', 150], ['T 恤', 390]],
   便利商店: [['咖啡', 55], ['御飯糰', 39], ['礦泉水', 25], ['便當', 89], ['啤酒', 65], ['泡麵', 49]],
   小吃: [['蛋餅', 40], ['豆漿', 25], ['芒果冰', 120]],
   咖啡店: [['拿鐵', 140], ['手沖咖啡', 180], ['司康', 90]],
@@ -246,7 +253,7 @@ const ITEMS = {
 const sales = [];
 for (let i = 0; i < 700; i++) {
   const s = pick(stores);
-  const [item, price] = pick(ITEMS[s.kind]);
+  const [item, price] = pick(STALL_ITEMS[s.id] || ITEMS[s.kind]);
   const qty = ri(1, 4);
   sales.push({
     id: sales.length + 1, store_id: s.id,
@@ -376,8 +383,9 @@ for (const l of lost) {
   ['Apple Watch', '3C', 12000, '港東站', '2025-05-02', '2025-05-03'], ['Samsung 手機', '3C', 18000, '潮港車站', '2025-05-09', '2025-05-12'],
   ['耳機', '3C', 5000, '山城站', '2025-05-15', '2025-05-16']].forEach(([n, c, v, st, f, cd]) => {
   addLost({ item_name: n, category: c, station: st, found_date: f, est_value: v, status: '已領回', claimed_by: P.c3_culprit, claimed_date: cd });
-  // 領取當日的捷運進出站紀錄
+  // 領取當日的捷運進出站紀錄，以及遺失物被撿到當天他也在同一站（時間寫死，不消耗 rand）
   addTrip(cardOf[P.c3_culprit], st, '進站', `${cd} ${pad(ri(10, 16))}:${pad(ri(0, 59))}:00`);
+  addTrip(cardOf[P.c3_culprit], st, '進站', `${f} 18:30:00`);
 });
 transit.sort((a, b) => (a.log_time < b.log_time ? -1 : 1));
 transit.forEach((t, i) => { t.id = i + 1; });
@@ -442,7 +450,8 @@ for (const e of cpEmps) {
   addAccess({ employee_id: e.id, door: '大門', action: '進入', event_time: `2025-06-20 ${pad(ri(8, 9))}:${pad(ri(0, 59))}:00` });
   if (e.person_id !== P.c4_culprit) addAccess({ employee_id: e.id, door: '大門', action: '離開', event_time: `2025-06-20 ${pad(ri(17, 19))}:${pad(ri(0, 59))}:00` });
 }
-// 6/20 晚上：周文傑晚上進入大門，以經理卡刷機房
+// 6/20 晚上：周文傑下班離開後又回公司，以經理卡刷機房（離開時間寫死，不消耗 rand 以免後續資料位移）
+addAccess({ employee_id: empOf[P.c4_culprit], door: '大門', action: '離開', event_time: '2025-06-20 18:20:00' });
 addAccess({ employee_id: empOf[P.c4_culprit], door: '大門', action: '進入', event_time: '2025-06-20 21:55:00' });
 addAccess({ employee_id: mgr.id, door: '研發區', action: '進入', event_time: '2025-06-20 22:12:00' });
 addAccess({ employee_id: mgr.id, door: '機房', action: '進入', event_time: '2025-06-20 22:17:00' });
@@ -538,7 +547,7 @@ addInterview(P.c1_alt, 'c1', '3 月 8 日晚上九點到十點半我都在潮港
 addInterview(P.c2_clerk, 'c2', '打烊前大概四十分鐘，一個戴口罩的女生衝進來，把收銀機裡的錢拿走就跑。她開一台銀色的車，我只記得車牌最後三碼是 528。');
 addInterview(P.c2_culprit, 'c2', '我那天晚上是有去海濱門市買東西，但我沒有搶錢，店員一定是認錯人了。');
 addInterview(P.c3_station, 'c3', '這兩個月一直有人來領高價的遺失物，每次簽的名字都不一樣，但字跡看起來很像，而且每次都能講出正確的特徵。系統裡有登記領取人的身分證字號對應的市民編號，麻煩你們查一下。');
-addInterview(P.c4_manager, 'c4', '6 月 20 日我六點多就離開公司了，晚上十點左右才從山城站搭捷運回家。門禁卡……我好像放在辦公桌抽屜裡沒有帶走。');
+addInterview(P.c4_manager, 'c4', '6 月 20 日我六點多就離開公司，在附近吃飯，晚上十點左右從山城站搭捷運去港東找朋友。門禁卡……我好像放在辦公桌抽屜裡沒有帶走。');
 addInterview(P.c4_culprit, 'c4', '我那天加班到晚上十點就回家了，之後的事我不知道。機房我沒有權限進去。');
 addInterview(P.c4_alibi1, 'c4', '我 20 日下午六點準時下班，去港東夜市吃東西，沒有再回公司。');
 addInterview(P.c6_witness1, 'c6', '我看到一個男人從海景大樓跑出來，背著「潮港健身」的黑色運動包，只有金卡會員才有那種包。他把包甩上肩膀時我看到會員卡，卡號開頭是「48Z」。他上了一輛黑色汽車，車牌前面的字母有一個 H，數字的部分是 42 開頭。');
