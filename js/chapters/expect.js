@@ -327,18 +327,6 @@ SD.expect = {
   "hash": "bc4a3d23e7cdfc5c38b083cf0a8740e95a2afd3e1210d2b1c6e9c7b91f448891",
   "rows": 2
  },
- "c6-t5": {
-  "hash": "f57173b0111072974a3123b0118412583ac4e798acd6b54da88fef7ce86ce5e4",
-  "rows": 2
- },
- "c6-t6": {
-  "hash": "e67591d5e7ae16a14d60634032f04b27ed0c326ab992086aeae20571a1ca1be0",
-  "rows": 2
- },
- "c6-t7": {
-  "hash": "668aea75bdf4853587ec521b4aedbf784460e630c6f6afbbfd2e1412777e1f98",
-  "rows": 1
- },
  "c6-s1": {
   "hash": "f4fc2874ea500affc9b886acefbc79c4aef131a9abc9df10ba848040d43dba21"
  },

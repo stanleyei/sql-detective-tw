@@ -34,6 +34,8 @@
   --color-amber: #f5b942;
   --color-amber-dark: #c98f1a;
   --color-teal: #2ee6c5;
+  /* 紙白（paper）底上的青綠文字：teal 本色對 paper 只有 1.6:1，改用深青，對 paper 為 5.1:1 */
+  --color-teal-deep: #0f6e5e;
   --color-pink: #ff5fa2;
   --color-danger: #ff7b7b;
 
@@ -469,4 +471,27 @@
   .polaroid.is-missing::before { @apply bg-ink-500; }
   .polaroid.is-missing .polaroid-ch { @apply text-amber; }
   .polaroid.is-missing p.clue-text { @apply text-ink-300; }
+  /* 已釘入證據鏈的拍立得：青綠色環，跟「新」的琥珀環區分；拖曳中略透明 */
+  .polaroid.is-chained { @apply ring-4 ring-teal ring-offset-2 ring-offset-ink-900; }
+  .polaroid[draggable="true"] { @apply cursor-grab active:cursor-grabbing; }
+  /* 拍立得上的「釘入證據鏈」：紙白底上用深字，不能沿用白字的 btn-ghost */
+  .chain-add-btn { @apply mt-2 inline-flex min-h-11 cursor-pointer items-center rounded-lg border border-ink-700 px-3 text-sm font-bold text-ink-950 transition hover:border-teal-deep hover:text-teal-deep; }
+  /*
+   * 證據鏈槽位：指認卡上的一排虛線框，放進線索後變成實框帶縮圖。
+   * 槽位是 button（可點移出），高度至少 44px 符合觸控目標。
+   */
+  .chain { @apply mt-3 flex flex-wrap gap-2 rounded-xl border border-transparent p-1 transition; }
+  .chain.over { @apply border-amber bg-amber/10; }
+  .chain-slot { @apply inline-flex min-h-11 min-w-28 items-center justify-center gap-2 rounded-lg border-2 border-dashed border-ink-500 px-3 py-2 text-sm text-ink-300; }
+  .chain-slot.is-filled { @apply cursor-pointer border-solid border-teal bg-teal/10 font-bold text-paper hover:border-danger hover:bg-danger/10; }
+  .chain-slot.is-filled:disabled { @apply cursor-default hover:border-teal hover:bg-teal/10; }
+  .chain-slot img { @apply size-10 rounded-sm bg-ink-900 object-cover; }
+  /* 嫌疑人按鈕：選錯的畫線退場，選對由 JS 加 success 區塊 */
+  .suspect-btn { @apply inline-flex min-h-11 cursor-pointer items-center rounded-lg border border-ink-600 bg-ink-900 px-4 text-base font-bold text-paper transition hover:border-amber disabled:cursor-not-allowed; }
+  .suspect-btn.is-wrong { @apply border-danger/60 line-through opacity-50; }
+  /* 自由查案里程碑 */
+  .milestone { @apply rounded-xl border border-ink-700 bg-ink-950/40 p-3; }
+  .milestone.is-done { @apply border-teal/50 bg-teal/5; }
+  .milestone-no { @apply inline-flex size-7 shrink-0 items-center justify-center rounded-full bg-ink-800 font-mono text-sm font-bold text-amber; }
+  .milestone.is-done .milestone-no { @apply bg-teal text-ink-950; }
 }

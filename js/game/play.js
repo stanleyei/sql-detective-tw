@@ -25,7 +25,7 @@
   const prog = () => SD.state.chapter(chapter.id);
   const stepDone = (step) => !!(prog().steps[step.id || `${chapter.slug}-s${chapter.steps.indexOf(step)}`] && prog().steps[step.id || `${chapter.slug}-s${chapter.steps.indexOf(step)}`].done);
   const stepKey = (step) => step.id || `${chapter.slug}-s${chapter.steps.indexOf(step)}`;
-  const needsCompletion = (step) => ['task', 'blocks', 'quiz', 'predict', 'answer', 'solution', 'story'].includes(step.type);
+  const needsCompletion = (step) => ['task', 'blocks', 'quiz', 'predict', 'investigate', 'answer', 'solution', 'story'].includes(step.type);
 
   function totalStars() {
     return chapters.reduce((sum, ch) => sum + SD.state.chapterStars(ch.id, tasksOf(ch)).earned, 0);
@@ -207,6 +207,7 @@
     if (lastResults.some((r) => r.type === 'affected' || r.ddl)) { scheduleDbSave(); renderSchemaList(); }
     const step = chapter.steps[stepIndex];
     if (step && (step.type === 'task' || step.type === 'solution')) await evaluateStep(step);
+    else if (step && step.type === 'investigate') evaluateInvestigate(step);
   }
   $('#btn-run').addEventListener('click', runSql);
   $('#btn-clear').addEventListener('click', () => replaceEditor('', '已清空編輯器。'));
@@ -385,7 +386,7 @@
   /* 存檔裡的線索文字只是取得當下的快照；文案改版後要讓既有玩家也看到新字，渲染時一律回頭查章節定義，查不到（如「結案」卡）才用存檔值 */
   function liveClue(clue) {
     const ch = chapters.find((c) => c.id === clue.ch);
-    const step = ch && ch.steps.find((s) => s.id === clue.id);
+    const step = ch && clueSteps(ch).find((s) => s.id === clue.id);
     return step && step.clue ? { ...clue, title: step.clue.title, text: step.clue.text } : clue;
   }
   function clueCard(saved, isNew) {
@@ -503,12 +504,21 @@
     gsap.to(ghost, { x: to.left + to.width / 2 - (from.left + from.width / 2), y: to.top + to.height / 2 - (from.top + from.height / 2), scale: 0.3, opacity: 0, duration: 0.7, delay: 0.9, ease: 'power2.in', onComplete: () => { ghost.remove(); gsap.fromTo(btn, { scale: 1.15 }, { scale: 1, duration: 0.4, ease: 'back.out(3)' }); } });
   }
 
-  const clueTotal = () => chapter.steps.filter((s) => s.clue || s.type === 'answer').length; // 指認成功會多釘一張「結案」，分母算進去數字才不會超過總數
+  /* 帶線索的步驟攤平：自由查案的里程碑也各有一張線索，parent 記所屬步驟以便「前往」跳轉 */
+  function clueSteps(ch) {
+    const out = [];
+    ch.steps.forEach((s, i) => {
+      if (s.clue) out.push({ id: s.id, title: s.title, clue: s.clue, stepIndex: i, task: s });
+      if (s.type === 'investigate') for (const m of s.milestones) if (m.clue) out.push({ id: m.id, title: m.title, clue: m.clue, stepIndex: i, task: s });
+    });
+    return out;
+  }
+  const clueTotal = () => clueSteps(chapter).length + chapter.steps.filter((s) => s.type === 'answer').length; // 指認成功會多釘一張「結案」，分母算進去數字才不會超過總數
 
   /* 結案入口：主卡片只放線索齊備狀態與進結案室的按鈕；線索本體在結案室以拍立得牆呈現，不在窄欄裡塞清單 */
   function verdictEntryHtml(step) {
     const got = state.clues.filter((c) => c.ch === chapter.id).length;
-    const missing = chapter.steps.filter((s) => s.clue && !stepDone(s)).length;
+    const missing = clueSteps(chapter).filter((s) => !stepDone(s)).length;
     const done = stepDone(step);
     const act = step.type === 'answer' ? '指認' : '提交';
     const note = done ? '本章已結案，可回結案室重看整面線索牆。' : missing ? `還有 ${missing} 條線索藏在未完成的任務裡，結案室裡會留空位提醒。` : `線索已齊。到結案室對照全部線索後${act}。`;
@@ -527,10 +537,22 @@
     sec.innerHTML = `<div class="board-section-title"><p class="eyebrow">第 ${chapter.id} 章</p><h3 class="text-xl font-black">${esc(chapter.title)}</h3><span id="verdict-count" class="text-sm text-ink-300">線索 ${got} / ${clueTotal()}</span></div>`;
     const grid = el('div', 'board-grid is-dense');
     grid.appendChild(verdictCard(step));
-    for (const t of chapter.steps) {
-      if (!t.clue) continue;
+    const chaining = step.type === 'answer' && !stepDone(step);
+    for (const t of clueSteps(chapter)) {
       const saved = state.clues.find((c) => c.ch === chapter.id && c.id === t.id);
-      grid.appendChild(saved ? clueCard(saved, newClueIds.has(saved.id)) : missingCard(t));
+      if (!saved) { grid.appendChild(missingCard(t)); continue; }
+      const cardEl = clueCard(saved, newClueIds.has(saved.id));
+      if (step.type === 'answer') {
+        const inChain = chained.includes(t.id);
+        cardEl.classList.toggle('is-chained', inChain);
+        if (chaining) {
+          cardEl.draggable = true;
+          cardEl.dataset.clueId = t.id;
+          // 放進文字欄而不是卡片末端：橫式拍立得的第三個 flex 子元素會擠在右側；且卡片是紙白底，不能用白字的 btn-ghost
+          cardEl.querySelector('.min-w-0').insertAdjacentHTML('beforeend', inChain ? '<p class="mt-2 text-xs font-bold text-teal-deep">✔ 已在證據鏈</p>' : `<button type="button" class="chain-add-btn" data-chain-add="${t.id}">釘入證據鏈</button>`);
+        }
+      }
+      grid.appendChild(cardEl);
     }
     // 指認步驟本身沒有 clue 定義，破案後釘的「結案」卡以步驟 id 存檔，排在最後
     const closing = step.type === 'answer' && state.clues.find((c) => c.ch === chapter.id && c.id === step.id);
@@ -540,42 +562,103 @@
     $('#board-empty').hidden = true;
     $('#board-count').textContent = '';
   }
-  function missingCard(task) {
-    const idx = chapter.steps.indexOf(task);
+  function missingCard(entry) {
+    const task = entry.task || entry;
+    const idx = entry.stepIndex !== undefined ? entry.stepIndex : chapter.steps.indexOf(task);
     const no = tasksOf(chapter).indexOf(task) + 1;
     const reach = taskReachable(task);
     const c = el('article', 'polaroid is-missing');
-    c.innerHTML = `<div class="min-w-0 flex-1"><p class="polaroid-ch">${no ? `任務 ${no} · ` : ''}尚未取得</p><h4>${esc(task.title)}</h4><p class="clue-text">${reach ? '完成這個任務，線索就會釘在這裡。' : '前面的任務完成後才會解鎖。'}</p></div>${reach ? `<button type="button" class="btn-ghost btn-sm mt-2 self-start" data-step="${idx}">前往${no ? `任務 ${no}` : '該步驟'} →</button>` : ''}`;
+    c.innerHTML = `<div class="min-w-0 flex-1"><p class="polaroid-ch">${no ? `任務 ${no} · ` : ''}尚未取得</p><h4>${esc(entry.title || task.title)}</h4><p class="clue-text">${reach ? '完成這個任務，線索就會釘在這裡。' : '前面的任務完成後才會解鎖。'}</p></div>${reach ? `<button type="button" class="btn-ghost btn-sm mt-2 self-start" data-step="${idx}">前往${no ? `任務 ${no}` : '該步驟'} →</button>` : ''}`;
     return c;
   }
+  const $$ = (sel, root) => [...(root || document).querySelectorAll(sel)];
+  /*
+   * 證據鏈狀態：chained 存在進度的 steps[answerId].chain（未 done 時），
+   * 集合等於 step.chain 即成立。牆上的線索卡由 renderVerdictBoard 依 chained 標記與加按鈕。
+   */
+  let chained = [];
+  let chainOk = false;
+  let suspects = [];
+  function loadChain(step) {
+    const rec = prog().steps[step.id] || {};
+    chained = Array.isArray(rec.chain) ? rec.chain.filter((id) => step.chain.includes(id) || true) : [];
+    chainOk = sameSet(chained, step.chain);
+    if (!suspects.length || suspects.length !== step.suspects.length) suspects = step.suspects.slice().sort(() => Math.random() - 0.5);
+  }
+  const sameSet = (a, b) => a.length === b.length && b.every((x) => a.includes(x));
+  function chainSet(ids) {
+    const step = chapter.steps[stepIndex];
+    chained = ids;
+    const ch = SD.state.chapter(chapter.id);
+    ch.steps[step.id] = { ...(ch.steps[step.id] || {}), chain: ids };
+    SD.state.save();
+    chainOk = sameSet(chained, step.chain);
+    renderBoard();
+    const fbEl = $('#chain-feedback', boardStage);
+    if (!fbEl) return;
+    if (chainOk) {
+      fbEl.innerHTML = '<p class="mt-2 text-sm font-bold text-teal">✔ 證據鏈成立，嫌疑人名單解鎖。</p>';
+      if (canAnimate()) gsap.from('#suspects', { y: 12, opacity: 0, duration: 0.4, ease: 'power2.out' });
+    } else if (chained.length >= step.chain.length) {
+      fbEl.innerHTML = `<p class="mt-2 text-sm leading-6 text-amber">${esc(step.chainFail || '這幾條線索湊不出結論，換一張看看。')}</p>`;
+      if (canAnimate()) gsap.fromTo('#chain', { x: -6 }, { x: 0, duration: 0.4, ease: 'elastic.out(1, 0.3)' });
+    }
+  }
+  function chainAdd(id) {
+    const step = chapter.steps[stepIndex];
+    if (step.type !== 'answer' || stepDone(step) || chained.includes(id)) return;
+    if (chained.length >= step.chain.length) { const fbEl = $('#chain-feedback', boardStage); if (fbEl) fbEl.innerHTML = '<p class="mt-2 text-sm text-amber">槽位已滿，先點一張移出。</p>'; return; }
+    chainSet([...chained, id]);
+  }
+  boardStage.addEventListener('click', (e) => { const b = e.target.closest('[data-chain-add]'); if (b) chainAdd(b.dataset.chainAdd); });
+  boardStage.addEventListener('dragstart', (e) => { const p = e.target.closest('.polaroid[draggable="true"]'); if (p) e.dataTransfer.setData('text/plain', p.dataset.clueId); });
+
   function verdictCard(step) {
     const done = stepDone(step);
+    if (step.type === 'answer') loadChain(step);
     const c = el('article', 'verdict-card');
     if (step.type === 'answer') {
-      c.innerHTML = `<div class="min-w-0 flex-1"><p class="eyebrow">結案 · 指認</p><div class="prose-sd mt-2">${step.prompt}</div></div>
-        <form id="verdict-form" class="flex w-full flex-wrap gap-2 sm:w-auto sm:min-w-80">
-          <label class="sr-only" for="verdict-input">姓名</label>
-          <input id="verdict-input" class="min-h-12 flex-1 rounded-lg border border-ink-600 bg-ink-950 px-3 text-lg text-paper" placeholder="輸入姓名" autocomplete="off" ${done ? 'disabled' : ''} />
-          <button type="submit" class="btn-primary min-h-12" ${done ? 'disabled' : ''}>提交</button>
-          <div id="verdict-feedback" class="w-full" aria-live="assertive"></div>
-        </form>`;
+      // 指認分兩步：先從牆上挑出能串成證據鏈的線索（集合比對，不看順序），成立後才出現嫌疑人名單。
+      // 線索卡本身在牆上，這裡只放槽位；已釘入的以 chained 記錄並存進進度，重開結案室不會歸零。
+      const n = step.chain.length;
+      const chainSteps = clueSteps(chapter);
+      const titleOf = (id) => { const s = chainSteps.find((x) => x.id === id); return s ? s.clue.title : id; };
+      const filled = () => (done ? step.chain : chained).map((id) => `<button type="button" class="chain-slot is-filled" data-chain-remove="${id}" ${done ? 'disabled' : ''} aria-label="移出證據鏈：${esc(titleOf(id))}"><img src="${SD.media.clueIcon(titleOf(id))}" alt="" width="40" height="40" /><span>${esc(titleOf(id))}</span></button>`).join('') + (done ? '' : Array.from({ length: Math.max(0, n - chained.length) }, (_, i) => `<div class="chain-slot" aria-label="空槽位 ${chained.length + i + 1}">線索 ${chained.length + i + 1}</div>`).join(''));
+      c.innerHTML = `<div class="min-w-0 flex-1"><p class="eyebrow">結案 · 指認</p><div class="prose-sd mt-2">${step.prompt}</div>
+        <p class="mt-3 text-sm leading-6 text-ink-300"><span class="font-bold text-amber">第一步</span> 從牆上挑出 ${n} 張能串成一條證據鏈的線索：點線索卡上的「釘入證據鏈」，或直接拖進槽位。點槽位可移出。</p>
+        <div id="chain" class="chain" aria-label="證據鏈">${filled()}</div>
+        <div id="chain-feedback" aria-live="polite"></div>
+        <div id="suspects" class="mt-3" ${done || chainOk ? '' : 'hidden'}>
+          <p class="text-sm leading-6 text-ink-300"><span class="font-bold text-amber">第二步</span> 指認嫌疑人。</p>
+          <div class="mt-2 flex flex-wrap gap-2" role="group" aria-label="嫌疑人名單">${suspects.map((s) => `<button type="button" class="suspect-btn" data-suspect="${esc(s)}" ${done ? 'disabled' : ''}>${esc(s)}</button>`).join('')}</div>
+          <div id="verdict-feedback" aria-live="assertive"></div>
+        </div></div>`;
       const fb = $('#verdict-feedback', c);
-      const success = () => { fb.innerHTML = `<div class="mt-1 rounded-xl border border-teal/50 bg-teal/10 p-4"><p class="text-lg font-black text-teal">✔ 破案！</p><p class="mt-2 leading-7">${esc(step.success)}</p></div>`; };
+      const success = () => { fb.innerHTML = `<div class="mt-3 rounded-xl border border-teal/50 bg-teal/10 p-4"><p class="text-lg font-black text-teal">✔ 破案！</p><p class="mt-2 leading-7">${esc(step.success)}</p></div>`; };
       if (done) success();
-      $('#verdict-form', c).addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const input = $('#verdict-input', c);
-        const v = input.value.trim();
-        if (!v) return;
+      else if (chainOk) $('#chain-feedback', c).innerHTML = `<p class="mt-2 text-sm font-bold text-teal">✔ 證據鏈成立。</p>`;
+      const drop = $('#chain', c);
+      drop.addEventListener('dragover', (e) => { if (!done) { e.preventDefault(); drop.classList.add('over'); } });
+      drop.addEventListener('dragleave', () => drop.classList.remove('over'));
+      drop.addEventListener('drop', (e) => { e.preventDefault(); drop.classList.remove('over'); const id = e.dataTransfer.getData('text/plain'); if (id) chainAdd(id); });
+      c.addEventListener('click', async (e) => {
+        const rm = e.target.closest('[data-chain-remove]');
+        if (rm && !done) { chainSet(chained.filter((id) => id !== rm.dataset.chainRemove)); return; }
+        const sb = e.target.closest('[data-suspect]');
+        if (!sb || done) return;
+        const v = sb.dataset.suspect;
         const ok = await SD.check.checkAnswer(v, SD.expect[step.id]);
         if (!ok) {
-          fb.innerHTML = `<div class="mt-1 rounded-xl border border-amber/40 bg-amber/5 p-3 text-sm leading-6"><span class="font-bold text-amber">不是這個人。</span>${esc(step.fail)}</div>`;
+          sb.disabled = true; sb.classList.add('is-wrong');
+          fb.innerHTML = `<div class="mt-3 rounded-xl border border-amber/40 bg-amber/5 p-3 text-sm leading-6"><span class="font-bold text-amber">不是這個人。</span>${esc(step.fail)}</div>`;
           if (canAnimate()) gsap.fromTo(fb, { x: -6 }, { x: 0, duration: 0.4, ease: 'elastic.out(1, 0.3)' });
           return;
         }
         SD.state.markStep(chapter.id, step.id);
-        input.disabled = true;
-        e.target.querySelector('button[type="submit"]').disabled = true;
+        $('[data-suspect]', c).forEach((b) => { b.disabled = true; if (b !== sb) b.classList.add('opacity-50'); });
+        // 破案後牆上的「釘入」按鈕與拖曳失效；不整面重繪，讓 solveCase 的釘卡動畫能接著播
+        $('[data-chain-add]', boardStage).forEach((b) => b.remove());
+        $('.polaroid[draggable="true"]', boardStage).forEach((p) => { p.draggable = false; });
         success();
         if (canAnimate()) gsap.from(fb.firstElementChild, { scale: 0.9, opacity: 0, duration: 0.5, ease: 'back.out(2)' });
         solveCase({ id: step.id, ch: chapter.id, title: '結案', text: `${v}。${step.success.split('。')[0]}。` });
@@ -1241,6 +1324,79 @@
     if (done) answer(rec.correct ? step.answer : (step.answer + 1) % step.options.length);
   }
 
+  /*
+   * 自由查案：沒有逐題 prompt，只有目標與幾個里程碑。玩家自己決定查哪些表、跑幾次；
+   * 每次執行後比對結果格是否同時出現里程碑的關鍵值（且筆數不超過上限，避免 SELECT * 整張表矇到），達成就釘線索。
+   * 里程碑提示不扣星：這個步驟不在 tasksOf 裡。
+   */
+  function renderInvestigate(step) {
+    const p = prog();
+    const done = stepDone(step);
+    const doneCount = step.milestones.filter(stepDone).length;
+    card.innerHTML = `
+      <div class="flex items-start justify-between gap-2">
+        <p class="eyebrow">自由查案</p>
+        <span id="task-status" class="chip ${done ? 'border-teal/50 text-teal' : ''}">${done ? '已完成' : `${doneCount} / ${step.milestones.length}`}</span>
+      </div>
+      <h2 class="mt-2 text-2xl font-black">${esc(step.title)}</h2>
+      <div class="prose-sd mt-3">${step.brief}</div>
+      <p class="mt-3 text-xs leading-5 text-ink-300">這一段沒有指定資料表與欄位。用你學過的方法自己查，查到關鍵線索時系統會自動確認並釘上證據板；每個里程碑都有提示，不扣星。</p>
+      <ol id="milestones" class="mt-4 flex flex-col gap-3"></ol>
+      <div id="feedback" class="not-empty:mt-3" aria-live="assertive"></div>
+      <div id="task-tables" class="mt-3" hidden></div>
+      <button type="button" id="btn-goto-editor" class="btn-primary btn-sm mt-4 lg:hidden">前往查詢區寫 SQL →</button>`;
+    renderTaskTables();
+    const ol = $('#milestones', card);
+    step.milestones.forEach((m, i) => {
+      const mDone = stepDone(m);
+      const used = p.hints[m.id] || 0;
+      const li = el('li', `milestone${mDone ? ' is-done' : ''}`);
+      li.innerHTML = `<div class="flex items-start gap-3"><span class="milestone-no">${mDone ? '✔' : i + 1}</span><div class="min-w-0 flex-1"><p class="font-bold leading-6">${esc(m.title)}</p><p class="prose-sd mt-0.5 text-sm text-ink-300">${m.goal}</p>${mDone ? '' : `<button type="button" class="btn-ghost btn-sm mt-2" data-ms-hint="${m.id}">💡 提示（${Math.min(used, 3)}/3）</button><ol class="mt-2 flex flex-col gap-2" data-ms-hints="${m.id}"></ol>`}</div></div>`;
+      ol.appendChild(li);
+      if (mDone) return;
+      const list = $(`[data-ms-hints="${m.id}"]`, li);
+      const btn = $(`[data-ms-hint="${m.id}"]`, li);
+      let shown = 0;
+      const show = () => {
+        for (let k = 0; k < shown; k++) {
+          if (list.children[k]) continue;
+          const item = el('li', 'rounded-lg border border-ink-700 bg-ink-950/60 px-3 py-2 text-sm leading-6', `<span class="mr-2 font-bold text-amber">${k === 2 ? '解答' : `提示 ${k + 1}`}</span><span class="prose-sd text-[0.95rem]">${m.hints[k] || ''}</span>`);
+          if (k === 2) { const code = item.querySelector('code'); if (code) { const b = el('button', 'btn-ghost btn-sm ml-2', '帶入'); b.type = 'button'; b.addEventListener('click', () => setEditor(code.textContent)); item.appendChild(b); } }
+          list.appendChild(item);
+        }
+        btn.textContent = `💡 提示（${Math.min(Math.max(shown, prog().hints[m.id] || 0), 3)}/3）`;
+        btn.disabled = shown >= 3;
+      };
+      btn.addEventListener('click', () => { if (shown >= 3) return; shown++; SD.state.useHint(chapter.id, m.id, shown); show(); });
+    });
+    $('#btn-goto-editor', card).addEventListener('click', () => showPane('editor'));
+  }
+  function evaluateInvestigate(step) {
+    const last = lastResult(lastResults);
+    if (!last || !last.values.length || last.truncated) return;
+    const cells = last.values.flat().map((v) => (v === null || v === undefined ? '' : String(v)));
+    const has = (needle) => cells.some((c) => c.includes(needle));
+    for (const m of step.milestones) {
+      if (stepDone(m)) continue;
+      if (m.maxRows && last.values.length > m.maxRows) continue;
+      if (!m.detect.some((alt) => alt.every(has))) continue;
+      SD.state.markStep(chapter.id, m.id);
+      const clue = m.clue ? (addClue({ id: m.id, ch: chapter.id, title: m.clue.title, text: m.clue.text }) ? { id: m.id, ch: chapter.id, ...m.clue } : null) : null;
+      const allDone = step.milestones.every(stepDone);
+      if (allDone) SD.state.markStep(chapter.id, step.id);
+      renderInvestigate(step);
+      const fb = $('#feedback', card);
+      fb.innerHTML = `<div class="rounded-xl border border-teal/50 bg-teal/10 p-3"><p class="font-bold text-teal">✔ 里程碑達成：${esc(m.title)}</p>${m.found ? `<p class="mt-1 text-sm leading-6">${esc(m.found)}</p>` : ''}${clue ? clueRowHtml(clue) : ''}${allDone ? `<p class="mt-2 text-sm font-bold text-teal">${esc(step.success || '全部里程碑達成。')}</p>` : ''}</div>`;
+      renderAchievements();
+      updateNav();
+      showResultFeedback(true, `里程碑達成：${m.title}${allDone ? '。' + (step.success || '') : ''}`, clue);
+      showPane('story');
+      if (clue) flyClueToBoard();
+      return;
+    }
+  }
+  const lastResult = (results) => { for (let i = results.length - 1; i >= 0; i--) if (results[i].type === 'result') return results[i]; return null; };
+
   function renderAnswer(step) {
     const done = stepDone(step);
     card.innerHTML = `
@@ -1269,6 +1425,7 @@
       case 'blocks': renderBlocks(step); break;
       case 'quiz': renderQuiz(step); break;
       case 'predict': renderPredict(step); break;
+      case 'investigate': renderInvestigate(step); break;
       case 'answer': renderAnswer(step); break;
       case 'solution': renderSolution(step); break;
       default: card.textContent = '';
@@ -1279,10 +1436,10 @@
     const p = prog();
     p.step = stepIndex; SD.state.save();
     // 焦點模式與編輯器提示條
-    const writing = step.type === 'task' || step.type === 'solution';
+    const writing = step.type === 'task' || step.type === 'solution' || step.type === 'investigate';
     setFocus(writing ? 'write' : 'read');
     $('#editor-cue').hidden = !writing;
-    if (writing) $('#editor-cue-text').textContent = `在這裡輸入 SQL 完成「${step.title}」，按 Ctrl+Enter 執行，結果會自動檢核。`;
+    if (writing) $('#editor-cue-text').textContent = step.type === 'investigate' ? `自由查案「${step.title}」：自己決定查哪些表，查到關鍵線索會自動釘上證據板。` : `在這裡輸入 SQL 完成「${step.title}」，按 Ctrl+Enter 執行，結果會自動檢核。`;
     clearResultFeedback();
     hideIntro();
     renderProgress();
@@ -1309,6 +1466,7 @@
     if (nxt.type === 'story') return '下一步：劇情 →';
     if (nxt.type === 'quiz') return '下一步：小測驗 →';
     if (nxt.type === 'predict') return '下一步：預測題 →';
+    if (nxt.type === 'investigate') return '下一步：自由查案 →';
     if (nxt.type === 'blocks') return '下一步：拼句練習 →';
     return '下一步 →';
   }

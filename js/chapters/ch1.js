@@ -112,9 +112,11 @@ LIMIT 3;</code></pre>
       check: { kind: 'result', cols: ['district'], ordered: false } },
     { type: 'quiz', id: 'c1-q1', question: "想找名字裡有「豪」的人，哪個寫法正確？", options: ["WHERE name = '%豪%'", "WHERE name LIKE '%豪%'", "WHERE name LIKE '豪'", "WHERE name IN ('%豪%')"], answer: 1, explain: '萬用字元 % 只有搭配 LIKE 才有效，= 與 IN 會把 % 當成普通字元。' },
     { type: 'quiz', id: 'c1-q2', question: '哪一句能找出「電話沒有登記」的人？', options: ["WHERE phone = NULL", "WHERE phone = ''", "WHERE phone IS NULL", "WHERE phone = 0"], answer: 2, explain: 'NULL 代表沒有資料，只能用 IS NULL / IS NOT NULL 判斷。' },
-    { type: 'answer', id: 'c1-answer', prompt: '綜合所有線索：目擊特徵、監視器、筆錄與不在場證明，<strong>竊賊是誰？</strong>請輸入姓名。',
+    { type: 'answer', id: 'c1-answer', prompt: '綜合所有線索：目擊特徵、監視器、筆錄與不在場證明，<strong>竊賊是誰？</strong>',
       success: '吳志豪的機車在案發前後都出現在夜市周邊，筆錄含糊其詞，而另一位嫌疑人有健身房打卡佐證。老闆娘指認後，吳志豪承認犯案，耳機也找回來了。',
-      fail: '再看看證據板：誰的車在 21:38 高速離開漁市街口？誰又有不在場證明？' },
+      fail: '再看看證據板：誰的車在 21:38 高速離開漁市街口？誰又有不在場證明？',
+      chain: ['c1-t3', 'c1-t6', 'c1-t10'], chainFail: '證據鏈要能回答三件事：誰符合目擊特徵、誰的車出現在案發現場、誰有不在場證明。',
+      suspects: ['吳志豪', '蘇建豪', '賴世偉', '簡冠霖'] },
     { type: 'story', lines: [
       { who: 'vendor', text: '太感謝了！耳機找回來，我請你們吃蚵仔煎！' },
       { who: 'mentor', text: '不錯。你已經會用 AND、LIKE、IN、BETWEEN 這些條件從幾百筆資料裡撈出兩個人。下一個案子的關鍵不在「是誰」，而在「什麼時候」。' },
