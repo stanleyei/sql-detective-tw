@@ -917,7 +917,8 @@
     stageBox.classList.toggle('has-portrait', !!sp.portrait);
     const portrait = $('#stage-portrait');
     const switching = !!sp.portrait && portrait.getAttribute('src') !== sp.portrait;
-    portrait.hidden = !sp.portrait;
+    // 藏的是容器：手機版容器帶負 margin，只藏 img 會留下一個把對話框往下推出畫面的空盒
+    $('#stage-portrait-wrap').hidden = !sp.portrait;
     if (sp.portrait) portrait.src = sp.portrait;
     // 只在換人時滑入，同一人連續說話立繪不動。
     // 改 src 後瀏覽器會繼續畫舊圖直到新圖解碼完成，若立刻播動畫會變成「舊角色滑入、再瞬間跳成新角色」，

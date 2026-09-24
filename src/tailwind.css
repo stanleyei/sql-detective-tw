@@ -330,11 +330,14 @@
   .stage-body { @apply absolute inset-0 flex cursor-pointer flex-col justify-end bg-gradient-to-t from-ink-950 via-ink-950/30 to-transparent px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-20 sm:px-8 sm:pb-8; }
   .stage-box { @apply relative mx-auto w-full max-w-3xl rounded-2xl border border-ink-700 bg-ink-950/90 p-4 shadow-card backdrop-blur sm:p-6; }
   /*
-   * 立繪：貼齊視窗底部、下半身被對話框蓋住（視覺小說慣例，臉永遠在框上方）。
-   * 手機置中；桌機移到對話框左緣（框寬 48rem 置中，左緣即 50% - 24rem），與框重疊約一半。
-   * 高度取 dvh 與上限的較小值：矮視窗時立繪不會把臉頂出畫面。
+   * 立繪。手機：放在對話框上方的流內元素，用負的 margin-bottom 讓對話框蓋住下半身（約 55%），
+   * 對話框隨句長變高時立繪跟著上移，臉永遠露在框上方；超出視窗底部的部分自然裁掉（半身像）。
+   * 桌機（lg）：框寬 48rem 置中、框高穩定，改回貼齊視窗底部並跨在框左緣（50% - 24rem），與框重疊約一半。
+   * 高度取 dvh 與上限的較小值：矮視窗時立繪不會把臉頂出畫面。負 margin 與高度必須是同一個算式。
+   * 定位只寫在容器上；內層 img 的 transform 由 GSAP 滑入動畫接管，不能在 img 上用 translate 置中。
    */
-  .stage-portrait { @apply pointer-events-none absolute bottom-0 left-1/2 h-[min(58dvh,30rem)] w-auto -translate-x-1/2 object-contain object-bottom drop-shadow-2xl lg:left-[calc(50%-24rem)] lg:h-[min(70dvh,36rem)]; }
+  .stage-portrait-wrap { @apply pointer-events-none relative shrink-0 self-center h-[min(58dvh,30rem)] mb-[calc(-0.55*min(58dvh,30rem))] lg:absolute lg:bottom-0 lg:left-[calc(50%-24rem)] lg:mb-0 lg:h-[min(70dvh,36rem)] lg:-translate-x-1/2; }
+  .stage-portrait { @apply h-full w-auto object-contain object-bottom drop-shadow-2xl; }
   .stage-box.has-portrait .stage-avatar { @apply hidden; }
   .stage-speaker { @apply flex items-center gap-3; }
   .stage-avatar { @apply size-16 shrink-0 rounded-full border-2 border-amber/60 object-cover; }
