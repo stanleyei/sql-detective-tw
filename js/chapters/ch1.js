@@ -45,8 +45,8 @@ WHERE plate_number LIKE '___-1234' -- 三個任意字元加 -1234</code></pre>` 
       <p>「是這幾個值之一」用 <code>IN</code>，取代一長串 OR：</p>
       <pre><code>WHERE district IN ('港東區', '港西區', '海濱區')
 WHERE id IN (10001, 10002)</code></pre>` },
-    { type: 'task', id: 'c1-t3', after: { step: 'c1-t2', use: 'sql' }, title: '縮小範圍', prompt: '在上一題的基礎上，只留下 <code>car_color</code> 為 <code>\'白\'</code>（資料表用單字，不是「白色」）、<code>vehicle_type</code> 為 <code>\'機車\'</code>、身高 <code>height_cm</code> 在 <strong>175 到 180</strong> 之間的駕照，顯示 <code>id</code>、<code>plate_number</code>、<code>person_id</code>。',
-      hints: ['四個條件全部用 AND 串起來。', "car_color = '白' AND vehicle_type = '機車' AND height_cm BETWEEN 175 AND 180", "<code>SELECT id, plate_number, person_id FROM driver_license WHERE plate_number LIKE 'MKJ%' AND car_color = '白' AND vehicle_type = '機車' AND height_cm BETWEEN 175 AND 180;</code>"],
+    { type: 'task', id: 'c1-t3', after: { step: 'c1-t2', use: 'sql' }, title: '縮小範圍', prompt: '在上一題的基礎上，只留下 <code>car_color</code> 為 <code>\'白\'</code>、<code>vehicle_type</code> 為 <code>\'機車\'</code>、身高 <code>height_cm</code> 在 <strong>175 到 180</strong> 之間的駕照，顯示 <code>id</code>、<code>plate_number</code>、<code>person_id</code>。',
+      hints: ['四個條件全部用 AND 串起來。car_color 的值是單字「白」，不是「白色」。', "car_color = '白' AND vehicle_type = '機車' AND height_cm BETWEEN 175 AND 180", "<code>SELECT id, plate_number, person_id FROM driver_license WHERE plate_number LIKE 'MKJ%' AND car_color = '白' AND vehicle_type = '機車' AND height_cm BETWEEN 175 AND 180;</code>"],
       check: { kind: 'result', cols: ['plate_number', 'person_id'], ordered: false },
       clue: { title: '符合特徵的兩張車牌', text: '四張 MKJ 車牌中，只有 MKJ-5821（車主編號 4）與 MKJ-3390（車主編號 5）同時符合白色機車與身高特徵。' } },
     { type: 'task', id: 'c1-t4', after: { step: 'c1-t3', use: 'result' }, title: '車主是誰？', prompt: '用上一題查到的 <code>person_id</code>，從 <code>person</code> 找出這兩位市民，顯示 <code>id</code>、<code>name</code>、<code>district</code>、<code>phone</code>。',
@@ -94,12 +94,15 @@ LIMIT 3;</code></pre>
       clue: { title: '兩份筆錄', text: '吳志豪：「只是去逛逛，沒買東西。」蘇建豪：「九點到十點半都在潮港健身上課，有打卡紀錄。」' } },
     { type: 'lesson', title: '驗證不在場證明', body: `
       <p>蘇建豪說他在健身房。健身房的資料在兩張表：<code>gym_member</code>（會員，內含 <code>person_id</code>）與 <code>gym_checkin</code>（打卡，用 <code>membership_id</code> 對應會員編號）。</p>
-      <p>先從會員表找出他的會員編號，再拿編號去打卡表查。這種「先查一張表、再查另一張」的兩步查法，第 4 章會學到一次搞定的方法。第一步很短，直接執行：</p>
-      <pre><code>SELECT id, membership_status FROM gym_member WHERE person_id = 5;</code></pre>
-      <p>會得到一串英數字組成的會員編號，它是<strong>文字</strong>，下一題拿去比對時要加單引號。</p>` },
-    { type: 'task', id: 'c1-t10', title: '打卡紀錄', prompt: '先照上面查出蘇建豪（<code>person_id</code> 為 5）的會員編號，再在 <code>gym_checkin</code> 找出該 <code>membership_id</code> 在 <strong>2025-03-08</strong> 的打卡，顯示 <code>checkin_time</code> 與 <code>checkout_time</code>。',
-      lead: '兩步：先查 gym_member 拿編號，再查 gym_checkin。第二句兩個條件用 AND：會員編號是文字要加引號，日期欄是 checkin_date。',
-      hints: ['先執行 SELECT id FROM gym_member WHERE person_id = 5; 記下編號（一串英數字）。', "WHERE membership_id = '編號' AND checkin_date = '2025-03-08'，編號要加單引號。", "<code>SELECT checkin_time, checkout_time FROM gym_checkin WHERE membership_id = 'YX4BY' AND checkin_date = '2025-03-08';</code>"],
+      <p>先從會員表找出他的會員編號，再拿編號去打卡表查。這種「先查一張表、再查另一張」的兩步查法，第 4 章會學到一次搞定的方法。現在先分兩題做，下一題的結果會自動留給再下一題用。</p>` },
+    { type: 'task', id: 'c1-t9', title: '會員編號', prompt: '從 <code>gym_member</code> 找出 <code>person_id</code> 為 <strong>5</strong> 的會員，顯示 <code>id</code> 與 <code>membership_status</code>。',
+      lead: '一個等號條件就夠。查出來的 id 是一串英數字，那就是會員編號。',
+      hints: ['WHERE person_id = 5', 'SELECT id, membership_status ...', '<code>SELECT id, membership_status FROM gym_member WHERE person_id = 5;</code>'],
+      check: { kind: 'result', cols: ['id', 'membership_status'], ordered: false },
+      clue: { title: '蘇建豪的會員編號', text: '蘇建豪（5 號）的健身房會員編號是 YX4BY（銀卡）。下一題要用這個編號查打卡紀錄。' } },
+    { type: 'task', id: 'c1-t10', after: { step: 'c1-t9', use: 'result' }, title: '打卡紀錄', prompt: '用上一題查到的會員編號（<code>membership_id</code>，忘了可看線索板），在 <code>gym_checkin</code> 找出 <strong>2025-03-08</strong> 的打卡，顯示 <code>checkin_time</code> 與 <code>checkout_time</code>。',
+      lead: 'gym_checkin 表，兩個條件用 AND：會員編號是文字要加單引號，日期欄是 checkin_date。',
+      hints: ['會員編號是文字，要加單引號。', "AND checkin_date = '2025-03-08'", "<code>SELECT checkin_time, checkout_time FROM gym_checkin WHERE membership_id = 'YX4BY' AND checkin_date = '2025-03-08';</code>"],
       check: { kind: 'result', cols: ['checkin_time', 'checkout_time'], ordered: false },
       clue: { title: '不在場證明成立', text: '蘇建豪（5 號）的會員編號是 YX4BY。他 3 月 8 日 21:00 到 22:30 在健身房打卡，案發 21:30 時不可能在夜市。' } },
     { type: 'quiz', id: 'c1-q1', question: "想找名字裡有「豪」的人，哪個寫法正確？", options: ["WHERE name = '%豪%'", "WHERE name LIKE '%豪%'", "WHERE name LIKE '豪'", "WHERE name IN ('%豪%')"], answer: 1, explain: '萬用字元 % 只有搭配 LIKE 才有效，= 與 IN 會把 % 當成普通字元。' },

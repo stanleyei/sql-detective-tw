@@ -179,9 +179,20 @@
       }
     ]
   },
+  "c1-t9": {
+    "pass": [
+      "SELECT id, membership_status FROM gym_member WHERE person_id = 5"
+    ],
+    "fail": [
+      {
+        "sql": "SELECT id, membership_status FROM gym_member WHERE person_id = 4",
+        "msg": "結果不符"
+      }
+    ]
+  },
   "c1-t10": {
     "pass": [
-      "SELECT id FROM gym_member WHERE person_id = 5; SELECT checkin_time, checkout_time FROM gym_checkin WHERE membership_id = 'YX4BY' AND checkin_date = '2025-03-08';"
+      "SELECT checkin_time, checkout_time FROM gym_checkin WHERE membership_id = 'YX4BY' AND checkin_date = '2025-03-08'"
     ],
     "fail": [
       "SELECT checkin_time, checkout_time FROM gym_checkin WHERE membership_id = YX4BY AND checkin_date = '2025-03-08'"

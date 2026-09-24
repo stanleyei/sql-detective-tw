@@ -73,6 +73,10 @@ SD.expect = {
   "unorderedHash": "87ed0aff54544f41474f8ccd290b5e180e268ffb5dcce8deeb2deb54fc9edb9d",
   "desc": false
  },
+ "c1-t9": {
+  "hash": "d1828c2f23ed271a4ae7d0da698d79c502c0d7b6cf09630bad32a95b922107e9",
+  "rows": 1
+ },
  "c1-t10": {
   "hash": "abbc7068c02524e9b04cd4915bd85fe8d571b60726196e4c9d288c868247d265",
   "rows": 1
