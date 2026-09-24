@@ -51,6 +51,11 @@ DATEDIFF(d1, d2)               -- 兩個日期差幾天</code></pre>
       starter: "SELECT capture_time, plate_number FROM cctv_log WHERE camera_location = 海濱門市前 AND capture_time LIKE '2025-04-12%';",
       hints: ['錯誤訊息指向 camera_location 的條件。', '地點是文字，要加單引號。', "<code>SELECT capture_time, plate_number FROM cctv_log WHERE camera_location = '海濱門市前' AND capture_time LIKE '2025-04-12%';</code>"],
       check: { kind: 'result', cols: ['capture_time', 'plate_number'], ordered: false } },
+    { type: 'story', lines: [
+      { who: 'tech', text: '門市前那台監視器的辨識結果出來了，但雨夜畫質太差，很多筆只認得出車牌的後半段。我把能讀到的都填進 plate_number 了，你得用字串函數去比對。' },
+      { who: 'clerk', text: '對了，我想起來一件事：她上車前把口罩拉下來過一下，是個女生，車子是銀色的沒錯。' },
+      { who: 'mentor', text: '很好，三個線索：後三碼 528、銀色、女性。先學怎麼從一串文字裡切出「最後三碼」，再一層一層縮小。' },
+    ] },
     { type: 'lesson', title: '字串函數：切、接、找', body: `
       <p>店員只記得車牌「最後三碼」。用字串函數取部分文字：</p>
       <pre><code>RIGHT(plate_number, 3)      -- 右邊 3 個字  'ABC-1234' → '234'

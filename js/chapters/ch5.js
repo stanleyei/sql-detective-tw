@@ -75,6 +75,11 @@ WHERE item_name = '監視器畫面';</code></pre>
       hints: ['刪除指定列要用 DELETE FROM 搭配 WHERE，避免清空整張表。', '<code>DELETE FROM evidence WHERE item_name = ___;</code>', "<code>DELETE FROM evidence WHERE item_name = '收銀機';</code>"],
       check: { kind: 'probe', probe: 'SELECT id, report_id, item_name, location, status, logged_at FROM evidence ORDER BY id' },
       clue: { title: '刪除不會重編號', text: '刪掉 id 3 之後，下一筆新增會是 id 4，而不是回填 3。AUTO_INCREMENT 只會往前走。' } },
+    { type: 'story', lines: [
+      { who: 'station', text: '警官，遺失物中心那批被冒領的東西追回來了，共 7 件，我一併送過來。這些是要算證物的吧？' },
+      { who: 'tech', text: '對，全部登錄進去。不過你不用一件一件手打，遺失物中心那張 lost_item 表本來就有名稱和車站，直接從那邊搬過來就好。' },
+      { who: 'mentor', text: '這就是第三章的案子接到這裡的地方。SQL 可以「查出來直接塞進去」，一句話搞定七筆。' },
+    ] },
     { type: 'lesson', title: 'INSERT ... SELECT：從別的表搬資料', body: `
       <p>第三章那 7 件被冒領的遺失物也該列為證物。不用手打，直接從 <code>lost_item</code> 查出來塞進去：</p>
       <pre><code>INSERT INTO evidence (report_id, item_name, location)
@@ -98,6 +103,10 @@ ALTER TABLE evidence RENAME COLUMN location TO found_at; -- 改名</code></pre>`
       lead: 'UPDATE evidence SET weight_g = 數字 WHERE item_name = ...，數字不加引號。',
       hints: ['用 UPDATE 設定重量，再用 WHERE 鎖定 MacBook Air；數字不用引號。', '<code>UPDATE evidence SET weight_g = ___ WHERE item_name = ___;</code>', "<code>UPDATE evidence SET weight_g = 1240 WHERE item_name = 'MacBook Air';</code>"],
       check: { kind: 'probe', probe: 'SELECT item_name, weight_g FROM evidence WHERE weight_g IS NOT NULL' } },
+    { type: 'story', lines: [
+      { who: 'tech', text: '還有一件事。每件證物我們都會拍好幾張照片，放在同一張表裡會很亂，能不能另外開一張「照片表」，用證物編號對回來？' },
+      { who: 'mentor', text: '一對多的關係就該拆成兩張表。照片表記住它屬於哪件證物，這個「記住」就是外鍵。' },
+    ] },
     { type: 'lesson', title: '第二張表與外鍵', body: `
       <p>證物照片是「一件證物、多張照片」，另開一張表，用<strong>外鍵 FOREIGN KEY</strong> 指回 evidence：</p>
       <pre><code>CREATE TABLE evidence_photo (
