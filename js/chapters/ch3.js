@@ -93,7 +93,7 @@ GROUP BY station;</code></pre>` },
       hints: ['WHERE id = 14', 'SELECT name, district, street', '<code>SELECT name, district, street FROM person WHERE id = 14;</code>'],
       check: { kind: 'result', cols: ['name', 'district', 'street'], ordered: false },
       clue: { title: '嫌疑人', text: '李建宏，中央區光復路。' } },
-    { type: 'story', lines: [
+    { type: 'story', scene: './images/scene/ch3-gate.webp', lines: [
       { who: 'station', text: '李建宏……就是他！每次都西裝筆挺、彬彬有禮，還會跟我們道謝。我們完全沒懷疑過。' },
       { who: 'mentor', text: '別急。簽名和證詞只能說他「像」，不能證明他「在」。他要領東西，就得進站；捷運的悠遊卡紀錄不會替人說謊。' },
       { who: 'tech', text: 'transit_card 對得到市民，transit_log 是每一次進出站。先拿他的卡號，再看那些站他去過幾次。' },
