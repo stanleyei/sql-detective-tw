@@ -57,18 +57,6 @@
       { "sql": "SELECT DISTINCT plate_number FROM cctv_log WHERE plate_number IN ('RBK-7528', 'LLP-0528') AND TIME(capture_time) BETWEEN '22:30' AND '23:10'", "msg": "只有 1 筆" }
     ]
   },
-  "c2-t10": {
-    "pass": [
-      "SELECT capture_time,\n  CASE\n    WHEN HOUR(capture_time) BETWEEN 6 AND 17 THEN '白天'\n    WHEN HOUR(capture_time) BETWEEN 18 AND 23 THEN '晚上'\n    ELSE '深夜'\n  END AS period\nFROM cctv_log\nWHERE plate_number = 'RBK-7528'\nORDER BY capture_time;",
-      "SELECT capture_time,\r\nCASE WHEN HOUR(capture_time) >= 6 AND HOUR(capture_time) <= 17 THEN '白天'\r\nWHEN HOUR(capture_time) >= 18 THEN '晚上'\r\nELSE '深夜' END AS Period\r\nFROM cctv_log WHERE plate_number = 'RBK-7528' ORDER BY capture_time",
-      "SELECT capture_time, plate_number, CASE WHEN HOUR(capture_time) BETWEEN 6 AND 17 THEN '白天' WHEN HOUR(capture_time) BETWEEN 18 AND 23 THEN '晚上' ELSE '深夜' END AS period FROM cctv_log WHERE plate_number = 'RBK-7528' ORDER BY capture_time",
-      "SELECT capture_time,　CASE WHEN HOUR(capture_time) BETWEEN 6 AND 17 THEN '白天' WHEN HOUR(capture_time) BETWEEN 18 AND 23 THEN '晚上' ELSE '深夜' END AS period FROM cctv_log WHERE plate_number = 'RBK-7528' ORDER BY capture_time"
-    ],
-    "fail": [
-      { "sql": "SELECT capture_time, CASE WHEN HOUR(capture_time) BETWEEN 6 AND 17 THEN '白天' WHEN HOUR(capture_time) BETWEEN 18 AND 23 THEN '晚上' ELSE '深夜' END FROM cctv_log WHERE plate_number = 'RBK-7528' ORDER BY capture_time", "msg": "AS period" },
-      { "sql": "SELECT capture_time, CASE WHEN HOUR(capture_time) BETWEEN 6 AND 17 THEN '白天' ELSE '晚上' END AS period FROM cctv_log WHERE plate_number = 'RBK-7528' ORDER BY capture_time", "msg": "結果不符" }
-    ]
-  },
   "c2-t11": {
     "pass": ["SELECT DATE_FORMAT(capture_time, '%m/%d %H:%i') AS t, camera_location FROM cctv_log WHERE plate_number = 'RBK-7528' ORDER BY capture_time"],
     "fail": [{ "sql": "SELECT DATE_FORMAT(capture_time, '%m/%d %H:%i') AS t, camera_location FROM cctv_log WHERE plate_number = 'RBK-7528' ORDER BY capture_time DESC", "msg": "排序方向反了" }]
@@ -89,5 +77,8 @@
   "c5-t5": {
     "pass": ["UPDATE evidence SET status = '已送鑑識' WHERE item_name = '監視器畫面'"],
     "fail": [{ "sql": "UPDATE evidence SET status = '已送鑑識'", "msg": "狀態與目標不同" }]
-  }
+  },
+  "c1-d1": { "fail": [{ "sql": "SELECT name FROM person WHERE phone = NULL AND district = '港東區';", "msg": "0 筆" }] },
+  "c4-d1": { "fail": ["SELECT p.name, e.title FROM employee e JOIN person p ON p.id = e.id WHERE e.company_id = 1;"] },
+  "c6-t3": { "fail": [{ "sql": "SELECT id, name FROM person WHERE name LIKE '林' AND street = '中央路';", "msg": "0 筆" }] }
 }

@@ -38,6 +38,7 @@ DATEDIFF(d1, d2)               -- 兩個日期差幾天</code></pre>
       hints: ['不需要 FROM，直接 SELECT 函數。', "DATE_SUB('2025-04-12 23:30:00', INTERVAL 40 MINUTE)", "<code>SELECT DATE_SUB('2025-04-12 23:30:00', INTERVAL 40 MINUTE);</code>"],
       check: { kind: 'value' },
       clue: { title: '推估案發時間', text: '2025-04-12 22:50:00。店員的印象不精確，搜尋時前後各留 20 分鐘緩衝。' } },
+    { type: 'predict', id: 'c2-p1', title: '跨過午夜會怎樣？', sql: "SELECT DATE_SUB('2025-04-13 00:20:00', INTERVAL 40 MINUTE);", question: '結果是哪一個？', options: ['2025-04-13 23:40:00', '2025-04-12 23:40:00', '2025-04-13 00:20:00', '會出錯，分鐘不能是負的'], answer: 1, explain: 'DATE_SUB 會連日期一起算：00:20 往前 40 分鐘跨過午夜，回到前一天的 23:40。這也是為什麼時間條件要連日期一起寫。' },
     { type: 'lesson', title: '時間也能 BETWEEN', body: `
       <p>日期時間在資料庫裡是有順序的文字，可以直接比大小：</p>
       <pre><code>WHERE capture_time BETWEEN '2025-04-12 22:30:00' AND '2025-04-12 23:10:00'</code></pre>
@@ -46,6 +47,10 @@ DATEDIFF(d1, d2)               -- 兩個日期差幾天</code></pre>
       hints: ['地點用 =，時間用 BETWEEN，兩個時間都寫完整的「日期 時間」。', 'ORDER BY capture_time（由早到晚，不用加 DESC）', "<code>SELECT capture_time, plate_number, note FROM cctv_log WHERE camera_location = '海濱門市前' AND capture_time BETWEEN '2025-04-12 22:30:00' AND '2025-04-12 23:10:00' ORDER BY capture_time;</code>"],
       check: { kind: 'result', cols: ['capture_time', 'plate_number', 'note'], ordered: true },
       clue: { title: '門口監視器', text: '22:41 RBK-7528 銀色汽車停靠；22:47 QWE-9528 銀色汽車停靠；22:53 RBK-7528 快速離開。' } },
+    { type: 'task', id: 'c2-d1', variant: 'debug', title: '門市前整天的紀錄', prompt: '鑑識組想列出 <strong>2025-04-12</strong> 整天 <code>camera_location</code> 為<strong>海濱門市前</strong>的所有紀錄，這句 SQL 卻報錯。修正後顯示 <code>capture_time</code>、<code>plate_number</code>。',
+      starter: "SELECT capture_time, plate_number FROM cctv_log WHERE camera_location = 海濱門市前 AND capture_time LIKE '2025-04-12%';",
+      hints: ['錯誤訊息指向 camera_location 的條件。', '地點是文字，要加單引號。', "<code>SELECT capture_time, plate_number FROM cctv_log WHERE camera_location = '海濱門市前' AND capture_time LIKE '2025-04-12%';</code>"],
+      check: { kind: 'result', cols: ['capture_time', 'plate_number'], ordered: false } },
     { type: 'lesson', title: '字串函數：切、接、找', body: `
       <p>店員只記得車牌「最後三碼」。用字串函數取部分文字：</p>
       <pre><code>RIGHT(plate_number, 3)      -- 右邊 3 個字  'ABC-1234' → '234'
@@ -92,11 +97,12 @@ UPPER(x)  LOWER(x)  TRIM(x) -- 大寫、小寫、去頭尾空白</code></pre>
   END AS period
 FROM cctv_log;</code></pre>
       <p>由上到下比對，第一個成立的 WHEN 就是答案；都不成立走 ELSE。</p>` },
-    { type: 'task', id: 'c2-t10', title: '她的車出現在什麼時段？', prompt: '列出 <code>cctv_log</code> 中車牌 <strong>RBK-7528</strong> 的所有紀錄，顯示 <code>capture_time</code>，並用 CASE 依小時標記 <code>period</code>（6~17 白天、18~23 晚上、其他深夜），依時間<strong>由早到晚</strong>排序。記得用 <code>AS period</code> 取別名。',
-      hints: ['照上面的範例，把 FROM 後面加 WHERE 車牌條件。', "WHERE plate_number = 'RBK-7528' ORDER BY capture_time", "<code>SELECT capture_time, CASE WHEN HOUR(capture_time) BETWEEN 6 AND 17 THEN '白天' WHEN HOUR(capture_time) BETWEEN 18 AND 23 THEN '晚上' ELSE '深夜' END AS period FROM cctv_log WHERE plate_number = 'RBK-7528' ORDER BY capture_time;</code>"],
-      check: { kind: 'result', cols: ['capture_time', 'period'], ordered: true } },
+    { type: 'blocks', id: 'c2-b1', title: '她的車出現在什麼時段？', prompt: 'CASE 句子長，用積木拼：列出車牌 <strong>RBK-7528</strong> 的所有紀錄，顯示 <code>capture_time</code> 與依小時標記的 <code>period</code>（6~17 白天、18~23 晚上、其他深夜），依時間由早到晚排序。有一塊積木是多餘的。',
+      blocks: ['SELECT capture_time,', 'CASE', "WHEN HOUR(capture_time) BETWEEN 6 AND 17 THEN '白天'", "WHEN HOUR(capture_time) BETWEEN 18 AND 23 THEN '晚上'", "ELSE '深夜'", 'END AS period', 'FROM cctv_log', "WHERE plate_number = 'RBK-7528'", 'ORDER BY capture_time;'],
+      distractors: ["ELSE '晚上'"],
+      wrong: 'CASE 的結構是 CASE → WHEN … THEN … → ELSE … → END AS 別名，整段放在 SELECT 的欄位清單裡，FROM 與 WHERE 在它後面。' },
     { type: 'task', id: 'c2-t11', title: '格式化時間', prompt: '同樣是 RBK-7528 的紀錄，用 <code>DATE_FORMAT(capture_time, \'%m/%d %H:%i\')</code> 顯示成「月/日 時:分」，別名 <code>t</code>，並把 <code>camera_location</code> 一起列出，依時間<strong>由早到晚</strong>排序。',
-      lead: '沿用上一題的 WHERE，把 SELECT 換成 DATE_FORMAT(...) AS t 與 camera_location。',
+      lead: "WHERE plate_number = 'RBK-7528'，SELECT 放 DATE_FORMAT(...) AS t 與 camera_location。",
       hints: ["DATE_FORMAT 的格式符號：%Y 年、%m 月、%d 日、%H 時、%i 分。", 'ORDER BY capture_time（排序用原本的欄位比較準）。', "<code>SELECT DATE_FORMAT(capture_time, '%m/%d %H:%i') AS t, camera_location FROM cctv_log WHERE plate_number = 'RBK-7528' ORDER BY capture_time;</code>"],
       check: { kind: 'result', cols: ['t', 'camera_location'], ordered: true },
       clue: { title: '逃逸路線', text: '04/12 22:41 停在門市前 → 22:53 快速離開 → 22:55 通過海濱路與造船街口，朝她住的造船街方向。' } },

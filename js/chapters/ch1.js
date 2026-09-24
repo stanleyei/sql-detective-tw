@@ -32,6 +32,9 @@ WHERE NOT district = '中央區'</code></pre>
       <pre><code>WHERE plate_number LIKE 'MKJ%'     -- MKJ 開頭
 WHERE name LIKE '%志%'             -- 名字裡有「志」
 WHERE plate_number LIKE '___-1234' -- 三個任意字元加 -1234</code></pre>` },
+    { type: 'blocks', id: 'c1-b1', title: '拼出 LIKE 查詢', prompt: '組出「從 <code>driver_license</code> 找出車牌以 MKJ 開頭的 <code>plate_number</code>」。注意有一塊積木是多餘的。',
+      blocks: ['SELECT', 'plate_number', 'FROM', 'driver_license', 'WHERE', 'plate_number', 'LIKE', "'MKJ%';"], distractors: ["'%MKJ';"],
+      wrong: '順序還不對。句型：SELECT 欄位 FROM 表 WHERE 欄位 LIKE 樣式。開頭是 MKJ，% 要放在後面。' },
     { type: 'task', id: 'c1-t2', title: 'MKJ 開頭的車牌', prompt: '從 <code>driver_license</code>（駕照）找出車牌 <code>plate_number</code> 以 <strong>MKJ</strong> 開頭的紀錄，顯示 <code>id</code>、<code>plate_number</code>、<code>car_color</code>、<code>vehicle_type</code>、<code>height_cm</code>。',
       hints: ['先 DESCRIBE driver_license 看欄位。', "LIKE 'MKJ%'，% 放在後面。", "<code>SELECT id, plate_number, car_color, vehicle_type, height_cm FROM driver_license WHERE plate_number LIKE 'MKJ%';</code>"],
       check: { kind: 'result', cols: ['plate_number', 'car_color', 'vehicle_type', 'height_cm'], ordered: false },
@@ -59,6 +62,11 @@ WHERE phone IS NOT NULL</code></pre>
     { type: 'task', id: 'c1-t5', title: '沒留電話的人', prompt: '找出 <code>person</code> 中<strong>沒有登記電話</strong>的市民，列出他們的 <code>name</code>。',
       hints: ['NULL 要用 IS NULL。', 'WHERE phone IS NULL', '<code>SELECT name FROM person WHERE phone IS NULL;</code>'],
       check: { kind: 'result', cols: ['name'], ordered: false } },
+    { type: 'task', id: 'c1-d1', variant: 'debug', title: '為什麼查不到人？', prompt: '同事想找<strong>港東區</strong>裡<strong>沒有登記電話</strong>的人，這句 SQL 跑得動卻回傳 0 筆。找出問題並修正，顯示 <code>name</code>。',
+      starter: "SELECT name FROM person WHERE phone = NULL AND district = '港東區';",
+      hints: ['沒有錯誤訊息不代表沒錯。看看 phone 的條件是怎麼寫的。', 'NULL 不能用 = 比較，要用 IS NULL。', "<code>SELECT name FROM person WHERE phone IS NULL AND district = '港東區';</code>"],
+      check: { kind: 'result', cols: ['name'], ordered: false } },
+    { type: 'predict', id: 'c1-p1', title: 'NULL 會不會被「不等於」選到？', sql: "SELECT name FROM person WHERE phone <> '0912345678';", question: '吳志豪的電話是 NULL。他會出現在結果裡嗎？', options: ['會，NULL 當然不等於那個號碼', '不會，NULL 跟任何值比較都不算「真」', '會出錯，NULL 不能比較'], answer: 1, explain: 'NULL 代表「未知」，未知不等於任何值，也不「不等於」任何值，所以 <> 會把他排除。要把沒電話的人也算進來，得加上 OR phone IS NULL。' },
     { type: 'story', lines: [
       { who: 'tech', text: '嗨，我是鑑識組的張哲。夜市周邊的監視器紀錄都已經匯進 cctv_log 表了，車牌辨識也做好了，你可以直接查。' },
     ] },

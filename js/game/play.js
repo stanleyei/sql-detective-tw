@@ -25,7 +25,7 @@
   const prog = () => SD.state.chapter(chapter.id);
   const stepDone = (step) => !!(prog().steps[step.id || `${chapter.slug}-s${chapter.steps.indexOf(step)}`] && prog().steps[step.id || `${chapter.slug}-s${chapter.steps.indexOf(step)}`].done);
   const stepKey = (step) => step.id || `${chapter.slug}-s${chapter.steps.indexOf(step)}`;
-  const needsCompletion = (step) => ['task', 'blocks', 'quiz', 'answer', 'solution', 'story'].includes(step.type);
+  const needsCompletion = (step) => ['task', 'blocks', 'quiz', 'predict', 'answer', 'solution', 'story'].includes(step.type);
 
   function totalStars() {
     return chapters.reduce((sum, ch) => sum + SD.state.chapterStars(ch.id, tasksOf(ch)).earned, 0);
@@ -1023,12 +1023,13 @@
     const idx = tasksOf(chapter).indexOf(step) + 1;
     card.innerHTML = `
       <div class="flex items-start justify-between gap-2">
-        <p class="eyebrow">任務 ${idx} / ${tasksOf(chapter).length}</p>
+        <p class="eyebrow">${step.variant === 'debug' ? '找錯任務' : '任務'} ${idx} / ${tasksOf(chapter).length}</p>
         <span id="task-status" class="chip ${done ? 'border-teal/50 text-teal' : ''}">${done ? `已完成 ${stars(starsForHints(hintsUsed))}` : '進行中'}</span>
       </div>
       <h2 class="mt-2 text-2xl font-black">${esc(step.title)}</h2>
       <div class="prose-sd mt-3">${step.prompt}</div>
       ${step.lead ? `<p class="mt-1 flex gap-2 rounded-lg border border-ink-700 bg-ink-950/40 px-3 py-2 text-sm leading-6 text-ink-300"><span class="shrink-0 font-bold text-teal">說明</span><span>${esc(step.lead)}</span></p>` : ''}
+      ${step.variant === 'debug' ? `<div class="mt-3 rounded-xl border border-danger/40 bg-danger/5 p-3"><p class="text-xs font-bold text-danger">有問題的 SQL</p><pre class="prose-sd mt-2 rounded bg-ink-950 p-2 text-sm"><code>${SD.highlight(step.starter)}</code></pre><button type="button" id="btn-debug-reload" class="btn-ghost btn-sm mt-2">重新帶入這句 SQL</button></div>` : ''}
       <div id="task-tables" class="mt-3" hidden></div>
       <div id="feedback" class="not-empty:mt-3" aria-live="assertive"></div>
       <div class="mt-5 flex flex-wrap gap-2 border-t border-ink-700 pt-4">
@@ -1076,8 +1077,12 @@
       refreshHintBtn();
     });
     $('#btn-goto-editor', card).addEventListener('click', () => showPane('editor'));
-    // 起始 SQL 只填進空的編輯器；使用者已有內容（含重新整理後還原的草稿）時不覆寫
-    if (step.starter && !editor.value.trim()) { editor.value = step.starter; saveDraftSoon(0); }
+    // 起始 SQL 只填進空的編輯器；使用者已有內容（含重新整理後還原的草稿）時不覆寫。
+    // 找錯任務例外：題目就是那句壞掉的 SQL，未完成時一律帶入（原內容會存進紀錄並可復原）
+    const reload = $('#btn-debug-reload', card);
+    if (reload) reload.addEventListener('click', () => replaceEditor(step.starter, '已重新帶入題目的 SQL。'));
+    if (step.variant === 'debug' && !done && editor.value.trim() !== step.starter.trim()) replaceEditor(step.starter, '已帶入題目的 SQL，原本的內容存在紀錄裡。');
+    else if (step.starter && !editor.value.trim()) { editor.value = step.starter; saveDraftSoon(0); }
   }
 
   async function evaluateStep(step) {
@@ -1147,10 +1152,11 @@
       <div id="feedback" class="mt-3" aria-live="assertive"></div>
       <div class="mt-4 flex gap-2"><button type="button" id="btn-check-blocks" class="btn-primary btn-sm">檢查</button><button type="button" id="btn-reset-blocks" class="btn-ghost btn-sm">重排</button></div>`;
     const slot = $('#slot', card), pool = $('#pool', card);
-    const shuffled = step.blocks.slice().sort(() => Math.random() - 0.5);
+    const answer = step.answer || step.blocks.join(' ');
+    const shuffled = step.blocks.concat(step.distractors || []).sort(() => Math.random() - 0.5);
     const mk = (text) => { const b = el('button', 'block-chip', esc(text)); b.type = 'button'; b.draggable = true; b.dataset.v = text; return b; };
     const move = (b) => { (b.parentElement === pool ? slot : pool).appendChild(b); if (canAnimate()) gsap.from(b, { scale: 0.8, duration: 0.2 }); };
-    (done ? step.answer.split(' ') : shuffled).forEach((t) => (done ? slot : pool).appendChild(mk(t)));
+    (done ? step.blocks : shuffled).forEach((t) => (done ? slot : pool).appendChild(mk(t)));
     card.addEventListener('click', (e) => { const b = e.target.closest('.block-chip'); if (b) move(b); });
     let dragging = null;
     card.addEventListener('dragstart', (e) => { dragging = e.target.closest('.block-chip'); });
@@ -1163,13 +1169,16 @@
     $('#btn-check-blocks', card).addEventListener('click', () => {
       const got = [...slot.children].map((b) => b.dataset.v).join(' ').replace(/\s+/g, ' ').trim();
       const fb = $('#feedback', card);
-      if (got === step.answer) {
-        SD.state.markStep(chapter.id, step.id);
-        fb.innerHTML = `<div class="rounded-xl border border-teal/50 bg-teal/10 p-3 text-sm"><p class="font-bold text-teal">✔ 拼對了！</p><pre class="prose-sd mt-2 rounded bg-ink-950 p-2"><code>${SD.highlight(step.answer)}</code></pre></div>`;
-        updateNav();
-      } else fb.innerHTML = `<div class="rounded-xl border border-amber/40 bg-amber/5 p-3 text-sm">順序還不對。想想句型：SELECT 欄位 FROM 表 LIMIT 筆數。</div>`;
+      if (got === answer) { SD.state.markStep(chapter.id, step.id); showSolved(); updateNav(); }
+      else if ((step.distractors || []).some((d) => got.includes(d))) fb.innerHTML = `<div class="rounded-xl border border-amber/40 bg-amber/5 p-3 text-sm">句子裡有一塊不該出現的積木，把它拿回積木區。</div>`;
+      else fb.innerHTML = `<div class="rounded-xl border border-amber/40 bg-amber/5 p-3 text-sm">${esc(step.wrong || '順序還不對。想想句型：SELECT 欄位 FROM 表 LIMIT 筆數。')}</div>`;
     });
-    if (done) $('#feedback', card).innerHTML = `<div class="rounded-xl border border-teal/50 bg-teal/10 p-3 text-sm text-teal">✔ 已完成</div>`;
+    // 拼對後可直接帶進查詢區執行，看結果長什麼樣；積木題不計星，不經過任務檢核
+    function showSolved() {
+      $('#feedback', card).innerHTML = `<div class="rounded-xl border border-teal/50 bg-teal/10 p-3 text-sm"><p class="font-bold text-teal">✔ 拼對了！</p><pre class="prose-sd mt-2 rounded bg-ink-950 p-2"><code>${SD.highlight(answer)}</code></pre><button type="button" class="btn-teal btn-sm mt-2" data-run-blocks>帶入查詢區執行 →</button></div>`;
+      $('[data-run-blocks]', card).addEventListener('click', () => { replaceEditor(answer, '已帶入拼好的 SQL。'); runSql(); });
+    }
+    if (done) showSolved();
   }
 
   function renderQuiz(step) {
@@ -1191,6 +1200,41 @@
       const ok = i === step.answer;
       [...opts.children].forEach((b, j) => { b.disabled = true; if (j === step.answer) b.classList.add('border-teal', 'text-teal'); else if (j === i && !ok) b.classList.add('border-danger', 'text-danger'); });
       $('#feedback', card).innerHTML = `<div class="rounded-xl border ${ok ? 'border-teal/50 bg-teal/10' : 'border-amber/40 bg-amber/5'} p-3 text-sm leading-6"><p class="font-bold ${ok ? 'text-teal' : 'text-amber'}">${ok ? '✔ 正確' : '✘ 不對，正確答案是 ' + String.fromCharCode(65 + step.answer)}</p><p class="mt-1">${esc(step.explain)}</p></div>`;
+      SD.state.markStep(chapter.id, step.id, { correct: ok });
+      updateNav();
+    }
+    if (done) answer(rec.correct ? step.answer : (step.answer + 1) % step.options.length);
+  }
+
+  /**
+   * 預測題：先看 SQL 猜結果，選完才准執行驗證。針對 NULL、聚合、JOIN 這類「跑得動但答案不是你想的」的觀念錯誤；
+   * run: false 的題目（如沒有 WHERE 的 DELETE）只講解不執行，避免破壞第 5 章依序建立的資料表狀態。
+   */
+  function renderPredict(step) {
+    const done = stepDone(step);
+    const rec = prog().steps[step.id] || {};
+    card.innerHTML = `
+      <p class="eyebrow">預測題</p>
+      <h2 class="mt-2 text-xl font-bold leading-8">${esc(step.title)}</h2>
+      <p class="mt-2 text-sm text-ink-300">先別執行。讀完這句 SQL，猜猜結果會是什麼？</p>
+      <pre class="prose-sd mt-3 rounded-xl bg-ink-950 p-3 text-sm"><code>${SD.highlight(step.sql)}</code></pre>
+      <p class="prose-sd mt-3 font-bold">${step.question}</p>
+      <div id="opts" class="mt-3 flex flex-col gap-2" role="group" aria-label="選項"></div>
+      <div id="feedback" class="mt-3" aria-live="assertive"></div>`;
+    const opts = $('#opts', card);
+    step.options.forEach((o, i) => {
+      const b = el('button', 'btn-ghost justify-start text-left font-normal', `<span class="mr-2 font-mono text-amber">${String.fromCharCode(65 + i)}</span><span>${esc(o)}</span>`);
+      b.type = 'button';
+      b.addEventListener('click', () => answer(i));
+      opts.appendChild(b);
+    });
+    function answer(i) {
+      const ok = i === step.answer;
+      [...opts.children].forEach((b, j) => { b.disabled = true; if (j === step.answer) b.classList.add('border-teal', 'text-teal'); else if (j === i && !ok) b.classList.add('border-danger', 'text-danger'); });
+      const canRun = step.run !== false;
+      $('#feedback', card).innerHTML = `<div class="rounded-xl border ${ok ? 'border-teal/50 bg-teal/10' : 'border-amber/40 bg-amber/5'} p-3 text-sm leading-6"><p class="font-bold ${ok ? 'text-teal' : 'text-amber'}">${ok ? '✔ 猜對了' : '✘ 不對，答案是 ' + String.fromCharCode(65 + step.answer)}</p><p class="mt-1">${esc(step.explain)}</p>${canRun ? '<button type="button" class="btn-teal btn-sm mt-3" data-run-predict>執行看看 →</button>' : `<p class="mt-2 text-xs text-ink-300">${esc(step.noRun || '這句不執行：它會改動資料，先知道後果就夠了。')}</p>`}</div>`;
+      const run = $('[data-run-predict]', card);
+      if (run) run.addEventListener('click', () => { replaceEditor(step.sql, '已帶入預測題的 SQL。'); runSql(); });
       SD.state.markStep(chapter.id, step.id, { correct: ok });
       updateNav();
     }
@@ -1224,6 +1268,7 @@
       case 'task': renderTask(step); break;
       case 'blocks': renderBlocks(step); break;
       case 'quiz': renderQuiz(step); break;
+      case 'predict': renderPredict(step); break;
       case 'answer': renderAnswer(step); break;
       case 'solution': renderSolution(step); break;
       default: card.textContent = '';
@@ -1263,6 +1308,8 @@
     if (nxt.type === 'lesson') return '下一步：教學 →';
     if (nxt.type === 'story') return '下一步：劇情 →';
     if (nxt.type === 'quiz') return '下一步：小測驗 →';
+    if (nxt.type === 'predict') return '下一步：預測題 →';
+    if (nxt.type === 'blocks') return '下一步：拼句練習 →';
     return '下一步 →';
   }
   function updateNav() {

@@ -23,6 +23,7 @@ MAX(est_value)   -- 最大</code></pre>
       <pre><code>SELECT COUNT(*) FROM lost_item;
 SELECT SUM(est_value), AVG(est_value) FROM lost_item WHERE status = '已領回';</code></pre>
       <p><code>COUNT(*)</code> 數列數；<code>COUNT(欄位)</code> 只數該欄位不是 NULL 的列。</p>` },
+    { type: 'predict', id: 'c3-p1', title: 'COUNT(欄位) 數什麼？', sql: 'SELECT COUNT(phone) FROM person;', question: 'person 有 420 人，其中一些人電話是 NULL。這句會得到？', options: ['420，跟 COUNT(*) 一樣', '比 420 小，NULL 不會被數進去', '會出錯，COUNT 只能放 *'], answer: 1, explain: 'COUNT(*) 數列數；COUNT(欄位) 只數該欄位不是 NULL 的列。想知道「有幾個人沒留電話」可以用 COUNT(*) - COUNT(phone)。' },
     { type: 'task', id: 'c3-t1', title: '總共幾件？', prompt: '<code>lost_item</code>（遺失物）表總共有幾筆紀錄？',
       hints: ['<code>COUNT(*)</code> 可以計算資料表的全部列數。', '<code>SELECT COUNT(*) FROM ___;</code>', '<code>SELECT COUNT(*) FROM lost_item;</code>'],
       check: { kind: 'value' } },
@@ -57,10 +58,17 @@ WHERE claimed_by IS NOT NULL      -- 先過濾原始列
 GROUP BY claimed_by
 HAVING COUNT(*) &gt; 2;              -- 再過濾分組結果</code></pre>
       <p>順序口訣：<strong>WHERE → GROUP BY → HAVING → ORDER BY → LIMIT</strong>。</p>` },
+    { type: 'blocks', id: 'c3-b1', title: '拼出 WHERE → GROUP BY → HAVING', prompt: '組出「排除 NULL 後，找出領取超過 2 件的 <code>claimed_by</code> 與件數」。注意有一塊積木放錯位置了，不該用。',
+      blocks: ['SELECT', 'claimed_by, COUNT(*) AS cnt', 'FROM', 'lost_item', 'WHERE', 'claimed_by IS NOT NULL', 'GROUP BY', 'claimed_by', 'HAVING', 'COUNT(*) > 2;'], distractors: ['WHERE COUNT(*) > 2'],
+      wrong: '口訣：WHERE 篩原始列 → GROUP BY 分組 → HAVING 篩分組結果。聚合條件不能放 WHERE。' },
     { type: 'task', id: 'c3-t6', title: '誰領太多了？', prompt: '找出<strong>領取超過 2 件</strong>的領取人：顯示 <code>claimed_by</code> 與件數（別名 <code>cnt</code>），排除 <code>claimed_by</code> 為 NULL 的紀錄。',
       hints: ['WHERE claimed_by IS NOT NULL，GROUP BY claimed_by。', 'HAVING COUNT(*) > 2', '<code>SELECT claimed_by, COUNT(*) AS cnt FROM lost_item WHERE claimed_by IS NOT NULL GROUP BY claimed_by HAVING COUNT(*) &gt; 2;</code>'],
       check: { kind: 'result', cols: null, ordered: false },
       clue: { title: '異常領取人', text: '市民編號 14 在兩個月內領走 7 件遺失物，其他人最多 2 件。' } },
+    { type: 'task', id: 'c3-d1', variant: 'debug', title: '哪些車站件數超過 18？', prompt: '站務員寫了這句想找<strong>件數超過 18</strong> 的車站，卻被資料庫拒絕。修正後顯示 <code>station</code> 與件數（別名 <code>cnt</code>）。',
+      starter: 'SELECT station, COUNT(*) AS cnt FROM lost_item WHERE COUNT(*) > 18 GROUP BY station;',
+      hints: ['錯誤訊息已經告訴你：聚合函數不能放在 WHERE。', '把條件搬到 GROUP BY 之後，改用 HAVING。', '<code>SELECT station, COUNT(*) AS cnt FROM lost_item GROUP BY station HAVING COUNT(*) &gt; 18;</code>'],
+      check: { kind: 'result', cols: null, ordered: false } },
     { type: 'task', id: 'c3-t7', title: '他領走了什麼？', prompt: '列出 <code>claimed_by</code> 為 <strong>14</strong> 的所有遺失物，顯示 <code>item_name</code>、<code>station</code>、<code>est_value</code>、<code>claimed_date</code>。',
       lead: 'lost_item 表，WHERE claimed_by = 編號，列出四個欄位。',
       hints: ['WHERE claimed_by = 14', '這題不用 GROUP BY，是看明細。', '<code>SELECT item_name, station, est_value, claimed_date FROM lost_item WHERE claimed_by = 14;</code>'],

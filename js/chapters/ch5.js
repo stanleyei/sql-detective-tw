@@ -58,6 +58,9 @@ VALUES (36, '空展示盒', '金鑫手機配件攤位');</code></pre>
 SET status = '已送鑑識'
 WHERE item_name = '監視器畫面';</code></pre>
       <p><strong>沒有 WHERE 的 UPDATE 會改掉整張表的每一列。</strong>執行前先用同樣的 WHERE 做一次 SELECT，確認會影響哪幾筆，是老手的保命習慣。可以一次改多個欄位：<code>SET a = 1, b = 2</code>。</p>` },
+    { type: 'blocks', id: 'c5-b1', title: '拼出安全的 UPDATE', prompt: '組出「把監視器畫面的 <code>status</code> 改成已送鑑識」。有一塊積木不屬於 UPDATE 句型。',
+      blocks: ['UPDATE', 'evidence', 'SET', "status = '已送鑑識'", 'WHERE', "item_name = '監視器畫面';"], distractors: ['FROM'],
+      wrong: 'UPDATE 表 SET 欄位 = 值 WHERE 條件。UPDATE 沒有 FROM，而且 WHERE 千萬不能少。' },
     { type: 'task', id: 'c5-t5', title: '送鑑識', prompt: '把 <code>item_name</code> 為<strong>監視器畫面</strong>的證物 <code>status</code> 改成 <strong>已送鑑識</strong>。',
       hints: ["UPDATE evidence SET status = '已送鑑識' WHERE ...", "WHERE item_name = '監視器畫面'", "<code>UPDATE evidence SET status = '已送鑑識' WHERE item_name = '監視器畫面';</code>"],
       check: { kind: 'probe', probe: 'SELECT id, report_id, item_name, location, status, logged_at FROM evidence ORDER BY id' } },
@@ -118,9 +121,14 @@ ALTER TABLE evidence RENAME COLUMN location TO found_at; -- 改名</code></pre>`
         <li><code>DROP TABLE t</code>：<strong>整張表消失</strong>，含結構。</li>
       </ul>
       <p>三個都不可逆，實務上會先備份。</p>` },
+    { type: 'predict', id: 'c5-p1', title: '少了 WHERE 的 DELETE', sql: 'DELETE FROM evidence;', question: '如果真的執行這句，會發生什麼？', options: ['出現錯誤，DELETE 一定要有 WHERE', 'evidence 表整張被刪掉', 'evidence 變成 0 筆，表結構還在', '只刪掉第一筆'], answer: 2, explain: '資料庫不會攔你：沒有 WHERE 的 DELETE 就是刪掉每一列，表本身留下。這句我們不執行，證物表還要用。', run: false, noRun: '這句不執行：它會清空你剛建好的證物表。' },
     { type: 'task', id: 'c5-t13', title: '撤掉照片表', prompt: '照片決定改存到雲端系統。把 <code>evidence_photo</code> 表整張<strong>刪除</strong>。',
       hints: ['要連資料與結構一起刪除，使用 DROP TABLE。', '<code>DROP TABLE ___;</code>', '<code>DROP TABLE evidence_photo;</code>'],
       check: { kind: 'probe', probe: "SELECT COUNT(*) FROM sqlite_master WHERE type = 'table' AND name = 'evidence_photo'" } },
+    { type: 'task', id: 'c5-d1', variant: 'debug', title: '登錄收據', prompt: '鑑識組想登錄一筆證物：<code>report_id</code> 50、<code>item_name</code> 收據、<code>location</code> 海濱門市，但這句 INSERT 被拒絕。修正後成功新增。',
+      starter: "INSERT INTO evidence (report_id, item_name) VALUES (50, '收據', '海濱門市');",
+      hints: ['欄位清單有 2 個，VALUES 卻給了 3 個值。', '把 location 加進欄位清單。', "<code>INSERT INTO evidence (report_id, item_name, location) VALUES (50, '收據', '海濱門市');</code>"],
+      check: { kind: 'probe', probe: "SELECT report_id, item_name, location, status FROM evidence WHERE item_name = '收據'" } },
     { type: 'quiz', id: 'c5-q1', question: '執行 UPDATE evidence SET status = \'已結案\'; 會發生什麼？', options: ['只改第一筆', '出現錯誤', '整張表每一筆都被改成已結案', '什麼都不會發生'], answer: 2, explain: '沒有 WHERE 的 UPDATE 會影響所有列，執行前務必確認。' },
     { type: 'quiz', id: 'c5-q2', question: '想「清空整張表但保留結構、自動編號歸零」，用？', options: ['DROP TABLE', 'TRUNCATE TABLE', 'DELETE FROM t WHERE id > 0', 'ALTER TABLE'], answer: 1, explain: 'TRUNCATE 清空並重設 AUTO_INCREMENT；DROP 會連表一起刪。' },
     { type: 'story', lines: [

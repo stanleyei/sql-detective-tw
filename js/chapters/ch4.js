@@ -29,10 +29,17 @@ WHERE e.company_id = 1;</code></pre>
         <li><code>e</code>、<code>p</code> 是<strong>表別名</strong>，之後用 <code>e.欄位</code>、<code>p.欄位</code> 指明是哪張表的欄位，避免同名混淆。</li>
         <li><code>JOIN</code> 就是 <code>INNER JOIN</code>：只留下<strong>兩邊都對得上</strong>的列。</li>
       </ul>` },
+    { type: 'blocks', id: 'c4-b1', title: '拼出第一個 JOIN', prompt: '組出「列出潮港科技（company_id = 1）員工的 <code>p.name</code> 與 <code>e.title</code>」。有一塊積木是多餘的。',
+      blocks: ['SELECT', 'p.name, e.title', 'FROM', 'employee AS e', 'JOIN', 'person AS p', 'ON', 'p.id = e.person_id', 'WHERE', 'e.company_id = 1;'], distractors: ['ON e.company_id = 1'],
+      wrong: 'JOIN 的順序：FROM 表 A → JOIN 表 B → ON 兩表怎麼對上 → WHERE 篩選條件。ON 放對應關係，WHERE 放篩選。' },
     { type: 'task', id: 'c4-t2', title: '員工名冊', prompt: '列出 <code>company_id = 1</code> 的所有員工：顯示 <code>e.id</code>、<code>p.name</code>、<code>e.department</code>、<code>e.title</code>（employee 別名 e、person 別名 p）。',
       hints: ['FROM employee e JOIN person p ON p.id = e.person_id', 'WHERE e.company_id = 1', '<code>SELECT e.id, p.name, e.department, e.title FROM employee e JOIN person p ON p.id = e.person_id WHERE e.company_id = 1;</code>'],
       check: { kind: 'result', cols: ['id', 'name', 'department', 'title'], ordered: false },
       clue: { title: '潮港科技員工', text: '共 30 名員工，分屬研發、業務、人資、財務、資訊五個部門。' } },
+    { type: 'task', id: 'c4-d1', variant: 'debug', title: '名冊上怎麼有局長？', prompt: '人資給的這句 SQL 跑得動，卻列出林曉青、陳大川這些根本不是員工的人。找出 JOIN 哪裡對錯了，修正後顯示 <code>p.name</code>、<code>e.title</code>。',
+      starter: 'SELECT p.name, e.title FROM employee e JOIN person p ON p.id = e.id WHERE e.company_id = 1;',
+      hints: ['沒有錯誤，但名字全錯，問題一定在 ON。', 'employee 的 id 是員工編號，對到 person 的 id 就張冠李戴了；該用 e.person_id。', '<code>SELECT p.name, e.title FROM employee e JOIN person p ON p.id = e.person_id WHERE e.company_id = 1;</code>'],
+      check: { kind: 'result', cols: ['name', 'title'], ordered: false } },
     { type: 'task', id: 'c4-t3', title: '誰刷進了機房？', prompt: '從 <code>access_log</code> 找出 <code>door</code> 為<strong>機房</strong>、時間在 <strong>2025-06-20 22:00:00 到 23:00:00</strong> 之間的紀錄，顯示 <code>employee_id</code>、<code>action</code>、<code>event_time</code>。',
       lead: 'access_log 表，door 與 event_time 兩個條件用 AND，時間用 BETWEEN 並寫完整日期時間。',
       hints: ["door = '機房' AND event_time BETWEEN ... AND ...", '這題還不需要 JOIN。', "<code>SELECT employee_id, action, event_time FROM access_log WHERE door = '機房' AND event_time BETWEEN '2025-06-20 22:00:00' AND '2025-06-20 23:00:00';</code>"],
@@ -96,6 +103,7 @@ WHERE e.company_id = 1;</code></pre>
       hints: ['照上面的範例加上部門條件。', "WHERE e.company_id = 1 AND e.department = '研發部'", "<code>SELECT p.name AS employee, m.name AS manager FROM employee e JOIN person p ON p.id = e.person_id LEFT JOIN employee me ON me.id = e.manager_id LEFT JOIN person m ON m.id = me.person_id WHERE e.company_id = 1 AND e.department = '研發部';</code>"],
       check: { kind: 'result', cols: null, ordered: false },
       clue: { title: '直屬關係', text: '周文傑是許國棟的直屬部下，知道經理的座位與習慣，有機會拿到抽屜裡的門禁卡。' } },
+    { type: 'predict', id: 'c4-p1', title: '誰沒有主管？', sql: "SELECT p.name FROM employee e JOIN person p ON p.id = e.person_id WHERE e.company_id = 1 AND e.manager_id IS NULL;", question: '潮港科技有 30 名員工、五個部門。這句會回傳？', options: ['0 筆，每個人都有主管', '1 筆，只有研發部經理許國棟', '5 筆，各部門的經理', '30 筆'], answer: 2, explain: 'manager_id 為 NULL 代表沒有上層，也就是各部門的經理。這正是 SELF JOIN 範例要用 LEFT JOIN 的原因：經理們對不到主管，用 INNER JOIN 會整列消失。' },
     { type: 'lesson', title: 'JOIN 也能配 GROUP BY', body: `
       <p>接起來的表一樣可以分組統計：</p>
       <pre><code>SELECT c.name, COUNT(*) AS headcount

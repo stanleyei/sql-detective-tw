@@ -17,6 +17,10 @@ SD.expect = {
   "hash": "dd12eb82ac7264bcf7a23fbfdf5918f178d37f61bd4aec4349d57dc4511cd4b3",
   "rows": 334
  },
+ "c0-d1": {
+  "hash": "9db753567d154efce04dbab84370329c3d77dee238df7db9d6ab2ca08b6099b1",
+  "rows": 78
+ },
  "c0-t6": {
   "hash": "40420c15626fa8340711ff30d0ab9fca412f4fc5f0b2c91a873007abad1e30ff",
   "rows": 48
@@ -48,6 +52,10 @@ SD.expect = {
  "c1-t5": {
   "hash": "6d2d00b313a1f6adbfde2693190fb1fc46602d83a939c9046614e2d5088daedf",
   "rows": 24
+ },
+ "c1-d1": {
+  "hash": "9b11e41c8c50ceef2a70980d66160c9581866086067cba50697d787a71a8e2ea",
+  "rows": 3
  },
  "c1-t6": {
   "hash": "089e8c2ea41e07a90acbc1bd4fa6966b9544fc6ef25df73fd5bae7aac9d70c5a",
@@ -98,6 +106,10 @@ SD.expect = {
   "unorderedHash": "a28c94995760979e70762ba8e7659c3150ac63d0aa313fa77424917fd2f2ffa4",
   "desc": false
  },
+ "c2-d1": {
+  "hash": "714b42d6896c5abb7466555bcf4d9f93afe8c48b8bf4d3fed5576048d7f44cd6",
+  "rows": 5
+ },
  "c2-t5": {
   "hash": "4a15cad7f742fb4e20b478d9bfd78218734f84eeee435a6642f8dfb3c24299dc",
   "rows": 4
@@ -117,12 +129,6 @@ SD.expect = {
  "c2-t9": {
   "hash": "41b01f0907f5baf79343fb653c6b05c1dbee8f3c8a9eacb6c0ca6064d4529ae4",
   "rows": 1
- },
- "c2-t10": {
-  "hash": "e81624d2c23aed22363911302c8925dd42617ed58143e5980d181f7fcb751779",
-  "rows": 5,
-  "unorderedHash": "e81624d2c23aed22363911302c8925dd42617ed58143e5980d181f7fcb751779",
-  "desc": false
  },
  "c2-t11": {
   "hash": "c5044e5c5489c47f861adde6ab32674d518b3ffd5fc93823a1f7ebcf0dab8b86",
@@ -162,6 +168,10 @@ SD.expect = {
  "c3-t6": {
   "hash": "0aa310f79ebe989cc88593d5e6d837bb84848f7c3852a985460b6efc907472f9",
   "rows": 1
+ },
+ "c3-d1": {
+  "hash": "59c79c675a0839685ec3c3414e3bc14f59e9ba0a59bd42eb7ea8680ad174aba8",
+  "rows": 4
  },
  "c3-t7": {
   "hash": "bff60e9eb8e4f6e17c48d6ccec5cb86a83c8da4896a80b7eadc7f10d004b06ac",
@@ -204,6 +214,10 @@ SD.expect = {
  },
  "c4-t2": {
   "hash": "c80413fd2371d7b0a3f43761b9a45dfd5ec4818fda04ad269b93327da9168a6d",
+  "rows": 30
+ },
+ "c4-d1": {
+  "hash": "8d5f2ff40990ccd7b1f75f031c592868d3c46afc4e96f1febb4383411ba6d6e8",
   "rows": 30
  },
  "c4-t3": {
@@ -291,6 +305,10 @@ SD.expect = {
  },
  "c5-t13": {
   "hash": "5feceb66ffc86f38d952786c6d696c79c2dbc239dd4e91b46729d73a27fb57e9",
+  "rows": 1
+ },
+ "c5-d1": {
+  "hash": "82e6aa3bd9536b2b2113dafe8d947cc007072c5302b3089001d0e5ed986515e7",
   "rows": 1
  },
  "c6-t1": {
