@@ -1299,7 +1299,9 @@
       <div id="feedback" class="mt-3" aria-live="assertive"></div>
       <div class="mt-4 flex gap-2"><button type="button" id="btn-check-blocks" class="btn-primary btn-sm">檢查</button><button type="button" id="btn-reset-blocks" class="btn-ghost btn-sm">重排</button></div>`;
     const slot = $('#slot', card), pool = $('#pool', card);
+    // 正解以 blocks 原始順序為準；answers 可列出其他語意等價的排列（如互斥的 WHEN 子句對調），避免合法 SQL 被判成順序錯誤
     const answer = step.answer || step.blocks.join(' ');
+    const answers = [answer].concat(step.answers || []);
     const shuffled = step.blocks.concat(step.distractors || []).sort(() => Math.random() - 0.5);
     const mk = (text) => { const b = el('button', 'block-chip', esc(text)); b.type = 'button'; b.draggable = true; b.dataset.v = text; return b; };
     const move = (b) => { (b.parentElement === pool ? slot : pool).appendChild(b); if (canAnimate()) gsap.from(b, { scale: 0.8, duration: 0.2 }); };
@@ -1316,14 +1318,14 @@
     $('#btn-check-blocks', card).addEventListener('click', () => {
       const got = [...slot.children].map((b) => b.dataset.v).join(' ').replace(/\s+/g, ' ').trim();
       const fb = $('#feedback', card);
-      if (got === answer) { SD.state.markStep(chapter.id, step.id); showSolved(); updateNav(); }
+      if (answers.includes(got)) { SD.state.markStep(chapter.id, step.id); showSolved(got); updateNav(); }
       else if ((step.distractors || []).some((d) => got.includes(d))) fb.innerHTML = `<div class="rounded-xl border border-amber/40 bg-amber/5 p-3 text-sm">句子裡有一塊不該出現的積木，把它拿回積木區。</div>`;
       else fb.innerHTML = `<div class="rounded-xl border border-amber/40 bg-amber/5 p-3 text-sm">${esc(step.wrong || '順序還不對。想想句型：SELECT 欄位 FROM 表 LIMIT 筆數。')}</div>`;
     });
     // 拼對後可直接帶進查詢區執行，看結果長什麼樣；積木題不計星，不經過任務檢核
-    function showSolved() {
-      $('#feedback', card).innerHTML = `<div class="rounded-xl border border-teal/50 bg-teal/10 p-3 text-sm"><p class="font-bold text-teal">✔ 拼對了！</p><pre class="prose-sd mt-2 rounded bg-ink-950 p-2"><code>${SD.highlight(answer)}</code></pre><button type="button" class="btn-teal btn-sm mt-2" data-run-blocks>帶入查詢區執行 →</button></div>`;
-      $('[data-run-blocks]', card).addEventListener('click', () => { replaceEditor(answer, '已帶入拼好的 SQL。'); runSql(); });
+    function showSolved(sql = answer) {
+      $('#feedback', card).innerHTML = `<div class="rounded-xl border border-teal/50 bg-teal/10 p-3 text-sm"><p class="font-bold text-teal">✔ 拼對了！</p><pre class="prose-sd mt-2 rounded bg-ink-950 p-2"><code>${SD.highlight(sql)}</code></pre><button type="button" class="btn-teal btn-sm mt-2" data-run-blocks>帶入查詢區執行 →</button></div>`;
+      $('[data-run-blocks]', card).addEventListener('click', () => { replaceEditor(sql, '已帶入拼好的 SQL。'); runSql(); });
     }
     if (done) showSolved();
   }

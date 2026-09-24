@@ -100,6 +100,8 @@ FROM cctv_log;</code></pre>
     { type: 'blocks', id: 'c2-b1', title: '她的車出現在什麼時段？', prompt: 'CASE 句子長，用積木拼：列出車牌 <strong>RBK-7528</strong> 的所有紀錄，顯示 <code>capture_time</code> 與依小時標記的 <code>period</code>（6~17 白天、18~23 晚上、其他深夜），依時間由早到晚排序。有一塊積木是多餘的。',
       blocks: ['SELECT capture_time,', 'CASE', "WHEN HOUR(capture_time) BETWEEN 6 AND 17 THEN '白天'", "WHEN HOUR(capture_time) BETWEEN 18 AND 23 THEN '晚上'", "ELSE '深夜'", 'END AS period', 'FROM cctv_log', "WHERE plate_number = 'RBK-7528'", 'ORDER BY capture_time;'],
       distractors: ["ELSE '晚上'"],
+      // 兩個 WHEN 的區間互斥，對調後結果相同，也算正解
+      answers: ["SELECT capture_time, CASE WHEN HOUR(capture_time) BETWEEN 18 AND 23 THEN '晚上' WHEN HOUR(capture_time) BETWEEN 6 AND 17 THEN '白天' ELSE '深夜' END AS period FROM cctv_log WHERE plate_number = 'RBK-7528' ORDER BY capture_time;"],
       wrong: 'CASE 的結構是 CASE → WHEN … THEN … → ELSE … → END AS 別名，整段放在 SELECT 的欄位清單裡，FROM 與 WHERE 在它後面。' },
     { type: 'task', id: 'c2-t11', title: '格式化時間', prompt: '同樣是 RBK-7528 的紀錄，用 <code>DATE_FORMAT(capture_time, \'%m/%d %H:%i\')</code> 顯示成「月/日 時:分」，別名 <code>t</code>，並把 <code>camera_location</code> 一起列出，依時間<strong>由早到晚</strong>排序。',
       lead: "WHERE plate_number = 'RBK-7528'，SELECT 放 DATE_FORMAT(...) AS t 與 camera_location。",
