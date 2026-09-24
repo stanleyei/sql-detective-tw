@@ -10,6 +10,14 @@
   const ROW_SEP = '';
   const CELL_SEP = '';
 
+  /*
+   * 全形／半形括號與各種間隔號視為相同。CONCAT 類題目要玩家自己打「（港東區·漁市街）」這類固定文字，
+   * 鍵盤直接打的 ( ) 與注音輸入法輸出的 ‧（U+2027）都和標準解答碼位不同；這不是 SQL 寫錯，不該判失敗。
+   * build-tasks.js 也走同一個 cell()，期望值會一併折疊，兩邊永遠一致。
+   */
+  const PUNCT_FOLD = { '（': '(', '）': ')', '‧': '·', '•': '·', '・': '·', '．': '·', '˙': '·' };
+  const foldPunct = (s) => s.replace(/[（）‧•・．˙]/g, (c) => PUNCT_FOLD[c]);
+
   function cell(v) {
     if (v === null || v === undefined) return '∅';
     if (typeof v === 'number') {
@@ -20,7 +28,7 @@
     const s = String(v).trim();
     // 數字字串與數字視為相同（例如 '3' 與 3）
     if (/^-?\d+(\.\d+)?$/.test(s)) return cell(Number(s));
-    return s;
+    return foldPunct(s);
   }
 
   const normName = (c) => String(c).toLowerCase().replace(/^.*\./, '').replace(/`/g, '').trim();
