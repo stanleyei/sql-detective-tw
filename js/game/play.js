@@ -271,8 +271,13 @@
     else { const h = list[Number(b.dataset.historyInsert)]; if (h) insertAtCursor(h.sql); }
   });
   $('#history-all').addEventListener('change', renderHistory);
-  $('#btn-history-clear').addEventListener('click', () => {
-    if (!window.confirm('清除所有章節的查詢紀錄？此動作無法復原。')) return;
+  $('#btn-history-clear').addEventListener('click', async () => {
+    const ok = await SD.ui.confirm({
+      title: '清除所有查詢紀錄？',
+      body: '會刪除所有章節的查詢紀錄，此動作無法復原。',
+      okText: '清除紀錄', danger: true,
+    });
+    if (!ok) return;
     SD.state.clearHistory(); histNav = null; renderHistory();
   });
 
@@ -1393,11 +1398,18 @@
       hintBtn.disabled = shown >= 3;
     };
     refreshHintBtn();
-    hintBtn.addEventListener('click', () => {
+    hintBtn.addEventListener('click', async () => {
       if (shown >= 3) return;
       const used = prog().hints[step.id] || 0;
       if (shown >= used) {
-        if (shown === 2 && !window.confirm('第 3 個提示是完整解答，看了這題只會得到 1 星。確定要看嗎？')) return;
+        if (shown === 2) {
+          const ok = await SD.ui.confirm({
+            title: '要直接看完整解答嗎？',
+            body: '第 3 個提示就是標準答案，看了這題最多只能得到 1 星。',
+            okText: '看解答', cancelText: '再想想',
+          });
+          if (!ok) return;
+        }
         SD.state.useHint(chapter.id, step.id, shown + 1);
       }
       shown++;
@@ -1969,8 +1981,13 @@
     if ($('#btn-reset-ch')) return;
     const b = el('button', 'menu-item', '重置本章資料表'); b.type = 'button'; b.id = 'btn-reset-ch';
     b.title = '刪掉本章建立的 evidence / evidence_photo 表，從第一個任務重做';
-    b.addEventListener('click', () => {
-      if (!window.confirm('會刪除 evidence 與 evidence_photo 表，並清除本章任務進度。確定？')) return;
+    b.addEventListener('click', async () => {
+      const ok = await SD.ui.confirm({
+        title: '重置本章資料表？',
+        body: '會刪除 evidence 與 evidence_photo 表，並清除本章任務進度，從第一個任務重做。',
+        okText: '刪表並重做', danger: true,
+      });
+      if (!ok) return;
       SD.db.run('DROP TABLE IF EXISTS evidence_photo; DROP TABLE IF EXISTS evidence;');
       scheduleDbSave(); renderSchemaList();
       const p = prog(); p.steps = {}; p.hints = {}; p.done = false; p.step = 0; SD.state.save();
@@ -1986,8 +2003,13 @@
     return { ch, step: m[1] !== undefined ? Number(m[1]) : undefined };
   }
 
-  $('#btn-reset-db').addEventListener('click', () => {
-    if (!window.confirm('把資料庫還原成初始狀態？你在第 5 章建立的資料表會消失，任務進度不會改變。')) return;
+  $('#btn-reset-db').addEventListener('click', async () => {
+    const ok = await SD.ui.confirm({
+      title: '還原資料庫？',
+      body: '資料庫會回到初始狀態，你在第 5 章建立的資料表會消失；任務進度不會改變。',
+      okText: '還原資料庫', danger: true,
+    });
+    if (!ok) return;
     SD.db.reset(); SD.state.clearDb(); renderSchemaList();
     resultsEl.innerHTML = '';
     resultsEl.appendChild($('#tpl-results-empty').content.cloneNode(true));

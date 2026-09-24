@@ -143,6 +143,10 @@
   .btn-teal {
     @apply inline-flex min-h-11 min-w-11 cursor-pointer items-center justify-center gap-2 rounded-lg px-4 py-2 text-base font-bold transition disabled:cursor-not-allowed disabled:opacity-40 bg-teal text-ink-950 hover:brightness-110;
   }
+  /* 確認框的破壞性主按鈕（清除進度、刪表）。danger #ff7b7b 對 ink-950 文字 8.0:1；顏色之外仍以按鈕文字（動詞）表明後果 */
+  .btn-danger {
+    @apply inline-flex min-h-11 min-w-11 cursor-pointer items-center justify-center gap-2 rounded-lg px-4 py-2 text-base font-bold transition disabled:cursor-not-allowed disabled:opacity-40 bg-danger text-ink-950 hover:brightness-110;
+  }
   /* 首頁 CTA 文字：js/boot-flag.js 在首次繪製前依 localStorage 進度替 <html> 加 data-resume，
      這裡純以 CSS 決定顯示「開始辦案」或「繼續辦案」，不必等 main.js 載完再改字（避免有進度的玩家先看到「開始辦案」）。
      CSS 未載入時兩者會並列顯示，不會誤導。 */

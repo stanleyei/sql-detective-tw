@@ -62,9 +62,14 @@
     // 按鈕文字已由 js/boot-flag.js + CSS 在首屏切成「繼續辦案」，這裡只補 href 與保險旗標
     document.documentElement.setAttribute('data-resume', '');
     for (const id of ['hero-cta', 'nav-play']) document.getElementById(id).href = href;
-    document.getElementById('reset-btn').addEventListener('click', () => {
+    document.getElementById('reset-btn').addEventListener('click', async () => {
       // 重新開始會清掉所有進度，先問一次
-      if (window.confirm('確定要清除所有進度、線索與徽章，從第 0 章重新開始嗎？')) { SD.state.resetAll(); location.reload(); }
+      const ok = await SD.ui.confirm({
+        title: '從第 0 章重新開始？',
+        body: '會清除所有章節進度、已收集的線索與徽章，此動作無法復原。',
+        okText: '清除並重新開始', danger: true,
+      });
+      if (ok) { SD.state.resetAll(); location.reload(); }
     });
   }
 
