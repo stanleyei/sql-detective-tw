@@ -48,12 +48,12 @@ WHERE id IN (10001, 10002)</code></pre>` },
     { type: 'task', id: 'c1-t3', after: { step: 'c1-t2', use: 'sql' }, title: '縮小範圍', prompt: '在上一題的基礎上，只留下 <code>car_color</code> 為 <code>\'白\'</code>（資料表用單字，不是「白色」）、<code>vehicle_type</code> 為 <code>\'機車\'</code>、身高 <code>height_cm</code> 在 <strong>175 到 180</strong> 之間的駕照，顯示 <code>id</code>、<code>plate_number</code>、<code>person_id</code>。',
       hints: ['四個條件全部用 AND 串起來。', "car_color = '白' AND vehicle_type = '機車' AND height_cm BETWEEN 175 AND 180", "<code>SELECT id, plate_number, person_id FROM driver_license WHERE plate_number LIKE 'MKJ%' AND car_color = '白' AND vehicle_type = '機車' AND height_cm BETWEEN 175 AND 180;</code>"],
       check: { kind: 'result', cols: ['plate_number', 'person_id'], ordered: false },
-      clue: { title: '兩名嫌疑車主', text: 'MKJ-5821（車主編號 4）與 MKJ-3390（車主編號 5）符合所有目擊特徵。' } },
+      clue: { title: '符合特徵的兩張車牌', text: '四張 MKJ 車牌中，只有 MKJ-5821（車主編號 4）與 MKJ-3390（車主編號 5）同時符合白色機車與身高特徵。' } },
     { type: 'task', id: 'c1-t4', after: { step: 'c1-t3', use: 'result' }, title: '車主是誰？', prompt: '用上一題查到的 <code>person_id</code>，從 <code>person</code> 找出這兩位市民，顯示 <code>id</code>、<code>name</code>、<code>district</code>、<code>phone</code>。',
       lead: '查 person 表，用 WHERE id IN (...) 一次帶入兩個編號。',
       hints: ['person 的 id 就是駕照上的 person_id。', 'WHERE id IN (4, 5)', '<code>SELECT id, name, district, phone FROM person WHERE id IN (4, 5);</code>'],
       check: { kind: 'result', cols: ['id', 'name', 'district', 'phone'], ordered: false },
-      clue: { title: '嫌疑人', text: '4 號吳志豪（港東區，沒有登記電話）、5 號蘇建豪（港東區）。' } },
+      clue: { title: '嫌疑人身分查核', text: '車主編號 4 是吳志豪（港東區，沒有登記電話）、5 是蘇建豪（港東區）。' } },
     { type: 'lesson', title: 'IS NULL：空值不能用等號', body: `
       <p>你可能注意到吳志豪的電話是 <strong>NULL</strong>，代表「沒有資料」。NULL 不是 0 也不是空字串，<strong>不能</strong>用 <code>= NULL</code> 比較，要用：</p>
       <pre><code>WHERE phone IS NULL
@@ -115,7 +115,15 @@ LIMIT 3;</code></pre>
     { type: 'answer', id: 'c1-answer', prompt: '綜合所有線索：目擊特徵、監視器、筆錄與不在場證明，<strong>竊賊是誰？</strong>',
       success: '吳志豪的機車在案發前後都出現在夜市周邊，筆錄含糊其詞，而另一位嫌疑人有健身房打卡佐證。老闆娘指認後，吳志豪承認犯案，耳機也找回來了。',
       fail: '再看看證據板：誰的車在 21:38 高速離開漁市街口？誰又有不在場證明？',
-      chain: ['c1-t3', 'c1-t6', 'c1-t10'], chainFail: '證據鏈要能回答三件事：誰符合目擊特徵、誰的車出現在案發現場、誰有不在場證明。',
+      chain: ['c1-t3', 'c1-t6', 'c1-t10'], chainFail: '證據鏈是：把四張車牌篩到兩張的那一步 → 監視器在案發現場拍到的車牌 → 能證實（不只是主張）不在場的紀錄。',
+      chainNotes: {
+        'c1-t1': '目擊描述是篩選的條件，不是篩選的結果。哪一張把四張車牌縮成兩張？',
+        'c1-t2': '四張車牌還沒套上白色機車與身高條件，範圍太大。',
+        'c1-t4': '名字是查表查出來的，讓四張車牌變成兩個人的是前一步。',
+        'c1-t7': '賣得好只說明耳機值錢，跟是誰偷的無關。',
+        'c1-t8': '筆錄只是他自己的說法，哪一張證明了它？',
+        'c1-t9': '會員編號只是查打卡的中繼站，打卡結果才是證據。',
+      },
       suspects: ['吳志豪', '蘇建豪', '賴世偉', '簡冠霖'] },
     { type: 'story', lines: [
       { who: 'vendor', text: '太感謝了！耳機找回來，我請你們吃蚵仔煎！' },

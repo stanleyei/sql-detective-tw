@@ -492,6 +492,8 @@
   .chain-slot { @apply inline-flex min-h-11 min-w-28 items-center justify-center gap-2 rounded-lg border-2 border-dashed border-ink-500 px-3 py-2 text-sm text-ink-300; }
   .chain-slot.is-filled { @apply cursor-pointer border-solid border-teal bg-teal/10 font-bold text-paper hover:border-danger hover:bg-danger/10; }
   .chain-slot.is-filled:disabled { @apply cursor-default hover:border-teal hover:bg-teal/10; }
+  /* 判定後不在鏈上的卡：琥珀色邊框加 ✘ 字樣，讓玩家知道要換的是哪一張，不只靠顏色（WCAG 1.4.1） */
+  .chain-slot.is-filled.is-wrong { @apply border-amber bg-amber/10 text-amber hover:border-danger hover:bg-danger/10; }
   .chain-slot img { @apply size-10 rounded-sm bg-ink-900 object-cover; }
   /* 嫌疑人按鈕：選錯的畫線退場，選對由 JS 加 success 區塊 */
   .suspect-btn { @apply inline-flex min-h-11 cursor-pointer items-center rounded-lg border border-ink-600 bg-ink-900 px-4 text-base font-bold text-paper transition hover:border-amber disabled:cursor-not-allowed; }

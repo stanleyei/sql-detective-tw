@@ -68,12 +68,12 @@ UPPER(x)  LOWER(x)  TRIM(x) -- 大寫、小寫、去頭尾空白</code></pre>
       lead: '沿用上一題的 driver_license 查詢，在 WHERE 後面再 AND 兩個條件。',
       hints: ["加上 AND car_color = '銀' AND gender = '女'。", '三個條件都要成立。', "<code>SELECT plate_number, person_id FROM driver_license WHERE RIGHT(plate_number, 3) = '528' AND car_color = '銀' AND gender = '女';</code>"],
       check: { kind: 'result', cols: ['plate_number', 'person_id'], ordered: false },
-      clue: { title: '剩兩張', text: 'RBK-7528（車主 9）與 LLP-0528（車主 12）。' } },
+      clue: { title: '符合車色與性別的兩張車牌', text: 'RBK-7528（車主 9）與 LLP-0528（車主 12）。' } },
     { type: 'task', id: 'c2-t7', title: '交叉比對時間', prompt: '這兩張車牌，哪一張在 <strong>2025-04-12 22:30 到 23:10</strong> 之間出現在 <code>cctv_log</code>？（時間條件要含日期，其他日子也有紀錄）顯示<strong>不重複</strong>的 <code>plate_number</code>。',
       lead: 'cctv_log 表：車牌用 IN、時間用 BETWEEN（含日期），前面加 DISTINCT 去重。',
       hints: ["plate_number IN ('RBK-7528', 'LLP-0528')", '加上 BETWEEN 時間條件與 DISTINCT。', "<code>SELECT DISTINCT plate_number FROM cctv_log WHERE plate_number IN ('RBK-7528', 'LLP-0528') AND capture_time BETWEEN '2025-04-12 22:30:00' AND '2025-04-12 23:10:00';</code>"],
       check: { kind: 'value' },
-      clue: { title: '鎖定車牌', text: 'RBK-7528。LLP-0528 當天只在 19:05 出現過，早已離開。' } },
+      clue: { title: '鎖定車牌 RBK-7528', text: 'RBK-7528。LLP-0528 當天只在 19:05 出現過，早已離開。' } },
     { type: 'lesson', title: 'AS：幫欄位取個好名字', body: `
       <p>算出來的欄位名稱會很醜，例如 <code>2025 - birth_year</code>。用 <code>AS</code> 取別名：</p>
       <pre><code>SELECT name, 2025 - birth_year AS age FROM person;</code></pre>
@@ -115,7 +115,16 @@ FROM cctv_log;</code></pre>
     { type: 'answer', id: 'c2-answer', prompt: '銀色汽車、後三碼 528、女性駕駛、案發時段出現在門口並快速離開。<strong>搶匪是誰？</strong>',
       success: '車牌、車色、性別、時間四個條件同時指向黃雅婷。鑑識人員在她車內找到收銀機的零錢盤，她隨後認罪。',
       fail: '四張 528 車牌裡，同時符合「銀色、女性、22:30~23:10 出現在門口」的只有一張。',
-      chain: ['c2-t6', 'c2-t7', 'c2-t8'], chainFail: '證據鏈是：符合車色與性別的車牌 → 案發時段出現在門口的那一張 → 那張車牌的車主。',
+      chain: ['c2-t6', 'c2-t7', 'c2-t8'], chainFail: '證據鏈是：把四張 528 篩到符合銀色與女性的兩張 → 兩張裡案發時段真的在門口、還快速離開的那一張 → 那張車牌的車主。',
+      chainNotes: {
+        'c2-t1': '案件描述是條件，不是篩選結果。哪一張把四張車牌縮成兩張？',
+        'c2-t2': '營業時間只是用來推算案發時間的材料。',
+        'c2-t3': '案發時間是查監視器的條件，不是誰在門口的證據。',
+        'c2-t4': '門口監視器同時拍到兩台銀色車，還沒排除另一台；哪一張只剩一張車牌？',
+        'c2-t5': '四張車牌還沒套上銀色與女性的條件，範圍太大。',
+        'c2-t9': '她承認在場但否認搶錢，筆錄本身不能定罪；車牌與車主的對應才是關鍵。',
+        'c2-t11': '逃逸路線是補強，證據鏈需要的是「哪張車牌」與「車牌是誰的」。',
+      },
       suspects: ['黃雅婷', '周佳穎', '謝欣怡', '郭俊傑'] },
     { type: 'story', lines: [
       { who: 'clerk', text: '原來真的是她……謝謝你們。我下次一定看時鐘。' },

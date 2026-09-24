@@ -594,12 +594,27 @@
     renderBoard();
     const fbEl = $('#chain-feedback', boardStage);
     if (!fbEl) return;
+    chainFeedback(fbEl, step);
     if (chainOk) {
-      fbEl.innerHTML = '<p class="mt-2 text-sm font-bold text-teal">✔ 證據鏈成立，嫌疑人名單解鎖。</p>';
       if (canAnimate()) gsap.from('#suspects', { y: 12, opacity: 0, duration: 0.4, ease: 'power2.out' });
     } else if (chained.length >= step.chain.length) {
-      fbEl.innerHTML = `<p class="mt-2 text-sm leading-6 text-amber">${esc(step.chainFail || '這幾條線索湊不出結論，換一張看看。')}</p>`;
       if (canAnimate()) gsap.fromTo('#chain', { x: -6 }, { x: 0, duration: 0.4, ease: 'elastic.out(1, 0.3)' });
+    }
+  }
+  /* 證據鏈文字回饋：釘卡當下與重開結案室重繪都走這裡，存檔裡帶著已判定的錯誤組合時才不會只剩 ✘ 沒有說明 */
+  function chainFeedback(fbEl, step) {
+    if (chainOk) {
+      fbEl.innerHTML = '<p class="mt-2 text-sm font-bold text-teal">✔ 證據鏈成立，嫌疑人名單解鎖。</p>';
+    } else if (chained.length >= step.chain.length) {
+      // 格數已滿但沒成立：說出對了幾張、錯的卡各自為何不算證據（chainNotes），沒有逐卡提示才退回整條鏈的提示，避免玩家盲猜
+      const hit = chained.filter((id) => step.chain.includes(id)).length;
+      const notes = chained.filter((id) => !step.chain.includes(id)).map((id) => (step.chainNotes || {})[id]).filter(Boolean);
+      const titleOf = (id) => { const t = clueSteps(chapter).find((x) => x.id === id); return t ? t.clue.title : id; };
+      const wrongTitles = chained.filter((id) => !step.chain.includes(id)).map(titleOf);
+      fbEl.innerHTML = `<p class="mt-2 text-sm leading-6 text-amber"><span class="font-bold">${step.chain.length} 張中有 ${hit} 張在鏈上。</span>打 ✘ 的是「${wrongTitles.map(esc).join('」「')}」，其餘先留著。</p>
+        <p class="mt-1 text-sm leading-6 text-amber">${esc(notes.length ? notes.join(' ') : (step.chainFail || '這幾條線索湊不出結論，換一張看看。'))}</p>`;
+    } else {
+      fbEl.innerHTML = '';
     }
   }
   function chainAdd(id) {
@@ -621,7 +636,9 @@
       const n = step.chain.length;
       const chainSteps = clueSteps(chapter);
       const titleOf = (id) => { const s = chainSteps.find((x) => x.id === id); return s ? s.clue.title : id; };
-      const filled = () => (done ? step.chain : chained).map((id) => `<button type="button" class="chain-slot is-filled" data-chain-remove="${id}" ${done ? 'disabled' : ''} aria-label="移出證據鏈：${esc(titleOf(id))}"><img src="${SD.media.clueIcon(titleOf(id))}" alt="" width="40" height="40" /><span>${esc(titleOf(id))}</span></button>`).join('') + (done ? '' : Array.from({ length: Math.max(0, n - chained.length) }, (_, i) => `<div class="chain-slot" aria-label="空槽位 ${chained.length + i + 1}">線索 ${chained.length + i + 1}</div>`).join(''));
+      // 三格填滿卻沒成立時才逐格判定；未填滿前不標，讓玩家先想完整條鏈再拿回饋
+      const judged = () => !done && !chainOk && chained.length >= n;
+      const filled = () => (done ? step.chain : chained).map((id) => { const wrong = judged() && !step.chain.includes(id); return `<button type="button" class="chain-slot is-filled${wrong ? ' is-wrong' : ''}" data-chain-remove="${id}" ${done ? 'disabled' : ''} aria-label="${wrong ? '不在證據鏈上，' : ''}移出證據鏈：${esc(titleOf(id))}"><img src="${SD.media.clueIcon(titleOf(id))}" alt="" width="40" height="40" />${wrong ? '<span aria-hidden="true">✘</span>' : ''}<span>${esc(titleOf(id))}</span></button>`; }).join('') + (done ? '' : Array.from({ length: Math.max(0, n - chained.length) }, (_, i) => `<div class="chain-slot" aria-label="空槽位 ${chained.length + i + 1}">線索 ${chained.length + i + 1}</div>`).join(''));
       c.innerHTML = `<div class="min-w-0 flex-1"><p class="eyebrow">結案 · 指認</p><div class="prose-sd mt-2">${step.prompt}</div>
         <p class="mt-3 text-sm leading-6 text-ink-300"><span class="font-bold text-amber">第一步</span> 從牆上挑出 ${n} 張能串成一條證據鏈的線索：點線索卡上的「釘入證據鏈」，或直接拖進槽位。點槽位可移出。</p>
         <div id="chain" class="chain" aria-label="證據鏈">${filled()}</div>
@@ -634,7 +651,7 @@
       const fb = $('#verdict-feedback', c);
       const success = () => { fb.innerHTML = `<div class="mt-3 rounded-xl border border-teal/50 bg-teal/10 p-4"><p class="text-lg font-black text-teal">✔ 破案！</p><p class="mt-2 leading-7">${esc(step.success)}</p></div>`; };
       if (done) success();
-      else if (chainOk) $('#chain-feedback', c).innerHTML = `<p class="mt-2 text-sm font-bold text-teal">✔ 證據鏈成立。</p>`;
+      else chainFeedback($('#chain-feedback', c), step);
       const drop = $('#chain', c);
       drop.addEventListener('dragover', (e) => { if (!done) { e.preventDefault(); drop.classList.add('over'); } });
       drop.addEventListener('dragleave', () => drop.classList.remove('over'));
