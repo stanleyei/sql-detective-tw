@@ -50,6 +50,8 @@
   --shadow-glow-amber: 0 0 0 1px color-mix(in srgb, var(--color-amber) 40%, transparent), 0 10px 40px -10px color-mix(in srgb, var(--color-amber) 45%, transparent);
   --shadow-glow-teal: 0 0 0 1px color-mix(in srgb, var(--color-teal) 40%, transparent), 0 10px 40px -10px color-mix(in srgb, var(--color-teal) 45%, transparent);
   --shadow-card: 0 1px 0 0 rgb(255 255 255 / 0.04) inset, 0 12px 30px -12px rgb(0 0 0 / 0.6);
+  /* 浮動面板：比卡片更深更廣的投影，讓面板與其覆蓋的卡片分層 */
+  --shadow-panel: 0 1px 0 0 rgb(255 255 255 / 0.06) inset, 0 20px 50px -12px rgb(0 0 0 / 0.85), 0 0 0 1px rgb(0 0 0 / 0.5);
 }
 
 @layer base {
@@ -261,10 +263,15 @@
   .menu-panel { @apply absolute right-0 top-full z-50 mt-2 flex min-w-44 flex-col gap-1 rounded-xl border border-ink-700 bg-ink-900 p-2 shadow-card; }
   .menu-item { @apply inline-flex min-h-11 w-full cursor-pointer items-center rounded-lg px-3 text-left text-sm text-paper hover:bg-ink-800 hover:text-amber; }
   /*
-   * 查詢紀錄浮動面板：以編輯器標題列（relative）為定位基準。手機與標題列同寬；
-   * 桌機靠右、最寬 36rem。高度上限用 dvh，手機網址列伸縮時才不會超出可視範圍。
+   * 編輯器工具列的浮動面板（查詢紀錄、資料表）：以標題列（relative）為定位基準。手機與標題列同寬；
+   * 桌機靠右、限制最寬。高度上限用 dvh，手機網址列伸縮時才不會超出可視範圍。
+   * 面板疊在 .card（ink-900/80）之上，底色若同為 ink-900 邊界會消失；改用 ink-950 實底加 ink-500 邊框，
+   * 再以較深的陰影把面板從卡片抬起來，才看得出哪裡是面板、哪裡是底下的卡片。
    */
-  .history-panel { @apply absolute inset-x-0 top-full z-50 mt-2 flex max-h-[60dvh] flex-col overflow-hidden rounded-xl border border-ink-700 bg-ink-900 shadow-card lg:left-auto lg:w-[36rem] lg:max-w-full; }
+  .history-panel, .schema-panel { @apply absolute inset-x-0 top-full z-50 mt-2 flex max-h-[60dvh] flex-col overflow-hidden rounded-xl border border-ink-500 bg-ink-950 shadow-panel lg:left-auto lg:max-w-full; }
+  .history-panel { @apply lg:w-[36rem]; }
+  /* 欄位格 minmax(13rem) 在 44rem 內可排三欄 */
+  .schema-panel { @apply lg:w-[44rem]; }
   /* .card 的 backdrop-blur 會建立 stacking context，面板的 z-50 出不了卡片、會被後面的卡片蓋住；開啟時整張卡往上抬 */
   .card:has(> * > .menu[open], > * > * > .menu[open]) { @apply relative z-30; }
   .history-row { @apply flex min-h-11 min-w-0 flex-1 cursor-pointer flex-col gap-1 rounded-lg px-2 py-1.5 text-left hover:bg-ink-800; }

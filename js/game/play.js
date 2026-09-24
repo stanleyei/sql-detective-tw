@@ -43,8 +43,6 @@
   }
   function showPane(name) { activePane = name; applyPanes(); }
   lg.addEventListener('change', applyPanes);
-  // 手機上 18 顆表名 chip 會佔掉大半個畫面，預設收合；桌機中欄夠高則維持展開。只在載入時決定一次，不覆寫使用者之後的開合
-  if (!lg.matches) $('#schema-card').open = false;
   $('#pane-tabs').addEventListener('click', (e) => { const b = e.target.closest('[data-pane]'); if (b) showPane(b.dataset.pane); });
   applyPanes();
 
@@ -52,7 +50,7 @@
   const main = $('#main');
   function setFocus(mode) { main.dataset.focus = mode; }
 
-  // <details class="menu"> 下拉選單（header「⋯」、查詢紀錄）：點外面或按 Esc 關閉，Esc 時焦點回到開關
+  // <details class="menu"> 下拉選單（header「⋯」、查詢紀錄、資料表）：點外面或按 Esc 關閉，Esc 時焦點回到開關
   const menus = [...document.querySelectorAll('details.menu')];
   document.addEventListener('click', (e) => { menus.forEach((m) => { if (m.open && !m.contains(e.target)) m.open = false; }); });
   document.addEventListener('keydown', (e) => {
@@ -202,8 +200,8 @@
     renderResults(lastResults);
     SD.state.addHistory({ sql, kind: 'run', ch: chapter ? chapter.id : null, ...runSummary(lastResults) });
     renderHistory();
-    // 執行後收起欄位格，讓編輯器與結果同時留在視野內；表名 chip 仍在，一鍵可再展開
-    if (openSchemaTable) renderSchemaCols(null);
+    // 執行後關閉資料表面板讓結果露出；展開的表保留，再開面板時仍在原處
+    $('#schema-menu').open = false;
     if (lastResults.some((r) => r.type === 'affected' || r.ddl)) { scheduleDbSave(); renderSchemaList(); }
     const step = chapter.steps[stepIndex];
     if (step && (step.type === 'task' || step.type === 'solution')) await evaluateStep(step);
