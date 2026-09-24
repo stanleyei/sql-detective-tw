@@ -68,8 +68,32 @@ WHERE a.door = '機房';</code></pre>
       hints: ['JOIN transit_card c ON c.card_id = t.card_id JOIN person p ON p.id = c.person_id', "WHERE p.name = '許國棟' AND t.log_time LIKE '2025-06-20%'", "<code>SELECT t.station, t.direction, t.log_time FROM transit_log t JOIN transit_card c ON c.card_id = t.card_id JOIN person p ON p.id = c.person_id WHERE p.name = '許國棟' AND t.log_time LIKE '2025-06-20%';</code>"],
       check: { kind: 'result', cols: ['station', 'direction', 'log_time'], ordered: false },
       clue: { title: '經理不在現場', text: '許國棟的悠遊卡在 2025-06-20 的 22:05 於山城站進站、22:35 於港東站出站。機房刷卡 22:17 時，他人在捷運上。有人用了他的卡。' } },
+    { type: 'story', lines: [
+      { who: 'mentor', text: '人在捷運上，卡卻在機房。先別急著 JOIN，回頭看單獨一張 access_log：那張卡那天從早到晚刷了哪些門？' },
+    ] },
+    { type: 'task', id: 'c4-t5b', title: '那張卡的一天', prompt: '從 <code>access_log</code> 找出 <code>employee_id</code> 為 <strong>1</strong>（許國棟的卡）在 <strong>2025-06-20</strong> 整天的紀錄，顯示 <code>door</code>、<code>action</code>、<code>event_time</code>，依時間<strong>由早到晚</strong>排序。',
+      lead: '只用 access_log 一張表：employee_id 與日期（LIKE 比開頭）兩個條件，最後 ORDER BY event_time。',
+      hints: ["WHERE employee_id = 1 AND event_time LIKE '2025-06-20%'", 'ORDER BY event_time（由早到晚不用加 DESC）', "<code>SELECT door, action, event_time FROM access_log WHERE employee_id = 1 AND event_time LIKE '2025-06-20%' ORDER BY event_time;</code>"],
+      check: { kind: 'result', cols: ['door', 'action', 'event_time'], ordered: true },
+      clue: { title: '卡沒有再進過大門', text: '經理的卡 18:01 刷離大門後，22:12 直接出現在研發區，中間沒有任何「大門 進入」紀錄。用卡的人不是從外面進來的，本來就在樓裡。' } },
     { type: 'lesson', title: 'LEFT JOIN：對不上的也要留下來', body: `
-      <p><code>JOIN</code> 只留兩邊都有的。但「哪些員工<strong>當晚沒有</strong>任何門禁紀錄」這種問題，需要把<strong>沒對上的也留下</strong>，右邊補 NULL。這就是 <code>LEFT JOIN</code>：</p>
+      <p><code>JOIN</code> 只留<strong>兩邊都對得上</strong>的列。經理說他搭捷運，那研發部其他人呢？「研發部每個人有沒有悠遊卡」這種問題，沒有卡的人也要列出來，右邊補 <strong>NULL</strong>。這就是 <code>LEFT JOIN</code>：</p>
+      <pre><code>SELECT p.name, c.card_id
+FROM employee AS e
+JOIN person AS p ON p.id = e.person_id
+LEFT JOIN transit_card AS c ON c.person_id = p.id
+WHERE e.company_id = 1 AND e.department = '研發部';</code></pre>
+      <ul>
+        <li><strong>左表</strong>（寫在 LEFT JOIN 前面的 employee、person）的每一列都會保留。</li>
+        <li><strong>右表</strong>（transit_card）對得上就填值，對不上就整排 NULL。</li>
+        <li>寫法跟 JOIN 一模一樣，只是多了 <code>LEFT</code> 這個字。</li>
+      </ul>` },
+    { type: 'task', id: 'c4-t6a', title: '研發部誰有悠遊卡？', prompt: '照上面的寫法，列出研發部（<code>company_id = 1</code>、<code>department = \'研發部\'</code>）<strong>每位</strong>員工與其悠遊卡卡號（沒有卡的顯示 NULL），顯示 <code>p.name</code>、<code>c.card_id</code>。',
+      hints: ['先 JOIN person 拿名字，再 LEFT JOIN transit_card。', 'LEFT JOIN transit_card c ON c.person_id = p.id', "<code>SELECT p.name, c.card_id FROM employee e JOIN person p ON p.id = e.person_id LEFT JOIN transit_card c ON c.person_id = p.id WHERE e.company_id = 1 AND e.department = '研發部';</code>"],
+      check: { kind: 'result', cols: ['name', 'card_id'], ordered: false } },
+    { type: 'predict', id: 'c4-p0', title: '拿掉 LEFT 會怎樣？', sql: "SELECT p.name, c.card_id FROM employee e JOIN person p ON p.id = e.person_id JOIN transit_card c ON c.person_id = p.id WHERE e.company_id = 1 AND e.department = '研發部';", question: '研發部有 6 個人，其中 2 人沒有悠遊卡。把 LEFT JOIN 改成 JOIN，這句會回傳？', options: ['6 筆，沒有卡的顯示 NULL', '4 筆，沒有卡的人不見了', '2 筆，只剩沒有卡的人', '會出錯'], answer: 1, explain: 'JOIN（INNER JOIN）只保留兩邊都對得上的列，沒有悠遊卡的兩人整列消失。想保留「對不上的人」就要用 LEFT JOIN。' },
+    { type: 'lesson', title: '條件放 ON 還是 WHERE？', body: `
+      <p>回到門禁。「研發部每個人<strong>當晚</strong>有沒有進出紀錄」多了一個時間條件。這個條件要寫在 <code>ON</code> 裡，而不是 WHERE：</p>
       <pre><code>SELECT p.name, a.door, a.event_time
 FROM employee AS e
 JOIN person AS p ON p.id = e.person_id
@@ -77,9 +101,12 @@ LEFT JOIN access_log AS a
   ON a.employee_id = e.id
   AND a.event_time BETWEEN '2025-06-20 20:00:00' AND '2025-06-20 23:59:59'
 WHERE e.company_id = 1 AND e.department = '研發部';</code></pre>
-      <p>把時間條件寫在 <code>ON</code> 裡而不是 WHERE，這樣沒有紀錄的員工才會以 NULL 保留下來。</p>` },
+      <p>原因：<code>ON</code> 決定「右表哪些列算對得上」，對不上的人會以 NULL 留下來；<code>WHERE</code> 則是在接完之後才過濾，NULL 的時間不符合 BETWEEN，沒有紀錄的人就會被整列刪掉，LEFT JOIN 等於白做。</p>
+      <p>口訣：<strong>篩右表的條件放 ON，篩左表的條件放 WHERE。</strong></p>` },
+    { type: 'predict', id: 'c4-p2', title: '條件放錯位置', sql: "SELECT p.name, a.door, a.event_time FROM employee e JOIN person p ON p.id = e.person_id LEFT JOIN access_log a ON a.employee_id = e.id WHERE e.company_id = 1 AND e.department = '研發部' AND a.event_time BETWEEN '2025-06-20 20:00:00' AND '2025-06-20 23:59:59';", question: '研發部 6 人中，當晚 20:00 後只有 2 人有門禁紀錄。時間條件改放在 WHERE，這句會回傳？', options: ['6 個人都在，沒紀錄的顯示 NULL', '只剩那 2 人的紀錄，其他 4 人消失', '0 筆', '會出錯，LEFT JOIN 不能配 WHERE'], answer: 1, explain: 'LEFT JOIN 先把 6 人全部保留、沒紀錄的補 NULL，但 WHERE 接著要求時間落在區間內，NULL 不符合，那 4 人就被刪掉了。這跟 INNER JOIN 的結果一樣。' },
     { type: 'task', id: 'c4-t6', title: '研發部當晚誰在公司？', prompt: '照上面的寫法，列出研發部每位員工在 <strong>6 月 20 日 20:00 之後</strong>的門禁紀錄（沒有的顯示 NULL），顯示 <code>p.name</code>、<code>a.door</code>、<code>a.event_time</code>。',
-      hints: ['先 JOIN person，再 LEFT JOIN access_log。', '時間條件放在 LEFT JOIN 的 ON 裡。', "<code>SELECT p.name, a.door, a.event_time FROM employee e JOIN person p ON p.id = e.person_id LEFT JOIN access_log a ON a.employee_id = e.id AND a.event_time BETWEEN '2025-06-20 20:00:00' AND '2025-06-20 23:59:59' WHERE e.company_id = 1 AND e.department = '研發部';</code>"],
+      lead: '跟上一題的悠遊卡查詢同一個骨架，只是 LEFT JOIN 的對象換成 access_log，且時間條件要跟著寫在 ON 裡。',
+      hints: ['先 JOIN person，再 LEFT JOIN access_log。', '時間條件放在 LEFT JOIN 的 ON 裡，用 AND 接在對應條件後面。', "<code>SELECT p.name, a.door, a.event_time FROM employee e JOIN person p ON p.id = e.person_id LEFT JOIN access_log a ON a.employee_id = e.id AND a.event_time BETWEEN '2025-06-20 20:00:00' AND '2025-06-20 23:59:59' WHERE e.company_id = 1 AND e.department = '研發部';</code>"],
       check: { kind: 'result', cols: ['name', 'door', 'event_time'], ordered: false },
       clue: { title: '研發部門禁初查', text: '2025-06-20 當晚只有兩人有紀錄：許國棟（研發區、機房）與周文傑（大門 21:55 進、23:05 出）。其餘研發部員工當晚都沒有回公司。' } },
     { type: 'task', id: 'c4-t7', title: '整棟樓還有誰？', prompt: '不限部門：列出 <strong>6 月 20 日 20:00 到 23:59:59</strong> 之間有任何門禁紀錄的<strong>不重複</strong>員工姓名 <code>p.name</code>。',
@@ -100,11 +127,19 @@ JOIN person AS p ON p.id = e.person_id
 LEFT JOIN employee AS me ON me.id = e.manager_id
 LEFT JOIN person   AS m  ON m.id = me.person_id
 WHERE e.company_id = 1;</code></pre>
-      <p>用 LEFT JOIN 是因為經理自己沒有主管（manager_id 為 NULL），也要列出來。</p>` },
-    { type: 'task', id: 'c4-t9', title: '研發部的指揮鏈', prompt: '列出研發部（<code>e.department = \'研發部\'</code>、<code>company_id = 1</code>）每位員工與其主管的姓名，兩欄別名 <code>employee</code>、<code>manager</code>。',
-      hints: ['照上面的範例加上部門條件。', "WHERE e.company_id = 1 AND e.department = '研發部'", "<code>SELECT p.name AS employee, m.name AS manager FROM employee e JOIN person p ON p.id = e.person_id LEFT JOIN employee me ON me.id = e.manager_id LEFT JOIN person m ON m.id = me.person_id WHERE e.company_id = 1 AND e.department = '研發部';</code>"],
-      check: { kind: 'result', cols: null, ordered: false },
-      clue: { title: '直屬關係', text: '周文傑是許國棟的直屬部下，知道經理的座位與習慣，有機會拿到抽屜裡的門禁卡。' } },
+      <p>用 LEFT JOIN 是因為經理自己沒有主管（manager_id 為 NULL），也要列出來。</p>
+      <p>四張表、四個別名，看起來很長，但每一行都只是「再接一張表」。這題用積木拼出結構就好，不要求你背下來。</p>` },
+    { type: 'blocks', id: 'c4-b2', title: '拼出 SELF JOIN', prompt: '組出「列出研發部（<code>company_id = 1</code>）每位員工與其主管的姓名，兩欄別名 <code>employee</code>、<code>manager</code>」。有一塊積木是多餘的。',
+      blocks: ['SELECT p.name AS employee, m.name AS manager', 'FROM employee AS e', 'JOIN person AS p ON p.id = e.person_id', 'LEFT JOIN employee AS me ON me.id = e.manager_id', 'LEFT JOIN person AS m ON m.id = me.person_id', "WHERE e.company_id = 1 AND e.department = '研發部';"], distractors: ['JOIN person AS m ON m.id = e.manager_id'],
+      // 接 person p 的那一行只依賴 e，放在兩個 LEFT JOIN 之間或之後同樣正確
+      answers: [
+        "SELECT p.name AS employee, m.name AS manager FROM employee AS e LEFT JOIN employee AS me ON me.id = e.manager_id JOIN person AS p ON p.id = e.person_id LEFT JOIN person AS m ON m.id = me.person_id WHERE e.company_id = 1 AND e.department = '研發部';",
+        "SELECT p.name AS employee, m.name AS manager FROM employee AS e LEFT JOIN employee AS me ON me.id = e.manager_id LEFT JOIN person AS m ON m.id = me.person_id JOIN person AS p ON p.id = e.person_id WHERE e.company_id = 1 AND e.department = '研發部';",
+      ],
+      wrong: '順序是：先把員工接上市民拿到本人姓名 → 用 manager_id 接回 employee 找主管那一列 → 再接一次 person 拿主管姓名 → 最後 WHERE。多餘的那塊直接拿 manager_id 對 person.id，會把員工編號當成市民編號。' },
+    { type: 'story', lines: [
+      { who: 'mentor', text: '拼出來了。研發部五個人的主管都是許國棟——周文傑是他的直屬部下，天天坐在他附近，知道卡放在哪個抽屜。這是「有機會」，還不是證據。' },
+    ] },
     { type: 'predict', id: 'c4-p1', title: '誰沒有主管？', sql: "SELECT p.name FROM employee e JOIN person p ON p.id = e.person_id WHERE e.company_id = 1 AND e.manager_id IS NULL;", question: '潮港科技有 30 名員工、五個部門。這句會回傳？', options: ['0 筆，每個人都有主管', '1 筆，只有研發部經理許國棟', '5 筆，各部門的經理', '30 筆'], answer: 2, explain: 'manager_id 為 NULL 代表沒有上層，也就是各部門的經理。這正是 SELF JOIN 範例要用 LEFT JOIN 的原因：經理們對不到主管，用 INNER JOIN 會整列消失。' },
     { type: 'lesson', title: 'JOIN 也能配 GROUP BY', body: `
       <p>接起來的表一樣可以分組統計：</p>
@@ -114,11 +149,11 @@ JOIN company AS c ON c.id = e.company_id
 GROUP BY c.name;</code></pre>` },
     { type: 'task', id: 'c4-t10', title: '各公司人數', prompt: '統計<strong>每家公司</strong>的員工人數，顯示 <code>c.name</code> 與人數（別名 <code>headcount</code>），依人數由多到少排序。',
       hints: ['JOIN company c ON c.id = e.company_id', 'GROUP BY c.name ORDER BY headcount DESC', '<code>SELECT c.name, COUNT(*) AS headcount FROM employee e JOIN company c ON c.id = e.company_id GROUP BY c.name ORDER BY headcount DESC;</code>'],
-      check: { kind: 'result', cols: null, ordered: false } },
+      check: { kind: 'result', cols: ['name', 'headcount'], ordered: false } },
     { type: 'task', id: 'c4-t11', title: '各部門平均薪資', prompt: '潮港科技（<code>company_id = 1</code>）<strong>每個部門</strong>的平均薪資，顯示 <code>department</code> 與 <code>ROUND(AVG(salary), 0)</code>（別名 <code>avg_salary</code>）。',
       lead: 'employee 表：WHERE company_id 條件，GROUP BY department，ROUND(AVG(salary), 0) AS avg_salary。',
       hints: ['這題只需要 employee 一張表。', 'GROUP BY department', '<code>SELECT department, ROUND(AVG(salary), 0) AS avg_salary FROM employee WHERE company_id = 1 GROUP BY department;</code>'],
-      check: { kind: 'result', cols: null, ordered: false } },
+      check: { kind: 'result', cols: ['department', 'avg_salary'], ordered: false } },
     { type: 'quiz', id: 'c4-q1', question: '想列出「所有員工，包含沒有任何門禁紀錄的人」，該用？', options: ['JOIN', 'INNER JOIN', 'LEFT JOIN', 'GROUP BY'], answer: 2, explain: 'LEFT JOIN 會保留左表全部的列，右表對不上就補 NULL。' },
     { type: 'quiz', id: 'c4-q2', question: 'JOIN 裡的 ON 是用來？', options: ['篩選日期', '指定兩張表用哪個欄位對應', '排序', '限制筆數'], answer: 1, explain: 'ON 描述兩張表的對應關係，例如 ON p.id = e.person_id。' },
     { type: 'answer', id: 'c4-answer', prompt: '門禁卡屬於經理，但經理在捷運上；當晚只有一名研發部員工在公司，而且說了謊。<strong>內鬼是誰？</strong>',
@@ -130,8 +165,8 @@ GROUP BY c.name;</code></pre>` },
         'c4-t2': '員工名單只是母體，還沒縮到當晚在場的人。',
         'c4-t3': '機房門禁指向經理的卡，但卡跟人是兩回事；哪一張證明卡不在他手上？',
         'c4-t4': '這張只記錄他「聲稱」六點下班，還沒證明。哪一張用另一筆紀錄證實他不在？',
+        'c4-t5b': '卡沒再進過大門，說明用卡的人本來就在樓裡，但這張還沒說出那個人是誰。',
         'c4-t6': '只查了研發部，業務部也可能有人留到很晚；全公司範圍的在場名單才排得乾淨。',
-        'c4-t9': '直屬關係只說明「有機會拿到卡」，是動機補強，不能取代門禁上的矛盾。',
       },
       suspects: ['周文傑', '許國棟', '郭曼玲', '曾宜蓁'] },
     { type: 'story', scene: './images/scene/ch4-serverroom.webp', lines: [

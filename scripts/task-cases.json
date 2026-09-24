@@ -1,12 +1,27 @@
 {
   "c0-t3": {
-    "pass": ["SELECT * FROM crime_report LIMIT 5", "select *\nfrom crime_report\nlimit 5;", "SELECT *　FROM crime_report　LIMIT 5", "SELECT * FROM crime_report LIMIT 5"],
-    "fail": [{ "sql": "SELECT * FROM crime_report LIMIT 6", "msg": "預期 5 筆" }]
+    "pass": [
+      "SELECT * FROM crime_report LIMIT 5",
+      "select *\nfrom crime_report\nlimit 5;",
+      "SELECT *　FROM crime_report　LIMIT 5",
+      "SELECT * FROM crime_report LIMIT 5"
+    ],
+    "fail": [
+      {
+        "sql": "SELECT * FROM crime_report LIMIT 6",
+        "msg": "預期 5 筆"
+      }
+    ]
   },
   "c1-t1": {
-    "pass": ["SELECT id, description FROM crime_report WHERE report_date = '2025-03-08' AND district = '港東區' AND crime_type = '竊盜'"],
+    "pass": [
+      "SELECT id, description FROM crime_report WHERE report_date = '2025-03-08' AND district = '港東區' AND crime_type = '竊盜'"
+    ],
     "fail": [
-      { "sql": "SELECT id, description FROM crime_report WHERE crime_type = '竊盜案' AND district = '港東區' AND report_date = '2025-03-08'", "msg": "沒有「竊盜案」這個值" }
+      {
+        "sql": "SELECT id, description FROM crime_report WHERE crime_type = '竊盜案' AND district = '港東區' AND report_date = '2025-03-08'",
+        "msg": "沒有「竊盜案」這個值"
+      }
     ]
   },
   "c1-t3": {
@@ -15,12 +30,22 @@
       "SELECT id, plate_number, person_id\nFROM driver_license\nWHERE plate_number LIKE 'MKJ%'\n  AND car_color = \"白\"\n  AND vehicle_type = '機車'\n  AND height_cm BETWEEN 175 AND 180;"
     ],
     "fail": [
-      { "sql": "SELECT id, plate_number, person_id FROM driver_license WHERE plate_number LIKE 'MKJ%' AND car_color = '白色' AND vehicle_type = '機車' AND height_cm BETWEEN 175 AND 180", "msg": "資料表存的是「白」" }
+      {
+        "sql": "SELECT id, plate_number, person_id FROM driver_license WHERE plate_number LIKE 'MKJ%' AND car_color = '白色' AND vehicle_type = '機車' AND height_cm BETWEEN 175 AND 180",
+        "msg": "資料表存的是「白」"
+      }
     ]
   },
   "c1-t7": {
-    "pass": ["SELECT sale_date, item_name, amount FROM store_sale WHERE store_id = 1 ORDER BY amount DESC LIMIT 1"],
-    "fail": [{ "sql": "SELECT sale_date, item_name, amount FROM store_sale WHERE store_id = 1 ORDER BY amount ASC LIMIT 1", "msg": "結果不符" }]
+    "pass": [
+      "SELECT sale_date, item_name, amount FROM store_sale WHERE store_id = 1 ORDER BY amount DESC LIMIT 1"
+    ],
+    "fail": [
+      {
+        "sql": "SELECT sale_date, item_name, amount FROM store_sale WHERE store_id = 1 ORDER BY amount ASC LIMIT 1",
+        "msg": "結果不符"
+      }
+    ]
   },
   "c1-t8": {
     "pass": [
@@ -28,7 +53,10 @@
       "SELECT person_id, transcript FROM interview WHERE person_id = 4 OR person_id = 5 ORDER BY person_id ASC"
     ],
     "fail": [
-      { "sql": "SELECT person_id, transcript FROM interview WHERE person_id IN (4, 5) ORDER BY person_id DESC", "msg": "排序方向反了" }
+      {
+        "sql": "SELECT person_id, transcript FROM interview WHERE person_id IN (4, 5) ORDER BY person_id DESC",
+        "msg": "排序方向反了"
+      }
     ]
   },
   "c2-t4": {
@@ -38,47 +66,163 @@
       "SELECT capture_time, plate_number, note, district\nFROM cctv_log\nWHERE camera_location = '海濱門市前'\n  AND capture_time BETWEEN '2025-04-12 22:30:00' AND '2025-04-12 23:10:00'\nORDER BY capture_time;"
     ],
     "fail": [
-      { "sql": "SELECT capture_time, plate_number, note FROM cctv_log WHERE camera_location = '海濱門市前' AND TIME(capture_time) BETWEEN '22:30:00' AND '23:10:00' ORDER BY capture_time", "msg": "預期 3 筆" },
-      { "sql": "SELECT capture_time, plate_number, note FROM cctv_log WHERE camera_location = '海濱門市前' AND capture_time BETWEEN '22:30:00' AND '23:10:00' ORDER BY capture_time", "msg": "0 筆" },
-      { "sql": "SELECT capture_time, plate_number, note FROM cctv_log WHERE camera_location = '海濱門市前' AND capture_time BETWEEN '2025-04-12 22:30:00' AND '2025-04-12 23:10:00' ORDER BY capture_time DESC", "msg": "排序方向反了" },
-      { "sql": "SELECT capture_time, plate_number, note FROM cctv_log WHERE camera_location = '海濱門市前' AND capture_time BETWEEN '2025-04-12 22:30:00' AND '2025-04-12 23:10:00'", "msg": "沒有寫 ORDER BY" }
+      {
+        "sql": "SELECT capture_time, plate_number, note FROM cctv_log WHERE camera_location = '海濱門市前' AND TIME(capture_time) BETWEEN '22:30:00' AND '23:10:00' ORDER BY capture_time",
+        "msg": "預期 3 筆"
+      },
+      {
+        "sql": "SELECT capture_time, plate_number, note FROM cctv_log WHERE camera_location = '海濱門市前' AND capture_time BETWEEN '22:30:00' AND '23:10:00' ORDER BY capture_time",
+        "msg": "0 筆"
+      },
+      {
+        "sql": "SELECT capture_time, plate_number, note FROM cctv_log WHERE camera_location = '海濱門市前' AND capture_time BETWEEN '2025-04-12 22:30:00' AND '2025-04-12 23:10:00' ORDER BY capture_time DESC",
+        "msg": "排序方向反了"
+      },
+      {
+        "sql": "SELECT capture_time, plate_number, note FROM cctv_log WHERE camera_location = '海濱門市前' AND capture_time BETWEEN '2025-04-12 22:30:00' AND '2025-04-12 23:10:00'",
+        "msg": "沒有寫 ORDER BY"
+      }
     ]
   },
   "c2-t6": {
-    "pass": ["SELECT plate_number, person_id FROM driver_license WHERE plate_number LIKE '%528' AND car_color = '銀' AND gender = '女'"],
+    "pass": [
+      "SELECT plate_number, person_id FROM driver_license WHERE plate_number LIKE '%528' AND car_color = '銀' AND gender = '女'"
+    ],
     "fail": [
-      { "sql": "SELECT plate_number, person_id FROM driver_license WHERE RIGHT(plate_number, 3) = '528' AND car_color = '銀色' AND gender = '女'", "msg": "資料表存的是「銀」" },
-      { "sql": "SELECT plate_number, person_id FROM driver_license WHERE RIGHT(plate_number, 3) = '528' AND car_color = '銀' AND gender = '女性'", "msg": "資料表存的是「女」" }
+      {
+        "sql": "SELECT plate_number, person_id FROM driver_license WHERE RIGHT(plate_number, 3) = '528' AND car_color = '銀色' AND gender = '女'",
+        "msg": "資料表存的是「銀」"
+      },
+      {
+        "sql": "SELECT plate_number, person_id FROM driver_license WHERE RIGHT(plate_number, 3) = '528' AND car_color = '銀' AND gender = '女性'",
+        "msg": "資料表存的是「女」"
+      }
     ]
   },
   "c2-t7": {
-    "pass": ["SELECT DISTINCT plate_number FROM cctv_log WHERE plate_number IN ('RBK-7528', 'LLP-0528') AND capture_time >= '2025-04-12 22:30:00' AND capture_time <= '2025-04-12 23:10:00'"],
+    "pass": [
+      "SELECT DISTINCT plate_number FROM cctv_log WHERE plate_number IN ('RBK-7528', 'LLP-0528') AND capture_time >= '2025-04-12 22:30:00' AND capture_time <= '2025-04-12 23:10:00'"
+    ],
     "fail": [
-      { "sql": "SELECT DISTINCT plate_number FROM cctv_log WHERE plate_number IN ('RBK-7528', 'LLP-0528') AND TIME(capture_time) BETWEEN '22:30' AND '23:10'", "msg": "只有 1 筆" }
+      {
+        "sql": "SELECT DISTINCT plate_number FROM cctv_log WHERE plate_number IN ('RBK-7528', 'LLP-0528') AND TIME(capture_time) BETWEEN '22:30' AND '23:10'",
+        "msg": "只有 1 筆"
+      }
     ]
   },
   "c2-t11": {
-    "pass": ["SELECT DATE_FORMAT(capture_time, '%m/%d %H:%i') AS t, camera_location FROM cctv_log WHERE plate_number = 'RBK-7528' ORDER BY capture_time"],
-    "fail": [{ "sql": "SELECT DATE_FORMAT(capture_time, '%m/%d %H:%i') AS t, camera_location FROM cctv_log WHERE plate_number = 'RBK-7528' ORDER BY capture_time DESC", "msg": "排序方向反了" }]
+    "pass": [
+      "SELECT DATE_FORMAT(capture_time, '%m/%d %H:%i') AS t, camera_location FROM cctv_log WHERE plate_number = 'RBK-7528' ORDER BY capture_time"
+    ],
+    "fail": [
+      {
+        "sql": "SELECT DATE_FORMAT(capture_time, '%m/%d %H:%i') AS t, camera_location FROM cctv_log WHERE plate_number = 'RBK-7528' ORDER BY capture_time DESC",
+        "msg": "排序方向反了"
+      }
+    ]
   },
   "c3-t5": {
-    "pass": ["SELECT category, SUM(est_value) AS total FROM lost_item GROUP BY category ORDER BY SUM(est_value) DESC"],
+    "pass": [
+      "SELECT category, SUM(est_value) AS total FROM lost_item GROUP BY category ORDER BY SUM(est_value) DESC"
+    ],
     "fail": [
-      { "sql": "SELECT category, SUM(est_value) AS total FROM lost_item GROUP BY category ORDER BY total", "msg": "由大到小（DESC）" },
-      { "sql": "SELECT category, SUM(est_value) AS total FROM lost_item GROUP BY category", "msg": "沒有寫 ORDER BY" }
+      {
+        "sql": "SELECT category, SUM(est_value) AS total FROM lost_item GROUP BY category ORDER BY total",
+        "msg": "由大到小（DESC）"
+      },
+      {
+        "sql": "SELECT category, SUM(est_value) AS total FROM lost_item GROUP BY category",
+        "msg": "沒有寫 ORDER BY"
+      }
     ]
   },
   "c4-t3": {
-    "pass": ["SELECT employee_id, action, event_time FROM access_log WHERE door = '機房' AND event_time >= '2025-06-20 22:00:00' AND event_time <= '2025-06-20 23:00:00'"],
+    "pass": [
+      "SELECT employee_id, action, event_time FROM access_log WHERE door = '機房' AND event_time >= '2025-06-20 22:00:00' AND event_time <= '2025-06-20 23:00:00'"
+    ],
     "fail": [
-      { "sql": "SELECT employee_id, action, event_time FROM access_log WHERE door = '機房' AND TIME(event_time) BETWEEN '22:00:00' AND '23:00:00'", "msg": "結果不符" }
+      {
+        "sql": "SELECT employee_id, action, event_time FROM access_log WHERE door = '機房' AND TIME(event_time) BETWEEN '22:00:00' AND '23:00:00'",
+        "msg": "結果不符"
+      }
     ]
   },
   "c5-t5": {
-    "pass": ["UPDATE evidence SET status = '已送鑑識' WHERE item_name = '監視器畫面'"],
-    "fail": [{ "sql": "UPDATE evidence SET status = '已送鑑識'", "msg": "狀態與目標不同" }]
+    "pass": [
+      "UPDATE evidence SET status = '已送鑑識' WHERE item_name = '監視器畫面'"
+    ],
+    "fail": [
+      {
+        "sql": "UPDATE evidence SET status = '已送鑑識'",
+        "msg": "狀態與目標不同"
+      }
+    ]
   },
-  "c1-d1": { "fail": [{ "sql": "SELECT name FROM person WHERE phone = NULL AND district = '港東區';", "msg": "0 筆" }] },
-  "c4-d1": { "fail": ["SELECT p.name, e.title FROM employee e JOIN person p ON p.id = e.id WHERE e.company_id = 1;"] },
-  "c6-t3": { "fail": [{ "sql": "SELECT id, name FROM person WHERE name LIKE '林' AND street = '中央路';", "msg": "0 筆" }] }
+  "c1-d1": {
+    "fail": [
+      {
+        "sql": "SELECT name FROM person WHERE phone = NULL AND district = '港東區';",
+        "msg": "0 筆"
+      }
+    ]
+  },
+  "c4-d1": {
+    "fail": [
+      "SELECT p.name, e.title FROM employee e JOIN person p ON p.id = e.id WHERE e.company_id = 1;"
+    ]
+  },
+  "c6-t3": {
+    "fail": [
+      {
+        "sql": "SELECT id, name FROM person WHERE name LIKE '林' AND street = '中央路';",
+        "msg": "0 筆"
+      }
+    ]
+  },
+  "c1-t10": {
+    "pass": [
+      "SELECT id FROM gym_member WHERE person_id = 5; SELECT checkin_time, checkout_time FROM gym_checkin WHERE membership_id = 'YX4BY' AND checkin_date = '2025-03-08';"
+    ],
+    "fail": [
+      "SELECT checkin_time, checkout_time FROM gym_checkin WHERE membership_id = YX4BY AND checkin_date = '2025-03-08'"
+    ]
+  },
+  "c2-t4b": {
+    "pass": [
+      "SELECT DISTINCT plate_number FROM cctv_log WHERE camera_location = '海濱門市前' AND capture_time LIKE '2025-04-12%'"
+    ],
+    "fail": [
+      "SELECT plate_number FROM cctv_log WHERE camera_location = '海濱門市前' AND capture_time LIKE '2025-04-12%'"
+    ]
+  },
+  "c3-t4": {
+    "pass": [
+      "SELECT station, COUNT(*) AS cnt, SUM(est_value) AS total FROM lost_item GROUP BY station",
+      "SELECT COUNT(*) AS cnt, station FROM lost_item GROUP BY station"
+    ],
+    "fail": [
+      {
+        "sql": "SELECT station, COUNT(*) FROM lost_item GROUP BY station",
+        "msg": "AS cnt"
+      }
+    ]
+  },
+  "c4-t5b": {
+    "pass": [
+      "SELECT door, action, event_time FROM access_log WHERE employee_id = 1 AND event_time BETWEEN '2025-06-20 00:00:00' AND '2025-06-20 23:59:59' ORDER BY event_time ASC"
+    ]
+  },
+  "c4-t6a": {
+    "pass": [
+      "SELECT p.name, c.card_id FROM employee e JOIN person p ON p.id = e.person_id LEFT OUTER JOIN transit_card c ON c.person_id = p.id WHERE e.company_id = 1 AND e.department = '研發部'"
+    ],
+    "fail": [
+      "SELECT p.name, c.card_id FROM employee e JOIN person p ON p.id = e.person_id JOIN transit_card c ON c.person_id = p.id WHERE e.company_id = 1 AND e.department = '研發部'"
+    ]
+  },
+  "c4-t6": {
+    "fail": [
+      "SELECT p.name, a.door, a.event_time FROM employee e JOIN person p ON p.id = e.person_id LEFT JOIN access_log a ON a.employee_id = e.id WHERE e.company_id = 1 AND e.department = '研發部' AND a.event_time BETWEEN '2025-06-20 20:00:00' AND '2025-06-20 23:59:59'"
+    ]
+  }
 }

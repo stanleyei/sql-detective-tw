@@ -1,11 +1,11 @@
-/* 第 1 章 夜市失竊：AND / OR / NOT、LIKE、IN、BETWEEN、IS NULL、ORDER BY、LIMIT、DISTINCT */
+/* 第 1 章 夜市失竊：AND / OR / NOT、LIKE、IN、BETWEEN、IS NULL、ORDER BY、LIMIT */
 SD.chapters.push({
   id: 1,
   slug: 'ch1',
   title: '夜市失竊',
   subtitle: '篩選條件與排序',
   cover: './images/ch1.webp',
-  skills: ['AND / OR / NOT', 'LIKE', 'IN', 'BETWEEN', 'IS NULL', 'ORDER BY', 'DISTINCT'],
+  skills: ['AND / OR / NOT', 'LIKE', 'IN', 'BETWEEN', 'IS NULL', 'ORDER BY'],
   badge: { id: 'filter', name: '篩選大師', img: './images/badge-filter.webp', desc: '用 WHERE 的各種條件從人海中撈出嫌疑人。' },
   steps: [
     { type: 'story', lines: [
@@ -94,22 +94,14 @@ LIMIT 3;</code></pre>
       clue: { title: '兩份筆錄', text: '吳志豪：「只是去逛逛，沒買東西。」蘇建豪：「九點到十點半都在潮港健身上課，有打卡紀錄。」' } },
     { type: 'lesson', title: '驗證不在場證明', body: `
       <p>蘇建豪說他在健身房。健身房的資料在兩張表：<code>gym_member</code>（會員，內含 <code>person_id</code>）與 <code>gym_checkin</code>（打卡，用 <code>membership_id</code> 對應會員編號）。</p>
-      <p>先從會員表找出他的會員編號，再拿編號去打卡表查。這種「先查一張表、再查另一張」的兩步查法，下一章會學到一次搞定的方法。</p>` },
-    { type: 'task', id: 'c1-t9', title: '會員編號', prompt: '從 <code>gym_member</code> 找出 <code>person_id</code> 為 <strong>5</strong> 的會員，顯示 <code>id</code> 與 <code>membership_status</code>。',
-      hints: ['WHERE person_id = 5', 'SELECT id, membership_status ...', '<code>SELECT id, membership_status FROM gym_member WHERE person_id = 5;</code>'],
-      check: { kind: 'result', cols: ['id', 'membership_status'], ordered: false },
-      clue: { title: '蘇建豪的會員編號', text: '蘇建豪（5 號）的健身房會員編號是 YX4BY（銀卡）。下一題要用這個編號查打卡紀錄。' } },
-    { type: 'task', id: 'c1-t10', after: { step: 'c1-t9', use: 'result' }, title: '打卡紀錄', prompt: '用上一題查到的會員編號（<code>membership_id</code>，忘了可看線索板），在 <code>gym_checkin</code> 找出 <strong>2025-03-08</strong> 的打卡，顯示 <code>checkin_time</code> 與 <code>checkout_time</code>。',
-      lead: 'gym_checkin 表，兩個條件用 AND：會員編號是文字要加引號，日期欄是 checkin_date。',
-      hints: ['會員編號是文字，要加單引號。', "AND checkin_date = '2025-03-08'", "<code>SELECT checkin_time, checkout_time FROM gym_checkin WHERE membership_id = 'YX4BY' AND checkin_date = '2025-03-08';</code>"],
+      <p>先從會員表找出他的會員編號，再拿編號去打卡表查。這種「先查一張表、再查另一張」的兩步查法，第 4 章會學到一次搞定的方法。第一步很短，直接執行：</p>
+      <pre><code>SELECT id, membership_status FROM gym_member WHERE person_id = 5;</code></pre>
+      <p>會得到一串英數字組成的會員編號，它是<strong>文字</strong>，下一題拿去比對時要加單引號。</p>` },
+    { type: 'task', id: 'c1-t10', title: '打卡紀錄', prompt: '先照上面查出蘇建豪（<code>person_id</code> 為 5）的會員編號，再在 <code>gym_checkin</code> 找出該 <code>membership_id</code> 在 <strong>2025-03-08</strong> 的打卡，顯示 <code>checkin_time</code> 與 <code>checkout_time</code>。',
+      lead: '兩步：先查 gym_member 拿編號，再查 gym_checkin。第二句兩個條件用 AND：會員編號是文字要加引號，日期欄是 checkin_date。',
+      hints: ['先執行 SELECT id FROM gym_member WHERE person_id = 5; 記下編號（一串英數字）。', "WHERE membership_id = '編號' AND checkin_date = '2025-03-08'，編號要加單引號。", "<code>SELECT checkin_time, checkout_time FROM gym_checkin WHERE membership_id = 'YX4BY' AND checkin_date = '2025-03-08';</code>"],
       check: { kind: 'result', cols: ['checkin_time', 'checkout_time'], ordered: false },
-      clue: { title: '不在場證明成立', text: '蘇建豪 3 月 8 日 21:00 到 22:30 在健身房打卡，案發 21:30 時他不可能在夜市。' } },
-    { type: 'lesson', title: 'DISTINCT：去掉重複', body: `
-      <p>想知道「有哪幾種店家類型」，直接 <code>SELECT kind FROM store</code> 會列出重複值。加 <code>DISTINCT</code> 只留不重複的：</p>
-      <pre><code>SELECT DISTINCT kind FROM store;</code></pre>` },
-    { type: 'task', id: 'c1-t11', title: '有哪些行政區出現過監視器紀錄？', prompt: '從 <code>cctv_log</code> 列出<strong>不重複</strong>的 <code>district</code>。',
-      hints: ['SELECT DISTINCT 欄位', 'DISTINCT 放在 SELECT 後面、欄位名前面。', '<code>SELECT DISTINCT district FROM cctv_log;</code>'],
-      check: { kind: 'result', cols: ['district'], ordered: false } },
+      clue: { title: '不在場證明成立', text: '蘇建豪（5 號）的會員編號是 YX4BY。他 3 月 8 日 21:00 到 22:30 在健身房打卡，案發 21:30 時不可能在夜市。' } },
     { type: 'quiz', id: 'c1-q1', question: "想找名字裡有「豪」的人，哪個寫法正確？", options: ["WHERE name = '%豪%'", "WHERE name LIKE '%豪%'", "WHERE name LIKE '豪'", "WHERE name IN ('%豪%')"], answer: 1, explain: '萬用字元 % 只有搭配 LIKE 才有效，= 與 IN 會把 % 當成普通字元。' },
     { type: 'quiz', id: 'c1-q2', question: '哪一句能找出「電話沒有登記」的人？', options: ["WHERE phone = NULL", "WHERE phone = ''", "WHERE phone IS NULL", "WHERE phone = 0"], answer: 2, explain: 'NULL 代表沒有資料，只能用 IS NULL / IS NOT NULL 判斷。' },
     { type: 'answer', id: 'c1-answer', prompt: '綜合所有線索：目擊特徵、監視器、筆錄與不在場證明，<strong>竊賊是誰？</strong>',
@@ -122,7 +114,6 @@ LIMIT 3;</code></pre>
         'c1-t4': '名字是查表查出來的，讓四張車牌變成兩個人的是前一步。',
         'c1-t7': '賣得好只說明耳機值錢，跟是誰偷的無關。',
         'c1-t8': '筆錄只是他自己的說法，哪一張證明了它？',
-        'c1-t9': '會員編號只是查打卡的中繼站，打卡結果才是證據。',
       },
       suspects: ['吳志豪', '蘇建豪', '賴世偉', '簡冠霖'] },
     { type: 'story', scene: './images/scene/ch1-nightmarket-end.webp', lines: [

@@ -5,7 +5,7 @@ SD.chapters.push({
   title: '超商監視器',
   subtitle: '時間、字串與 CASE',
   cover: './images/ch2.webp',
-  skills: ['日期時間函數', 'DATE_SUB / INTERVAL', 'RIGHT / LEFT / CONCAT', 'CASE WHEN', 'AS 別名'],
+  skills: ['日期時間函數', 'DATE_SUB / INTERVAL', 'DISTINCT', 'RIGHT / LEFT / CONCAT', 'CASE WHEN', 'AS 別名'],
   badge: { id: 'time', name: '時間旅人', img: './images/badge-time.webp', desc: '用日期時間函數重建案發時間線。' },
   steps: [
     { type: 'story', lines: [
@@ -51,6 +51,14 @@ DATEDIFF(d1, d2)               -- 兩個日期差幾天</code></pre>
       starter: "SELECT capture_time, plate_number FROM cctv_log WHERE camera_location = 海濱門市前 AND capture_time LIKE '2025-04-12%';",
       hints: ['錯誤訊息指向 camera_location 的條件。', '地點是文字，要加單引號。', "<code>SELECT capture_time, plate_number FROM cctv_log WHERE camera_location = '海濱門市前' AND capture_time LIKE '2025-04-12%';</code>"],
       check: { kind: 'result', cols: ['capture_time', 'plate_number'], ordered: false } },
+    { type: 'lesson', title: 'DISTINCT：去掉重複', body: `
+      <p>上一題同一張車牌出現了不只一次。想知道「總共有哪幾張車牌」而不是「每一筆紀錄」，在 SELECT 後面加 <code>DISTINCT</code>，只留不重複的值：</p>
+      <pre><code>SELECT DISTINCT kind FROM store;</code></pre>
+      <p>DISTINCT 放在 <code>SELECT</code> 之後、欄位名之前，對後面列出的所有欄位一起去重。</p>` },
+    { type: 'task', id: 'c2-t4b', title: '整天出現過哪些車？', prompt: '同樣是 <strong>2025-04-12</strong> 整天、<code>camera_location</code> 為<strong>海濱門市前</strong>的紀錄，這次只列出<strong>不重複</strong>的 <code>plate_number</code>。',
+      lead: '沿用上一題的條件，SELECT 改成 SELECT DISTINCT plate_number。',
+      hints: ['SELECT DISTINCT plate_number', '條件跟上一題一樣：地點加引號、日期用 LIKE 比開頭。', "<code>SELECT DISTINCT plate_number FROM cctv_log WHERE camera_location = '海濱門市前' AND capture_time LIKE '2025-04-12%';</code>"],
+      check: { kind: 'result', cols: ['plate_number'], ordered: false } },
     { type: 'story', scene: './images/scene/ch2-store-cctv.webp', lines: [
       { who: 'tech', text: '門市前那台監視器的辨識結果出來了，但雨夜畫質太差，很多筆只認得出車牌的後半段。我把能讀到的都填進 plate_number 了，你得用字串函數去比對。' },
       { who: 'clerk', text: '對了，我想起來一件事：她上車前把口罩拉下來過一下，是個女生，車子是銀色的沒錯。' },
@@ -85,7 +93,7 @@ UPPER(x)  LOWER(x)  TRIM(x) -- 大寫、小寫、去頭尾空白</code></pre>
       <p>別名也能用在排序：<code>ORDER BY age DESC</code>。</p>` },
     { type: 'task', id: 'c2-t8', title: '車主檔案', prompt: 'RBK-7528 的車主編號是 9。從 <code>person</code> 找出她，顯示 <code>name</code>，並算出 <strong>2025 年時的年齡</strong>（<code>2025 - birth_year</code>），別名為 <code>age</code>。',
       hints: ['WHERE id = 9', 'SELECT name, 2025 - birth_year AS age', '<code>SELECT name, 2025 - birth_year AS age FROM person WHERE id = 9;</code>'],
-      check: { kind: 'result', cols: null, ordered: false },
+      check: { kind: 'result', cols: ['name', 'age'], ordered: false },
       clue: { title: '車主', text: '黃雅婷，32 歲，港西區造船街。' } },
     { type: 'task', id: 'c2-t9', title: '她說了什麼？', prompt: '從 <code>interview</code> 取出 <code>person_id</code> 為 <strong>9</strong> 的筆錄 <code>transcript</code>。',
       lead: 'interview 表，WHERE person_id = 編號，只 SELECT transcript。',

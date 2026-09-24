@@ -73,17 +73,9 @@ SD.expect = {
   "unorderedHash": "87ed0aff54544f41474f8ccd290b5e180e268ffb5dcce8deeb2deb54fc9edb9d",
   "desc": false
  },
- "c1-t9": {
-  "hash": "d1828c2f23ed271a4ae7d0da698d79c502c0d7b6cf09630bad32a95b922107e9",
-  "rows": 1
- },
  "c1-t10": {
   "hash": "abbc7068c02524e9b04cd4915bd85fe8d571b60726196e4c9d288c868247d265",
   "rows": 1
- },
- "c1-t11": {
-  "hash": "833691d5b80db3137813185303570101c4ca0c08dd77eb262333891b989fc441",
-  "rows": 5
  },
  "c1-answer": {
   "hash": "953d3a0e5591aebbdb32c262848bf23124b937d30f75b6f0d60150b0cd0ce439"
@@ -109,6 +101,10 @@ SD.expect = {
  "c2-d1": {
   "hash": "714b42d6896c5abb7466555bcf4d9f93afe8c48b8bf4d3fed5576048d7f44cd6",
   "rows": 5
+ },
+ "c2-t4b": {
+  "hash": "1f7e565740b015de7bc75f6adc3d9a831ba4f0812eabaddf5ed889bf38b091b7",
+  "rows": 4
  },
  "c2-t5": {
   "hash": "4a15cad7f742fb4e20b478d9bfd78218734f84eeee435a6642f8dfb3c24299dc",
@@ -232,6 +228,16 @@ SD.expect = {
   "hash": "8e6424b26eea4a70e5bbc72bf657ad854fd63db610aebf6c5118f29918367fc0",
   "rows": 2
  },
+ "c4-t5b": {
+  "hash": "d44b45e5da28b5cb4203360b5840caeeb7ea1700300161c4e405ff80e0b31f16",
+  "rows": 5,
+  "unorderedHash": "850542bc6b7e0c4ea171b57608700b7d27501c7487d529c40c01b5b174a6a9e1",
+  "desc": false
+ },
+ "c4-t6a": {
+  "hash": "05ea434774701970738f6024694fa5444934130e1e35d19cfdf9e5625e19fd87",
+  "rows": 6
+ },
  "c4-t6": {
   "hash": "acefde5d9dad3018f1c5107c5efcb1db16741707fed26e88492c78135ff28494",
   "rows": 9
@@ -243,10 +249,6 @@ SD.expect = {
  "c4-t8": {
   "hash": "964a5d84d4c3bc6ad74079bb7a3c77c20ff18ad11d252fb136d1c5938d035ceb",
   "rows": 2
- },
- "c4-t9": {
-  "hash": "c112cb9f01a3d8513604dc4823bc8f615557ecacb7763d26463238e002f99ef6",
-  "rows": 6
  },
  "c4-t10": {
   "hash": "a815e1ff7b4546cc6982dacecb68236183ae3f441c873342581facc51bd3c070",
