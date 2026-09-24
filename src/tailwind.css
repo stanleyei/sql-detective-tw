@@ -192,6 +192,19 @@
     @apply pt-14;
   }
   .prose-sd pre code { @apply bg-transparent p-0 text-paper; }
+  /* 函數對照清單：教學裡「函數 ↔ 說明」的參考表。以前用 <pre> 加 -- 註解排成兩欄，
+     左欄只有 28rem，說明與範例被迫壓成片語且會在任意字元折行，初學者讀起來整句斷裂。
+     改用 <dl>：說明是完整句子、按詞界折行；dt 的程式碼用 whitespace-nowrap 保證不斷。
+     刻意不做左右兩欄：桌機左欄仍只有 28rem，最長的 dt 會把說明欄擠到剩幾十 px，
+     所以任何寬度都上下堆疊，dd 縮排表示「屬於上一個函數」 */
+  .prose-sd .fn-ref {
+    @apply my-3 rounded-xl border border-ink-700 bg-ink-950 p-4;
+  }
+  .prose-sd .fn-ref dt { @apply overflow-x-auto font-mono text-code whitespace-nowrap leading-7; }
+  .prose-sd .fn-ref dt code { @apply bg-transparent p-0 text-teal; }
+  .prose-sd .fn-ref dd { @apply mb-3 pl-4 leading-7 last:mb-0; }
+  /* dd 內的 code 都是短的範例值（'234'、'張哲（港東區）'），斷在引號中間會讓初學者以為值裡有換行 */
+  .prose-sd .fn-ref dd code { @apply whitespace-nowrap; }
   .sql-kw { @apply font-bold text-pink; }
   .sql-fn { @apply text-teal; }
   .sql-str { @apply text-amber; }

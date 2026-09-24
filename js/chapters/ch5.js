@@ -92,10 +92,19 @@ WHERE claimed_by = 14;</code></pre>
       check: { kind: 'probe', probe: 'SELECT report_id, item_name, location, status FROM evidence ORDER BY item_name, location' },
       clue: { title: '9 件證物', text: 'evidence 現在有 9 筆：夜市案 2 件、遺失物案 7 件。' } },
     { type: 'lesson', title: 'ALTER TABLE：事後改結構', body: `
-      <pre><code>ALTER TABLE evidence ADD COLUMN weight_g INT;          -- 加欄位
-ALTER TABLE evidence MODIFY COLUMN location VARCHAR(200); -- 改型別
-ALTER TABLE evidence DROP COLUMN weight_g;             -- 刪欄位
-ALTER TABLE evidence RENAME COLUMN location TO found_at; -- 改名</code></pre>` },
+      <p>表建好之後還是可以改結構，用 <code>ALTER TABLE 表名</code> 接上要做的事。以 <code>evidence</code> 為例：</p>
+      <dl class="fn-ref">
+        <dt><code>ADD COLUMN weight_g INT;</code></dt>
+        <dd><strong>加</strong>一個叫 <code>weight_g</code> 的整數欄位，既有資料這欄會是 NULL。</dd>
+        <dt><code>MODIFY COLUMN location VARCHAR(200);</code></dt>
+        <dd>把 <code>location</code> 的<strong>型別</strong>改成最長 200 字的文字。</dd>
+        <dt><code>DROP COLUMN weight_g;</code></dt>
+        <dd><strong>刪掉</strong> <code>weight_g</code> 欄位，裡面的資料一起消失。</dd>
+        <dt><code>RENAME COLUMN location TO found_at;</code></dt>
+        <dd>把 <code>location</code> <strong>改名</strong>為 <code>found_at</code>，資料不變。</dd>
+      </dl>
+      <p>完整寫法是把兩段接起來，例如：</p>
+      <pre><code>ALTER TABLE evidence ADD COLUMN weight_g INT;</code></pre>` },
     { type: 'task', id: 'c5-t9', title: '加一個重量欄位', prompt: '鑑識組要記錄證物重量。在 <code>evidence</code> 加一個 <code>weight_g</code> 欄位，型別 <code>INT</code>。',
       hints: ['新增欄位要用 ALTER TABLE 搭配 ADD COLUMN。', '<code>ALTER TABLE evidence ADD COLUMN ___ INT;</code>', '<code>ALTER TABLE evidence ADD COLUMN weight_g INT;</code>'],
       check: { kind: 'probe', probe: "SELECT GROUP_CONCAT(name) FROM pragma_table_info('evidence')" } },

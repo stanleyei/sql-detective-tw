@@ -24,14 +24,23 @@ SD.chapters.push({
       check: { kind: 'result', cols: ['name', 'open_time', 'close_time'], ordered: false },
       clue: { title: '海濱門市營業時間', text: '06:00 開店、23:30 打烊。「打烊前四十分鐘」要從 23:30 往前推。' } },
     { type: 'lesson', title: '讓資料庫幫你算時間', body: `
-      <p>MariaDB 有一整組日期時間函數。最常用的：</p>
-      <pre><code>NOW()                          -- 現在的日期時間
-CURDATE()                      -- 今天
-YEAR(d)  MONTH(d)  DAY(d)      -- 取出年、月、日
-HOUR(d)  MINUTE(d)             -- 取出時、分
-DATE_ADD(d, INTERVAL 7 DAY)    -- 往後 7 天
-DATE_SUB(d, INTERVAL 40 MINUTE)-- 往前 40 分鐘
-DATEDIFF(d1, d2)               -- 兩個日期差幾天</code></pre>
+      <p>MariaDB 有一整組日期時間函數。最常用的幾個，以下用 <code>d</code> 代表一個日期時間值，例如 <code>'2025-04-12 23:30:00'</code>：</p>
+      <dl class="fn-ref">
+        <dt><code>NOW()</code></dt>
+        <dd>現在的日期時間。</dd>
+        <dt><code>CURDATE()</code></dt>
+        <dd>今天的日期，不含時間。</dd>
+        <dt><code>YEAR(d)</code>、<code>MONTH(d)</code>、<code>DAY(d)</code></dt>
+        <dd>分別取出年、月、日，得到 <code>2025</code>、<code>4</code>、<code>12</code>。</dd>
+        <dt><code>HOUR(d)</code>、<code>MINUTE(d)</code></dt>
+        <dd>分別取出時、分，得到 <code>23</code>、<code>30</code>。</dd>
+        <dt><code>DATE_ADD(d, INTERVAL 7 DAY)</code></dt>
+        <dd>往後推 7 天，得到 <code>'2025-04-19 23:30:00'</code>。</dd>
+        <dt><code>DATE_SUB(d, INTERVAL 40 MINUTE)</code></dt>
+        <dd>往前推 40 分鐘，得到 <code>'2025-04-12 22:50:00'</code>。這題要用的就是它。</dd>
+        <dt><code>DATEDIFF(d1, d2)</code></dt>
+        <dd>算兩個日期差幾天，<code>d1</code> 比較晚時是正數。</dd>
+      </dl>
       <p>INTERVAL 後面的單位可以是 <code>SECOND</code>、<code>MINUTE</code>、<code>HOUR</code>、<code>DAY</code>、<code>MONTH</code>、<code>YEAR</code>。</p>
       <p>SELECT 不一定要 FROM 某張表，可以直接算：<code>SELECT DATE_SUB('2025-04-12 23:30:00', INTERVAL 40 MINUTE);</code></p>` },
     { type: 'task', id: 'c2-t3', title: '推算案發時間', prompt: '打烊時間是 <code>2025-04-12 23:30:00</code>。用 <code>DATE_SUB</code> 算出「打烊前 40 分鐘」是幾點。',
@@ -65,13 +74,21 @@ DATEDIFF(d1, d2)               -- 兩個日期差幾天</code></pre>
       { who: 'mentor', text: '很好，三個線索：後三碼 528、銀色、女性。先學怎麼從一串文字裡切出「最後三碼」，再一層一層縮小。' },
     ] },
     { type: 'lesson', title: '字串函數：切、接、找', body: `
-      <p>店員只記得車牌「最後三碼」。用字串函數取部分文字：</p>
-      <pre><code>RIGHT(plate_number, 3)      -- 右邊 3 個字  'ABC-1234' → '234'
-LEFT(plate_number, 3)       -- 左邊 3 個字  → 'ABC'
-SUBSTRING(plate_number, 5)  -- 從第 5 個字開始 → '1234'
-LENGTH(name)                -- 字串長度（位元組）
-CONCAT(name, '（', district, '）')  -- 把多段文字接起來
-UPPER(x)  LOWER(x)  TRIM(x) -- 大寫、小寫、去頭尾空白</code></pre>
+      <p>店員只記得車牌「最後三碼」。字串函數可以從一串文字裡切出一部分、或把幾段接起來。以下都用車牌 <code>'ABC-1234'</code> 當例子：</p>
+      <dl class="fn-ref">
+        <dt><code>RIGHT(plate_number, 3)</code></dt>
+        <dd>取<strong>右邊</strong> 3 個字，得到 <code>'234'</code>。這題要用的就是它。</dd>
+        <dt><code>LEFT(plate_number, 3)</code></dt>
+        <dd>取<strong>左邊</strong> 3 個字，得到 <code>'ABC'</code>。</dd>
+        <dt><code>SUBSTRING(plate_number, 5)</code></dt>
+        <dd>從<strong>第 5 個字</strong>開始一路取到底，得到 <code>'1234'</code>。</dd>
+        <dt><code>LENGTH(plate_number)</code></dt>
+        <dd>算字串長度，得到 <code>8</code>。注意它算的是位元組，一個中文字會算 3。</dd>
+        <dt><code>CONCAT(name, '（', district, '）')</code></dt>
+        <dd>把多段文字接成一段，例如 <code>'張哲（港東區）'</code>。</dd>
+        <dt><code>UPPER(x)</code>、<code>LOWER(x)</code>、<code>TRIM(x)</code></dt>
+        <dd>分別是轉大寫、轉小寫、去掉頭尾空白。</dd>
+      </dl>
       <p>函數可以放在 SELECT 裡（顯示用），也可以放在 WHERE 裡（篩選用）。</p>` },
     { type: 'task', id: 'c2-t5', title: '後三碼 528', prompt: '從 <code>driver_license</code> 找出車牌<strong>最後三碼是 528</strong> 的駕照，顯示 <code>plate_number</code>、<code>car_color</code>、<code>gender</code>、<code>person_id</code>。',
       hints: ["用 RIGHT(plate_number, 3) = '528'，或 LIKE '%528'。", '兩種寫法都對，試試看結果一樣嗎？', "<code>SELECT plate_number, car_color, gender, person_id FROM driver_license WHERE RIGHT(plate_number, 3) = '528';</code>"],

@@ -15,11 +15,17 @@ SD.chapters.push({
     ] },
     { type: 'lesson', title: '聚合函數：把很多列變成一個數字', body: `
       <p>之前的查詢都是「一列進、一列出」。<strong>聚合函數</strong>會把很多列<strong>算成一個結果</strong>：</p>
-      <pre><code>COUNT(*)         -- 幾筆
-SUM(est_value)   -- 加總
-AVG(est_value)   -- 平均
-MIN(est_value)   -- 最小
-MAX(est_value)   -- 最大</code></pre>
+      <dl class="fn-ref">
+        <dt><code>COUNT(*)</code></dt>
+        <dd>數有<strong>幾筆</strong>資料，不管欄位內容是什麼。</dd>
+        <dt><code>SUM(est_value)</code></dt>
+        <dd>把每一筆的 <code>est_value</code> <strong>加總</strong>成一個數字。</dd>
+        <dt><code>AVG(est_value)</code></dt>
+        <dd>算 <code>est_value</code> 的<strong>平均</strong>。</dd>
+        <dt><code>MIN(est_value)</code>、<code>MAX(est_value)</code></dt>
+        <dd>分別找出 <code>est_value</code> 的<strong>最小</strong>與<strong>最大</strong>值。</dd>
+      </dl>
+      <p>用起來像這樣，整張表或符合 WHERE 的那些列會被算成一列：</p>
       <pre><code>SELECT COUNT(*) FROM lost_item;
 SELECT SUM(est_value), AVG(est_value) FROM lost_item WHERE status = '已領回';</code></pre>
       <p><code>COUNT(*)</code> 數列數；<code>COUNT(欄位)</code> 只數該欄位不是 NULL 的列。</p>` },
