@@ -423,10 +423,23 @@
       sec.setAttribute('aria-label', `第 ${id} 章線索`);
       sec.innerHTML = `<div class="board-section-title"><p class="eyebrow">第 ${id} 章</p><h3 class="text-xl font-black">${esc(ch ? ch.title : '')}</h3><span class="text-sm text-ink-300">${clues.length} 條線索</span></div>`;
       const grid = el('div', 'board-grid');
-      for (const c of clues) grid.appendChild(clueCard(c, newClueIds.has(c.id)));
+      for (const c of clues) { const cardEl = clueCard(c, newClueIds.has(c.id)); cardEl.dataset.clueId = c.id; grid.appendChild(cardEl); }
       sec.appendChild(grid);
       board.appendChild(sec);
     }
+    // 已結案章節在瀏覽模式重現證據鏈：三張卡的圖釘依 chain 順序（敘事順序）逐張牽線
+    stringsBuild = () => shown.flatMap((id) => {
+      const ch = chapters.find((c) => c.id === id);
+      const ans = ch && ch.steps.find((s) => s.type === 'answer');
+      const rec = ans && SD.state.chapter(id).steps[ans.id];
+      if (!rec || !rec.done) return [];
+      return ans.chain.slice(1).map((to, i) => {
+        const a = board.querySelector(`.polaroid[data-clue-id="${ans.chain[i]}"]`);
+        const b = board.querySelector(`.polaroid[data-clue-id="${to}"]`);
+        return a && b ? { id: to, a: pinPoint(a), b: pinPoint(b), pin: false } : null;
+      }).filter(Boolean);
+    });
+    mountStrings(board);
     $('#board-empty').hidden = n > 0;
     $('#board-count').textContent = state.clues.length ? `${n} / ${state.clues.length} 條` : '';
     updateBoardButton();
@@ -448,6 +461,9 @@
     if (canAnimate()) {
       gsap.fromTo(boardStage, { opacity: 0 }, { opacity: 1, duration: 0.3 });
       gsap.from('#board .polaroid, #board .verdict-card', { y: -24, opacity: 0, duration: 0.45, stagger: 0.04, ease: 'power2.out', clearProps: 'all' });
+      // 紅線等卡片落定再浮現，否則會先看到線懸在半空等卡片飛進來
+      const strings = $('#board .board-strings');
+      if (strings) gsap.from(strings, { opacity: 0, duration: 0.4, delay: 0.3 + 0.04 * $$('#board .polaroid').length, clearProps: 'all' });
     }
     // 結案室開啟即可打字；已破案時輸入框停用，焦點留在 dialog 預設位置
     const input = $('#verdict-input', boardStage);
@@ -545,9 +561,9 @@
       if (step.type === 'answer') {
         const inChain = chained.includes(t.id);
         cardEl.classList.toggle('is-chained', inChain);
+        cardEl.dataset.clueId = t.id; // 紅線層靠它找圖釘位置，破案後也要找得到
         if (chaining) {
           cardEl.draggable = true;
-          cardEl.dataset.clueId = t.id;
           // 放進文字欄而不是卡片末端：橫式拍立得的第三個 flex 子元素會擠在右側；且卡片是紙白底，不能用白字的 btn-ghost
           cardEl.querySelector('.min-w-0').insertAdjacentHTML('beforeend', inChain ? '<p class="mt-2 text-xs font-bold text-teal-deep">✔ 已在證據鏈</p>' : `<button type="button" class="chain-add-btn" data-chain-add="${t.id}">釘入證據鏈</button>`);
         }
@@ -559,6 +575,20 @@
     if (closing) grid.appendChild(clueCard(closing, newClueIds.has(closing.id)));
     sec.appendChild(grid);
     board.appendChild(sec);
+    // 紅線：每張已釘入的卡從圖釘牽到指認卡上對應的槽位（輪輻狀，因為證據鏈是集合不是順序）
+    stringsBuild = step.type !== 'answer' ? null : () => {
+      const done = stepDone(step);
+      const judged = !done && !chainOk && chained.length >= step.chain.length;
+      return (done ? step.chain : chained).map((id) => {
+        const cardEl = board.querySelector(`.polaroid[data-clue-id="${id}"]`);
+        const slot = board.querySelector(`.chain-slot[data-chain-remove="${id}"]`);
+        if (!cardEl || !slot) return null;
+        const sr = slot.getBoundingClientRect();
+        // 線從牆（下方）牽上來，釘在槽位下緣中央：不壓槽位裡的縮圖與標題，也不用穿過指認卡其他內容
+        return { id, a: pinPoint(cardEl), b: { x: sr.left + sr.width / 2, y: sr.bottom - 1 }, pin: true, wrong: judged && !step.chain.includes(id) };
+      }).filter(Boolean);
+    };
+    mountStrings(board);
     $('#board-empty').hidden = true;
     $('#board-count').textContent = '';
   }
@@ -623,8 +653,67 @@
     const step = chapter.steps[stepIndex];
     if (step.type !== 'answer' || stepDone(step) || chained.includes(id)) return;
     if (chained.length >= step.chain.length) { const fbEl = $('#chain-feedback', boardStage); if (fbEl) fbEl.innerHTML = '<p class="mt-2 text-sm text-amber">槽位已滿，先點一張移出。</p>'; return; }
+    stringAnimId = id;
     chainSet([...chained, id]);
   }
+
+  /*
+   * 紅線層。線是純裝飾（aria-hidden），鏈的狀態仍由槽位與 is-chained 光圈承載。
+   * 座標在渲染後以 getBoundingClientRect 量測、換算成相對 #board 的值；SVG 疊在 #board 上跟著捲動，
+   * 版面一變（視窗縮放、字型載入、破案後多釘一張卡）就由 ResizeObserver 觸發重畫。
+   * stringsBuild 由 renderBoard / renderVerdictBoard 設定，回傳線段清單；sm 以下不量測也不畫。
+   */
+  let stringsBuild = null;
+  let stringAnimId = null; // 剛釘入的那張卡，只有它的線播「拉線」動畫，重畫時其餘直接就位
+  const smMQ = window.matchMedia('(min-width: 40rem)');
+  /* 拍立得圖釘中心：卡片頂邊中央。卡片有 ±1° 旋轉，外接矩形頂緣比頂邊中央高約 3px，補回去 */
+  function pinPoint(cardEl) {
+    const r = cardEl.getBoundingClientRect();
+    return { x: r.left + r.width / 2, y: r.top + 3 };
+  }
+  function mountStrings(board) {
+    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    svg.setAttribute('class', 'board-strings');
+    svg.setAttribute('aria-hidden', 'true');
+    board.appendChild(svg);
+    drawStrings();
+  }
+  function drawStrings() {
+    const svg = $('#board .board-strings');
+    const animId = stringAnimId;
+    stringAnimId = null;
+    if (!svg) return;
+    svg.replaceChildren();
+    if (!stringsBuild || !smMQ.matches) return;
+    const board = $('#board');
+    const br = board.getBoundingClientRect();
+    svg.setAttribute('viewBox', `0 0 ${br.width} ${br.height}`);
+    svg.setAttribute('width', br.width);
+    svg.setAttribute('height', br.height);
+    const ns = svg.namespaceURI;
+    for (const seg of stringsBuild()) {
+      const x1 = seg.a.x - br.left, y1 = seg.a.y - br.top, x2 = seg.b.x - br.left, y2 = seg.b.y - br.top;
+      // 毛線有重量：控制點往下壓，距離越遠垂得越多，但別垂到蓋住卡片文字
+      const sag = Math.min(28, Math.max(10, Math.hypot(x2 - x1, y2 - y1) * 0.12));
+      const path = document.createElementNS(ns, 'path');
+      path.setAttribute('class', `string-path${seg.wrong ? ' is-wrong' : ''}`);
+      path.setAttribute('d', `M ${x1} ${y1} Q ${(x1 + x2) / 2} ${(y1 + y2) / 2 + sag} ${x2} ${y2}`);
+      svg.appendChild(path);
+      if (seg.pin) {
+        const pin = document.createElementNS(ns, 'circle');
+        pin.setAttribute('class', 'string-pin');
+        pin.setAttribute('cx', x2); pin.setAttribute('cy', y2); pin.setAttribute('r', 5);
+        svg.appendChild(pin);
+      }
+      // 虛線的錯誤線不播動畫：dasharray 會被拉線用的 dasharray 蓋掉，播完才變虛線很突兀
+      if (seg.id === animId && !seg.wrong && canAnimate()) {
+        const len = path.getTotalLength();
+        gsap.fromTo(path, { strokeDasharray: len, strokeDashoffset: len }, { strokeDashoffset: 0, duration: 0.55, ease: 'power2.out', clearProps: 'strokeDasharray,strokeDashoffset' });
+      }
+    }
+  }
+  new ResizeObserver(() => { if (boardStage.open) drawStrings(); }).observe($('#board'));
+  smMQ.addEventListener('change', () => { if (boardStage.open) drawStrings(); });
   boardStage.addEventListener('click', (e) => { const b = e.target.closest('[data-chain-add]'); if (b) chainAdd(b.dataset.chainAdd); });
   boardStage.addEventListener('dragstart', (e) => { const p = e.target.closest('.polaroid[draggable="true"]'); if (p) e.dataTransfer.setData('text/plain', p.dataset.clueId); });
 
@@ -641,10 +730,12 @@
       // 三格填滿卻沒成立時才逐格判定；未填滿前不標，讓玩家先想完整條鏈再拿回饋
       const judged = () => !done && !chainOk && chained.length >= n;
       const filled = () => (done ? step.chain : chained).map((id) => { const wrong = judged() && !step.chain.includes(id); return `<button type="button" class="chain-slot is-filled${wrong ? ' is-wrong' : ''}" data-chain-remove="${id}" ${done ? 'disabled' : ''} aria-label="${wrong ? '不在證據鏈上，' : ''}移出證據鏈：${esc(titleOf(id))}"><img src="${SD.media.clueIcon(titleOf(id))}" alt="" width="40" height="40" />${wrong ? '<span aria-hidden="true">✘</span>' : ''}<span>${esc(titleOf(id))}</span></button>`; }).join('') + (done ? '' : Array.from({ length: Math.max(0, n - chained.length) }, (_, i) => `<div class="chain-slot" aria-label="空槽位 ${chained.length + i + 1}">線索 ${chained.length + i + 1}</div>`).join(''));
-      c.innerHTML = `<div class="min-w-0 flex-1"><p class="eyebrow">結案 · 指認</p><div class="prose-sd mt-2">${step.prompt}</div>
+      // 桌機分兩欄：左欄槽位沉到卡片底邊，右欄放回饋與嫌疑人。這樣紅線從牆牽上來進槽位時，卡內沒有任何文字被線穿過；DOM 順序仍是提示 → 槽位 → 回饋 → 指認
+      c.classList.add('is-split');
+      c.innerHTML = `<div class="verdict-main"><p class="eyebrow">結案 · 指認</p><div class="prose-sd mt-2">${step.prompt}</div>
         <p class="mt-3 text-sm leading-6 text-ink-300"><span class="font-bold text-amber">第一步</span> 從牆上挑出 ${n} 張能串成一條證據鏈的線索：點線索卡上的「釘入證據鏈」，或直接拖進槽位。點槽位可移出。</p>
-        <div id="chain" class="chain" aria-label="證據鏈">${filled()}</div>
-        <div id="chain-feedback" aria-live="polite"></div>
+        <div id="chain" class="chain" aria-label="證據鏈">${filled()}</div></div>
+        <div class="verdict-side"><div id="chain-feedback" aria-live="polite"></div>
         <div id="suspects" class="mt-3" ${done || chainOk ? '' : 'hidden'}>
           <p class="text-sm leading-6 text-ink-300"><span class="font-bold text-amber">第二步</span> 指認嫌疑人。</p>
           <div class="mt-2 flex flex-wrap gap-2" role="group" aria-label="嫌疑人名單">${suspects.map((s) => `<button type="button" class="suspect-btn" data-suspect="${esc(s)}" ${done ? 'disabled' : ''}>${esc(s)}</button>`).join('')}</div>
@@ -677,6 +768,7 @@
         $$('[data-chain-add]', boardStage).forEach((b) => b.remove());
         $$('.polaroid[draggable="true"]', boardStage).forEach((p) => { p.draggable = false; });
         success();
+        drawStrings(); // 成功區塊撐高指認卡，槽位位置變了
         if (canAnimate()) gsap.from(fb.firstElementChild, { scale: 0.9, opacity: 0, duration: 0.5, ease: 'back.out(2)' });
         solveCase({ id: step.id, ch: chapter.id, title: '結案', text: `${v}。${step.success.split('。')[0]}。` });
       });

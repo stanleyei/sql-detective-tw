@@ -38,6 +38,8 @@
   --color-teal-deep: #0f6e5e;
   --color-pink: #ff5fa2;
   --color-danger: #ff7b7b;
+  /* 證據板紅線：純裝飾（資訊由青綠光圈與槽位文字承載），只需在 ink-900 暗牆上肉眼清楚；比 danger 更飽和偏正紅才像毛線而非警示 */
+  --color-string: #e63946;
 
   /* 字級：眉標與程式碼用的非標準值，統一在此定義 */
   --text-eyebrow: 0.75rem;
@@ -480,6 +482,15 @@
    * 不旋轉、沒有圖釘，因為它是辦案桌上的表單，不是牆上的證物。
    */
   .verdict-card { @apply col-span-full flex flex-wrap items-start gap-4 rounded-2xl border-2 border-amber/70 bg-ink-950/90 p-4 shadow-glow-amber backdrop-blur sm:p-6; }
+  /*
+   * 指認卡（answer 型）在 md 起分兩欄：左欄提示 + 槽位、右欄回饋 + 嫌疑人。
+   * 槽位以 mt-auto 沉到卡片底邊，牆上牽上來的紅線進槽位前不會穿過卡內任何文字；
+   * 右欄在還沒判定前是空的，留白即可，不加邊框免得像缺了東西。
+   */
+  .verdict-card.is-split { @apply md:grid md:grid-cols-[minmax(0,3fr)_minmax(0,2fr)] md:items-stretch md:gap-x-6; }
+  .verdict-main { @apply flex min-w-0 flex-col; }
+  .verdict-main .chain { @apply md:mt-auto md:pt-4; }
+  .verdict-side { @apply min-w-0; }
   /* 結案室要一屏看完整章線索（最多 12 張）：拍立得改橫式，縮圖在左、文字在右，72rem 寬一列三張 */
   .board-grid.is-dense { @apply sm:grid-cols-[repeat(auto-fill,minmax(19rem,1fr))] sm:gap-5; }
   .board-grid.is-dense .polaroid { @apply sm:flex-row sm:pb-3; }
@@ -506,6 +517,18 @@
   /* 判定後不在鏈上的卡：琥珀色邊框加 ✘ 字樣，讓玩家知道要換的是哪一張，不只靠顏色（WCAG 1.4.1） */
   .chain-slot.is-filled.is-wrong { @apply border-amber bg-amber/10 text-amber hover:border-danger hover:bg-danger/10; }
   .chain-slot img { @apply size-10 rounded-sm bg-ink-900 object-cover; }
+  /*
+   * 紅線層：疊在 #board 上、跟內容一起捲動的 SVG，座標由 JS 量測後填入。
+   * z-index 介於一般拍立得（無 z）與 hover 拍立得（z-10）之間，線壓在照片上、但滑到哪張哪張浮起。
+   * sm 以下單欄堆疊，線只剩短垂直段沒有意義，直接不顯示（JS 也不量測）。
+   */
+  .board-strings { @apply pointer-events-none absolute inset-0 z-[5] hidden overflow-visible sm:block; }
+  /* 略透明：線壓到拍立得文字時字仍可辨 */
+  .string-path { fill: none; stroke: var(--color-string); stroke-opacity: 0.85; stroke-width: 2.5px; stroke-linecap: round; filter: drop-shadow(0 2px 2px rgb(0 0 0 / 0.55)); }
+  /* 判定後不在鏈上的線：琥珀虛線，與槽位 is-wrong 同色同義 */
+  .string-path.is-wrong { stroke: var(--color-amber); stroke-dasharray: 6 5; }
+  /* 線在槽位端的圖釘，沿用拍立得圖釘的粉紅 */
+  .string-pin { fill: var(--color-pink); stroke: rgb(0 0 0 / 0.45); stroke-width: 1px; }
   /* 嫌疑人按鈕：選錯的畫線退場，選對由 JS 加 success 區塊 */
   .suspect-btn { @apply inline-flex min-h-11 cursor-pointer items-center rounded-lg border border-ink-600 bg-ink-900 px-4 text-base font-bold text-paper transition hover:border-amber disabled:cursor-not-allowed; }
   .suspect-btn.is-wrong { @apply border-danger/60 line-through opacity-50; }
