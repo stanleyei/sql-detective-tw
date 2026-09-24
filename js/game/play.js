@@ -653,10 +653,10 @@
           return;
         }
         SD.state.markStep(chapter.id, step.id);
-        $('[data-suspect]', c).forEach((b) => { b.disabled = true; if (b !== sb) b.classList.add('opacity-50'); });
+        $$('[data-suspect]', c).forEach((b) => { b.disabled = true; if (b !== sb) b.classList.add('opacity-50'); });
         // 破案後牆上的「釘入」按鈕與拖曳失效；不整面重繪，讓 solveCase 的釘卡動畫能接著播
-        $('[data-chain-add]', boardStage).forEach((b) => b.remove());
-        $('.polaroid[draggable="true"]', boardStage).forEach((p) => { p.draggable = false; });
+        $$('[data-chain-add]', boardStage).forEach((b) => b.remove());
+        $$('.polaroid[draggable="true"]', boardStage).forEach((p) => { p.draggable = false; });
         success();
         if (canAnimate()) gsap.from(fb.firstElementChild, { scale: 0.9, opacity: 0, duration: 0.5, ease: 'back.out(2)' });
         solveCase({ id: step.id, ch: chapter.id, title: '結案', text: `${v}。${step.success.split('。')[0]}。` });
