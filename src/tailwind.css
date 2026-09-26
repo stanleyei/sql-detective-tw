@@ -388,20 +388,33 @@
   /*
    * 開場演出（網頁內 MV，沿用 .stage 滿版）。兩層背景圖疊在一起交替淡化，transform 由 GSAP 接管做 Ken Burns，
    * 所以圖層本身不寫 scale／translate。字卡置中偏下、不加實色框：這是「片頭」而不是對話，
-   * 可讀性改由 vignette（四周收暗）與文字陰影負責。reduced-motion 時 GSAP 不啟動，圖層以 opacity 硬切。
+   * 可讀性改由三層負責：vignette（四周收暗）、跟著字卡走的柔邊局部遮罩（.opening-card 的漸層背景）、文字陰影。
+   * 遮罩要跟著字卡而不是固定在畫面某個百分比：桌機字卡置中、手機靠底，固定位置的漸層兩邊只能顧到一邊。
+   * reduced-motion 時 GSAP 不啟動，圖層以 opacity 硬切。
    */
   .opening-layer { @apply absolute inset-0 size-full object-cover opacity-0 will-change-transform; }
   .opening-vignette {
     @apply pointer-events-none absolute inset-0;
     background:
       radial-gradient(ellipse at center, transparent 35%, color-mix(in srgb, var(--color-ink-950) 75%, transparent) 100%),
-      linear-gradient(to top, var(--color-ink-950) 0%, color-mix(in srgb, var(--color-ink-950) 40%, transparent) 40%, transparent 65%);
+      linear-gradient(to top, var(--color-ink-950) 0%, color-mix(in srgb, var(--color-ink-950) 40%, transparent) 45%, transparent 75%);
   }
+  /* 字卡手機靠底（畫面留給場景、按鈕在拇指區）、桌機置中；片名卡兩邊都置中，靠底會像字幕而不是片名 */
   .opening-body { @apply absolute inset-0 flex cursor-pointer flex-col items-center justify-end px-4 pb-[max(1.5rem,env(safe-area-inset-bottom))] pt-20 sm:justify-center sm:px-8 sm:pb-8; }
-  .opening-card { @apply w-full max-w-3xl text-center; text-shadow: 0 2px 12px rgb(0 0 0 / 0.8), 0 0 2px rgb(0 0 0 / 0.9); }
-  /* min-h 預留兩行：字卡逐行打出時版面不跳 */
+  .opening.is-title .opening-body { @apply justify-center; }
+  /* 局部遮罩：上下各留一段羽化、中段約六成不透明，沒有邊框與圓角，維持片頭感。padding 讓羽化區不壓到字 */
+  .opening-card {
+    @apply w-full max-w-4xl px-4 py-10 text-center;
+    text-shadow: 0 2px 12px rgb(0 0 0 / 0.8), 0 0 2px rgb(0 0 0 / 0.9);
+    background: linear-gradient(to bottom, transparent 0%, color-mix(in srgb, var(--color-ink-950) 60%, transparent) 2.5rem, color-mix(in srgb, var(--color-ink-950) 60%, transparent) calc(100% - 2.5rem), transparent 100%);
+  }
+  /* min-h 預留兩行：字卡逐行打出時版面不跳。balance 讓兩行長度接近、避免句尾孤字；strict 明確禁止標點掛在行首 */
   .opening-text { @apply mt-3 flex min-h-[6.5rem] flex-col gap-2 text-xl font-bold leading-9 sm:min-h-[8rem] sm:text-3xl sm:leading-[1.4]; }
-  .opening-actions { @apply mt-6 flex w-full max-w-3xl justify-end sm:absolute sm:bottom-[max(1.5rem,env(safe-area-inset-bottom))] sm:right-8 sm:mt-0 sm:w-auto; }
+  .opening-line { text-wrap: balance; line-break: strict; }
+  /* 文案內的手動斷點只給手機用：桌機一行放得下整句 */
+  .opening-line br { @apply sm:hidden; }
+  .opening-actions { @apply mt-6 flex w-full max-w-4xl justify-end sm:absolute sm:bottom-[max(1.5rem,env(safe-area-inset-bottom))] sm:right-8 sm:mt-0 sm:w-auto; }
+  .opening.is-title .opening-actions { @apply absolute bottom-[max(1.5rem,env(safe-area-inset-bottom))] right-4 mt-0 w-auto sm:right-8; }
   .opening-progress { @apply flex items-center gap-1.5; }
   .opening-progress span { @apply h-1 w-6 rounded-full bg-paper/25 transition-colors duration-500; }
   .opening-progress span.is-on { @apply bg-amber; }

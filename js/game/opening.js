@@ -11,18 +11,19 @@
   const canAnimate = () => !!window.gsap && !reduce;
 
   /* 每幕：背景圖、Ken Burns 起訖（scale 與位移百分比）、字卡。hold 是整幕打完字後停留的秒數。
-   * 文案只講城市、雨夜與積案，不解說遊戲機制；整段唯一的 SQL 留在片名卡。eyebrow 是卷宗式的地點時間戳 */
+   * 文案只講城市、雨夜與積案，不解說遊戲機制；整段唯一的 SQL 留在片名卡。eyebrow 是卷宗式的地點時間戳。
+   * 句子裡的 \n 是「手機寬度時建議在這裡斷行」：渲染成 <br>，桌機以 CSS 忽略；瀏覽器自動換行會把「一點」這種詞切開，斷點由作者定 */
   const SCENES = [
     { img: './images/hero-1600.webp', w: 1536, h: 1024, from: { scale: 1.15, x: 3, y: 2 }, to: { scale: 1, x: 0, y: 0 },
-      eyebrow: '潮港市 · 夜', lines: ['潮港市。海風裡總帶著一點鹹味，和一點沒人說出口的事。', '這座城市，只在夜裡誠實。'], hold: 3.4 },
+      eyebrow: '潮港市 · 夜', lines: ['潮港市。海風裡總帶著一點鹹味，\n和一點沒人說出口的事。', '這座城市，只在夜裡誠實。'], hold: 3.4 },
     { img: './images/scene/ch0-lobby.webp', w: 960, h: 640, from: { scale: 1, x: 0, y: 0 }, to: { scale: 1.12, x: -2, y: -2 },
-      eyebrow: '市警局 · 九月', lines: ['九月，一張調職令把你送進市警局。', '等著你的不是歡迎會，而是一疊今年還沒有答案的案子。'], hold: 3.4 },
+      eyebrow: '市警局 · 九月', lines: ['九月，一張調職令把你送進市警局。', '等著你的不是歡迎會，\n而是一疊今年還沒有答案的案子。'], hold: 3.4 },
     { img: './images/scene/ch2-store-cctv.webp', w: 960, h: 640, from: { scale: 1.12, x: -3, y: 0 }, to: { scale: 1, x: 2, y: 1 },
-      eyebrow: '港東區 · 02:14', lines: ['凌晨兩點十四分，一輛車在店門口停了四分鐘。', '沒有人記得它。除了鏡頭。'], hold: 3.4 },
+      eyebrow: '港東區 · 02:14', lines: ['凌晨兩點十四分，\n一輛車在店門口停了四分鐘。', '沒有人記得它。除了鏡頭。'], hold: 3.4 },
     { img: './images/scene/ch4-serverroom.webp', w: 960, h: 640, from: { scale: 1, x: 0, y: 2 }, to: { scale: 1.14, x: 0, y: -2 },
-      eyebrow: '地下二樓', lines: ['大家都以為，真相會被雨水沖掉。', '其實它只是被收進了沒人願意讀的地方。'], hold: 3.4 },
+      eyebrow: '地下二樓', lines: ['大家都以為，真相會被雨水沖掉。', '其實它只是被收進了\n沒人願意讀的地方。'], hold: 3.4 },
     { img: './images/scene/ch6-harbor-end.webp', w: 960, h: 640, from: { scale: 1.16, x: 2, y: -2 }, to: { scale: 1, x: 0, y: 0 },
-      eyebrow: '', lines: ['這座城市把一切都記了下來。', '現在，它需要一個懂得提問的人。'], hold: 3.6 },
+      eyebrow: '', lines: ['這座城市把一切都記了下來。', '現在，它需要一個\n懂得提問的人。'], hold: 3.6 },
     { title: true, img: './images/scene/ch6-harbor-end.webp', w: 960, h: 640, from: { scale: 1, x: 0, y: 0 }, to: { scale: 1.06, x: 0, y: 0 },
       code: "SELECT truth FROM chaogang_city;", lines: [], hold: 3.6 },
   ];
@@ -212,7 +213,7 @@
     codeEl.hidden = !scene.title;
     codeEl.textContent = '';
     dlg.classList.toggle('is-title', !!scene.title);
-    liveEl.textContent = scene.title ? `SQL 偵探：潮港市檔案。${scene.code}` : scene.lines.join(' ');
+    liveEl.textContent = scene.title ? `SQL 偵探：潮港市檔案。${scene.code}` : scene.lines.map(plain).join(' ');
 
     if (scene.title) { hit(); typeCode(scene); return; }
     typeLines(scene, 0);
@@ -220,13 +221,22 @@
 
   function sceneSeconds(scene) {
     if (scene.title) return scene.code.length * (TYPE_MS + 20) / 1000 + scene.hold;
-    const chars = scene.lines.reduce((n, l) => n + l.length, 0);
+    const chars = scene.lines.reduce((n, l) => n + plain(l).length, 0);
     return reduce ? scene.lines.length * 1.8 + scene.hold : chars * TYPE_MS / 1000 + (scene.lines.length - 1) * GAP_S + scene.hold;
   }
 
   /* 逐行打字：每行各自一個 <span>，前一行打完保留在畫面上，讀屏器則由 live region 一次唸整幕。
    * 標點不出聲（打字員在句尾會停一下），空白也不出聲 */
   const SILENT = /[\s，。、；：！？「」…—,.]/;
+  const plain = (line) => line.replace(/\n/g, '');
+  /* 逐字寫入時把 \n 換成 <br>，其餘用 text node：文案是檔案內的硬編碼常數，沒有外部輸入 */
+  function renderLine(span, text) {
+    span.textContent = '';
+    text.split('\n').forEach((seg, i) => {
+      if (i) span.appendChild(document.createElement('br'));
+      span.appendChild(document.createTextNode(seg));
+    });
+  }
   function typeLines(scene, li) {
     if (!running) return;
     if (li >= scene.lines.length) { later(advance, scene.hold); return; }
@@ -234,12 +244,12 @@
     const span = document.createElement('span');
     span.className = 'opening-line';
     textEl.appendChild(span);
-    if (reduce) { span.textContent = line; later(() => typeLines(scene, li + 1), 1.8); return; }
+    if (reduce) { renderLine(span, line); later(() => typeLines(scene, li + 1), 1.8); return; }
     let k = 0;
     const iv = setInterval(() => {
       if (!running) { clearInterval(iv); return; }
       const ch = line[k];
-      span.textContent = line.slice(0, ++k);
+      renderLine(span, line.slice(0, ++k));
       if (!SILENT.test(ch)) click(false);
       if (k >= line.length) { clearInterval(iv); later(() => typeLines(scene, li + 1), GAP_S); }
     }, TYPE_MS);
@@ -260,17 +270,20 @@
     timers.push(iv);
   }
 
+  let loading = false;   // 圖片預載中再點「下一幕」會讓 sceneIdx 連跳兩幕，載入期間忽略推進
   function advance() {
-    if (!running) return;
+    if (!running || loading) return;
     clearTimers();
     sceneIdx++;
     if (sceneIdx >= SCENES.length) { finish(); return; }
-    preload(SCENES[sceneIdx].img).then(() => showScene(sceneIdx));
+    loading = true;
+    preload(SCENES[sceneIdx].img).then(() => { loading = false; showScene(sceneIdx); });
   }
 
   function start() {
     chooser.hidden = true;
     running = true;
+    loading = false;
     sceneIdx = 0;
     if (SD.audio) SD.audio.setScene('opening');
     rainStart();
