@@ -386,6 +386,39 @@
   .stage-box.narrator .stage-text { @apply mt-0 text-center italic text-ink-300; }
 
   /*
+   * 開場演出（網頁內 MV，沿用 .stage 滿版）。兩層背景圖疊在一起交替淡化，transform 由 GSAP 接管做 Ken Burns，
+   * 所以圖層本身不寫 scale／translate。字卡置中偏下、不加實色框：這是「片頭」而不是對話，
+   * 可讀性改由 vignette（四周收暗）與文字陰影負責。reduced-motion 時 GSAP 不啟動，圖層以 opacity 硬切。
+   */
+  .opening-layer { @apply absolute inset-0 size-full object-cover opacity-0 will-change-transform; }
+  .opening-vignette {
+    @apply pointer-events-none absolute inset-0;
+    background:
+      radial-gradient(ellipse at center, transparent 35%, color-mix(in srgb, var(--color-ink-950) 75%, transparent) 100%),
+      linear-gradient(to top, var(--color-ink-950) 0%, color-mix(in srgb, var(--color-ink-950) 40%, transparent) 40%, transparent 65%);
+  }
+  .opening-body { @apply absolute inset-0 flex cursor-pointer flex-col items-center justify-end px-4 pb-[max(1.5rem,env(safe-area-inset-bottom))] pt-20 sm:justify-center sm:px-8 sm:pb-8; }
+  .opening-card { @apply w-full max-w-3xl text-center; text-shadow: 0 2px 12px rgb(0 0 0 / 0.8), 0 0 2px rgb(0 0 0 / 0.9); }
+  /* min-h 預留兩行：字卡逐行打出時版面不跳 */
+  .opening-text { @apply mt-3 flex min-h-[6.5rem] flex-col gap-2 text-xl font-bold leading-9 sm:min-h-[8rem] sm:text-3xl sm:leading-[1.4]; }
+  .opening-actions { @apply mt-6 flex w-full max-w-3xl justify-end sm:absolute sm:bottom-[max(1.5rem,env(safe-area-inset-bottom))] sm:right-8 sm:mt-0 sm:w-auto; }
+  .opening-progress { @apply flex items-center gap-1.5; }
+  .opening-progress span { @apply h-1 w-6 rounded-full bg-paper/25 transition-colors duration-500; }
+  .opening-progress span.is-on { @apply bg-amber; }
+  /* 片名卡：主標題與字卡互斥，由 .is-title 切換 */
+  .opening-title { @apply hidden flex-col items-center gap-2; }
+  .opening.is-title .opening-title { @apply flex; }
+  .opening.is-title .opening-text { @apply hidden; }
+  .opening-title-main { @apply text-5xl font-black tracking-wide text-paper sm:text-7xl; }
+  .opening-title-sub { @apply text-lg font-bold tracking-[0.3em] text-amber sm:text-2xl; }
+  /* 打字中的 SQL：用等寬字與 teal 呼應編輯器；固定一行高度，字還沒打出來時不塌陷 */
+  .opening-code { @apply mt-4 min-h-[2rem] font-mono text-base text-teal sm:text-xl; }
+  .opening-code::after { content: '▌'; @apply animate-pulse text-teal/80; }
+  /* 有聲／靜音選擇：蓋在整個舞台上，實色框確保對比 */
+  .opening-chooser { @apply absolute inset-0 z-20 flex items-center justify-center bg-ink-950/70 p-4 backdrop-blur-sm; }
+  .opening-chooser-box { @apply w-full max-w-md rounded-2xl border border-ink-700 bg-ink-950/95 p-6 text-center shadow-card; }
+
+  /*
    * 開場過場（沿用 .stage 的滿版定位）。z-60 高於 coach mark（z-50）與 header（z-40），
    * 但低於 <dialog> 的 top layer；資料庫就緒前不會開任何 dialog，所以不衝突。
    * 背景用該章封面壓暗到 40%，資訊卡維持 ink-950/90 實色底確保對比。

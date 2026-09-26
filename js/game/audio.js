@@ -8,12 +8,14 @@
   const PREF_KEY = 'sd-bgm';       // 'on' | 'off'；沒有值代表從未選擇
   const MASTER = 0.4;              // 音檔已正規化到 -23 LUFS，這裡再壓低當背景
   const FADE = 1.5;                // 場景切換與開關的淡入淡出秒數
-  /* 三段皆為 CC0 音樂（來源見 audio/CREDITS.md）。loop 是音檔的精確長度；
+  /* 皆為 CC0 音樂（來源見 audio/CREDITS.md）。loop 是音檔的精確長度；
    * AAC 解碼後開頭多出的 priming 靜音靠 duration - loop 算回來 */
   const TRACKS = {
     office: { base: './audio/bgm-office', loop: 88 },
     story: { base: './audio/bgm-story', loop: 52 },
     ending: { base: './audio/bgm-ending', loop: 124.1 },
+    /* 片頭：一次性播放不循環，46 秒尾端已在音檔內淡出；演出結束由 opening.js 切回 story */
+    opening: { base: './audio/bgm-opening', once: true },
   };
   const SILENCE = './audio/silence.wav';
 
@@ -77,10 +79,10 @@
     if (current) fadeOut(current);
     const source = ctx.createBufferSource();
     source.buffer = buf;
-    source.loop = true;
-    const extra = Math.max(0, buf.duration - TRACKS[name].loop);
-    source.loopStart = extra;
-    source.loopEnd = buf.duration;
+    const once = !!TRACKS[name].once;
+    source.loop = !once;
+    const extra = once ? 0 : Math.max(0, buf.duration - TRACKS[name].loop);
+    if (!once) { source.loopStart = extra; source.loopEnd = buf.duration; }
     const gain = ctx.createGain();
     const t = ctx.currentTime;
     gain.gain.setValueAtTime(0, t);
@@ -208,5 +210,8 @@
     });
   }
 
-  window.SD.audio = { init, setScene, sceneFor };
+  /* enable 供開場演出的「有聲播放」按鈕呼叫：它本身就在使用者手勢內，符合自動播放限制。
+   * bus 讓開場演出把即時合成的音效（雨聲、打字聲）接到同一個 master：音量與開關跟背景音樂一致，關掉音樂就全靜 */
+  function bus() { return enabled && ctx ? { ctx, master } : null; }
+  window.SD.audio = { init, enable, setScene, sceneFor, bus, isEnabled: () => enabled };
 })();

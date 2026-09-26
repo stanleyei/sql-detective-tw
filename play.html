@@ -26,8 +26,8 @@
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet" />
   <link rel="icon" href="./favicon.ico" sizes="48x48" />
   <link rel="apple-touch-icon" href="./images/apple-touch-icon.png" />
-  <script src="./js/boot-cover.js?v=20260924-23"></script>
-  <link rel="stylesheet" href="./css/style.css?v=20260924-23" />
+  <script src="./js/boot-cover.js?v=20260926-01"></script>
+  <link rel="stylesheet" href="./css/style.css?v=20260926-01" />
 </head>
 <body class="min-h-dvh">
   <a href="#editor" class="sr-only z-60 rounded-lg bg-amber px-6 py-3 font-bold text-ink-950 focus:not-sr-only focus:fixed focus:left-4 focus:top-4">跳至查詢區</a>
@@ -99,6 +99,46 @@
 
   <!-- 章節開場：選章或首次進入時先落在這裡，把「這章要學什麼」定錨後再進入三欄辦案畫面 -->
   <section id="chapter-intro" class="mx-auto w-full max-w-5xl px-4 py-6" aria-label="章節開場" hidden></section>
+
+  <!-- 開場演出：第 0 章首次「開始辦案」播放的網頁內 MV（js/game/opening.js）。兩層背景圖交替交叉淡化，字卡為真實文字 -->
+  <dialog id="opening-stage" class="stage opening" aria-labelledby="opening-heading">
+    <h2 id="opening-heading" class="sr-only">開場演出</h2>
+    <img class="opening-layer" data-layer="a" alt="" width="960" height="640" />
+    <img class="opening-layer" data-layer="b" alt="" width="960" height="640" />
+    <div class="opening-vignette"></div>
+    <div class="stage-top">
+      <div id="opening-progress" class="opening-progress" aria-hidden="true"></div>
+      <button type="button" id="opening-skip" class="btn-ghost btn-sm">跳過開場</button>
+    </div>
+    <div id="opening-tap" class="opening-body">
+      <div class="opening-card">
+        <p id="opening-eyebrow" class="eyebrow" hidden></p>
+        <p id="opening-text" class="opening-text"></p>
+        <div class="opening-title">
+          <p class="opening-title-main">SQL 偵探</p>
+          <p class="opening-title-sub">潮港市檔案</p>
+          <p id="opening-code" class="opening-code" hidden></p>
+        </div>
+        <!-- 打字機逐字改 textContent 會讓讀屏器狂唸，朗讀改走這個一次寫入整幕的 live region -->
+        <p id="opening-live" class="sr-only" aria-live="polite"></p>
+      </div>
+      <div class="opening-actions">
+        <button type="button" id="opening-next" class="btn-ghost btn-sm">下一幕 ▶</button>
+      </div>
+    </div>
+    <div id="opening-chooser" class="opening-chooser" hidden>
+      <div class="opening-chooser-box">
+        <p class="eyebrow">開場演出</p>
+        <p class="mt-2 text-lg font-bold">要開著聲音看嗎？</p>
+        <p class="mt-1 text-sm text-ink-300">背景音樂之後隨時可用右上角的喇叭開關。</p>
+        <div class="mt-4 flex flex-wrap justify-center gap-2">
+          <button type="button" class="btn-primary" data-sound="on"><!-- 內嵌 SVG 而非 <img>：圖示檔是琥珀色線條，放在琥珀底的主按鈕上會消失，這裡要跟隨按鈕文字色 --><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-5"><path d="M11 5 6 9H3v6h3l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/><path d="M18.5 5.5a9 9 0 0 1 0 13"/></svg>有聲播放</button>
+          <button type="button" class="btn-ghost" data-sound="off">靜音觀看</button>
+          <button type="button" class="btn-ghost" data-sound="skip">跳過開場</button>
+        </div>
+      </div>
+    </div>
+  </dialog>
 
   <!-- 劇情舞台：劇情步驟以全螢幕對話呈現，非劇情步驟關閉回到三欄。用 <dialog> 取得焦點鎖定、背景 inert 與 top layer，不必跟 header 比 z-index -->
   <dialog id="story-stage" class="stage" aria-labelledby="stage-title">
@@ -288,26 +328,27 @@
   <script src="./vendor/sql-wasm.js" defer></script>
   <script src="./vendor/gsap.min.js" defer></script>
   <script src="./vendor/Flip.min.js" defer></script>
-  <script src="./js/engine/seed.js?v=20260924-23" defer></script>
-  <script src="./js/engine/mariadb-compat.js?v=20260924-23" defer></script>
-  <script src="./js/engine/db.js?v=20260924-23" defer></script>
-  <script src="./js/game/schema-doc.js?v=20260924-23" defer></script>
-  <script src="./js/game/cast.js?v=20260924-23" defer></script>
-  <script src="./js/game/media.js?v=20260924-23" defer></script>
-  <script src="./js/game/audio.js?v=20260924-23" defer></script>
-  <script src="./js/chapters/ch0.js?v=20260924-23" defer></script>
-  <script src="./js/chapters/ch1.js?v=20260924-23" defer></script>
-  <script src="./js/chapters/ch2.js?v=20260924-23" defer></script>
-  <script src="./js/chapters/ch3.js?v=20260924-23" defer></script>
-  <script src="./js/chapters/ch4.js?v=20260924-23" defer></script>
-  <script src="./js/chapters/ch5.js?v=20260924-23" defer></script>
-  <script src="./js/chapters/ch6.js?v=20260924-23" defer></script>
-  <script src="./js/chapters/expect.js?v=20260924-23" defer></script>
-  <script src="./js/game/state.js?v=20260924-23" defer></script>
-  <script src="./js/game/confirm.js?v=20260924-23" defer></script>
-  <script src="./js/game/check.js?v=20260924-23" defer></script>
-  <script src="./js/game/cheatsheet.js?v=20260924-23" defer></script>
-  <script src="./js/game/highlight.js?v=20260924-23" defer></script>
-  <script src="./js/game/play.js?v=20260924-23" defer></script>
+  <script src="./js/engine/seed.js?v=20260926-01" defer></script>
+  <script src="./js/engine/mariadb-compat.js?v=20260926-01" defer></script>
+  <script src="./js/engine/db.js?v=20260926-01" defer></script>
+  <script src="./js/game/schema-doc.js?v=20260926-01" defer></script>
+  <script src="./js/game/cast.js?v=20260926-01" defer></script>
+  <script src="./js/game/media.js?v=20260926-01" defer></script>
+  <script src="./js/game/audio.js?v=20260926-01" defer></script>
+  <script src="./js/game/opening.js?v=20260926-01" defer></script>
+  <script src="./js/chapters/ch0.js?v=20260926-01" defer></script>
+  <script src="./js/chapters/ch1.js?v=20260926-01" defer></script>
+  <script src="./js/chapters/ch2.js?v=20260926-01" defer></script>
+  <script src="./js/chapters/ch3.js?v=20260926-01" defer></script>
+  <script src="./js/chapters/ch4.js?v=20260926-01" defer></script>
+  <script src="./js/chapters/ch5.js?v=20260926-01" defer></script>
+  <script src="./js/chapters/ch6.js?v=20260926-01" defer></script>
+  <script src="./js/chapters/expect.js?v=20260926-01" defer></script>
+  <script src="./js/game/state.js?v=20260926-01" defer></script>
+  <script src="./js/game/confirm.js?v=20260926-01" defer></script>
+  <script src="./js/game/check.js?v=20260926-01" defer></script>
+  <script src="./js/game/cheatsheet.js?v=20260926-01" defer></script>
+  <script src="./js/game/highlight.js?v=20260926-01" defer></script>
+  <script src="./js/game/play.js?v=20260926-01" defer></script>
 </body>
 </html>

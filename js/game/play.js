@@ -1873,6 +1873,8 @@
     const firstStory = chapter.steps.find((s) => s.type === 'story');
     const teaser = firstStory ? firstStory.lines[0].text : '';
     const clues = state.clues.filter((c) => c.ch === chapter.id).length;
+    // 開場演出只屬於第 0 章：第一次「開始辦案」自動播放，之後提供「重看開場」
+    const hasOpening = chapter.id === 0 && !!SD.opening;
     intro.innerHTML = `
       <div class="intro-banner">
         <img src="${chapter.cover}" alt="" width="1200" height="525" fetchpriority="high" />
@@ -1892,6 +1894,7 @@
           <div class="flex flex-wrap items-center gap-3">
             <button type="button" id="btn-intro-start" class="btn-primary text-lg">${isDone(chapter) ? '重看本章 →' : started ? `繼續辦案（步驟 ${stepIndex + 1}）→` : '開始辦案 →'}</button>
             ${started && !isDone(chapter) ? '<button type="button" id="btn-intro-restart" class="btn-ghost">從第一步開始</button>' : ''}
+            ${hasOpening && (started || SD.opening.seen()) ? '<button type="button" id="btn-intro-opening" class="btn-ghost">重看開場</button>' : ''}
             <a href="./" class="btn-ghost">回首頁</a>
           </div>
         </div>
@@ -1912,7 +1915,14 @@
     $('#pane-tabs').hidden = true;
     window.scrollTo({ top: 0, behavior: 'instant' });
     renderProgress();
-    $('#btn-intro-start', intro).addEventListener('click', () => { coachPending = true; renderStep(); });
+    $('#btn-intro-start', intro).addEventListener('click', () => {
+      coachPending = true;
+      if (hasOpening && !started && !SD.opening.seen()) { SD.opening.play(renderStep); return; }
+      renderStep();
+    });
+    const replay = $('#btn-intro-opening', intro);
+    // 重看開場結束後留在開場頁（showIntro 重畫一次，讓首次觀看後才出現的按鈕狀態同步）
+    if (replay) replay.addEventListener('click', () => SD.opening.play(() => { showIntro(); const b = $('#btn-intro-opening', intro); if (b) b.focus(); }));
     const restart = $('#btn-intro-restart', intro);
     if (restart) restart.addEventListener('click', () => { coachPending = true; stepIndex = 0; renderStep(); });
     const list = $('#intro-tasks', intro);
