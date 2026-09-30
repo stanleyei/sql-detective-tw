@@ -78,6 +78,10 @@
 
 異動涉及版面、樣式、互動狀態或響應式排版時，載入 `/frontend-ui-validation` skill 以 Playwright MCP 實際開啟頁面檢視。本專案沒有 lint 與自動化測試，瀏覽器是唯一的驗證手段，未看過的畫面不得宣告完成。
 
+## 設計品質標準
+
+以 awwwards、Webby Awards、FWA 得獎程度為目標。重做或重新設計首頁與關鍵頁、新增簽名互動或動態、更換字體，或被問「夠不夠好」「有什麼建議」時，載入 `/award-review` skill 以評審視角審查並排出優先順序。
+
 ## Subagent 使用規範
 
 - 涉及同一檔案的修改**禁止**分派到不同 subagent，應合併為同一任務
