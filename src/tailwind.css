@@ -1,4 +1,6 @@
 @import "tailwindcss";
+/* 自架字型切片，由 scripts/fetch-fonts.js 產生 */
+@import "./fonts.css";
 
 @source "../index.html";
 @source "../play.html";
@@ -119,6 +121,12 @@
     line-height: var(--text-code--line-height);
     white-space: pre-wrap;
     word-break: break-word;
+  }
+  /* 跨頁轉場（首頁 ⇄ 遊戲 ⇄ 資料表）：同源導覽時瀏覽器以舊畫面截圖交叉淡化到新頁，
+     不支援的瀏覽器直接忽略。只在未要求減少動態時啟用 */
+  @media (prefers-reduced-motion: no-preference) {
+    @view-transition { navigation: auto; }
+    ::view-transition-old(root), ::view-transition-new(root) { animation-duration: 0.35s; }
   }
   @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after {
@@ -263,6 +271,11 @@
     @apply rounded-2xl border border-ink-700 bg-ink-900/80 shadow-card backdrop-blur flex flex-col gap-3 overflow-hidden p-0 transition hover:-translate-y-1 hover:shadow-glow-amber;
   }
   .chapter-card img { @apply aspect-[3/2] w-full object-cover; }
+  /* 橫跨整列的卡（第 0 章）：lg 起圖左文右，圖固定 2/5 寬並以高度填滿，文字區才不會被 3:2 的圖撐得過高 */
+  .chapter-card-wide { @apply sm:col-span-2 lg:col-span-3 lg:flex-row; }
+  .chapter-card-wide img { @apply lg:aspect-auto lg:h-auto lg:w-2/5 lg:self-stretch; }
+  /* 文字區高度由左側 3:2 的圖決定，內容垂直置中並加大留白，不會擠在卡片頂端 */
+  .chapter-card-wide > div { @apply lg:justify-center lg:p-8; }
   .chapter-card.locked img { @apply grayscale opacity-60; }
   .star { @apply text-amber; }
   .star.off { @apply text-ink-600; }

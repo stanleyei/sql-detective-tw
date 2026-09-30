@@ -45,9 +45,11 @@
         <p class="text-sm text-ink-300">${ch.subtitle}</p>
         <ul class="mt-1 flex flex-wrap gap-1.5" aria-label="本章語法">${ch.skills.map((s) => `<li class="chip">${s}</li>`).join('')}</ul>
       </div>`;
+    // 第 0 章（報到日）橫跨整列：七張卡放三欄會留一張孤卡，且它是訓練章而非案件，版面上與六個案件分開剛好
+    const wide = ch.id === 0 ? ' chapter-card-wide' : '';
     return open
-      ? `<a href="./play.html#${ch.slug}" class="chapter-card reveal" aria-label="第 ${ch.id} 章 ${ch.title}">${inner}</a>`
-      : `<div class="chapter-card locked reveal" aria-label="第 ${ch.id} 章 ${ch.title}（尚未解鎖）">${inner}</div>`;
+      ? `<a href="./play.html#${ch.slug}" class="chapter-card reveal${wide}" aria-label="第 ${ch.id} 章 ${ch.title}">${inner}</a>`
+      : `<div class="chapter-card locked reveal${wide}" aria-label="第 ${ch.id} 章 ${ch.title}（尚未解鎖）">${inner}</div>`;
   }).join('');
 
   // 續玩區

@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "img": "node scripts/optimize-image.js",
+    "fonts": "node scripts/fetch-fonts.js",
     "dev": "tailwindcss -i ./src/tailwind.css -o ./css/style.css --watch",
     "build": "tailwindcss -i ./src/tailwind.css -o ./css/style.css --minify",
     "data": "node scripts/gen-data.js",

@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; media-src 'self'; connect-src 'self'; object-src 'none'; frame-src 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self'; font-src 'self'; img-src 'self' data:; media-src 'self'; connect-src 'self'; object-src 'none'; frame-src 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests" />
   <title>辦案中 · SQL 偵探</title>
   <meta name="description" content="SQL 偵探遊戲主畫面：劇情、SQL 查詢區與證據板。" />
   <meta name="robots" content="noindex" />
@@ -21,13 +21,10 @@
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:image" content="https://stanleyei.github.io/sql-detective-tw/images/og-v2.jpg" />
 
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet" />
   <link rel="icon" href="./favicon.ico" sizes="48x48" />
   <link rel="apple-touch-icon" href="./images/apple-touch-icon.png" />
-  <script src="./js/boot-cover.js?v=20260927-01"></script>
-  <link rel="stylesheet" href="./css/style.css?v=20260927-01" />
+  <script src="./js/boot-cover.js?v=20260930-01"></script>
+  <link rel="stylesheet" href="./css/style.css?v=20260930-01" />
 </head>
 <body class="min-h-dvh">
   <a href="#editor" class="sr-only z-60 rounded-lg bg-amber px-6 py-3 font-bold text-ink-950 focus:not-sr-only focus:fixed focus:left-4 focus:top-4">跳至查詢區</a>
@@ -328,27 +325,27 @@
   <script src="./vendor/sql-wasm.js" defer></script>
   <script src="./vendor/gsap.min.js" defer></script>
   <script src="./vendor/Flip.min.js" defer></script>
-  <script src="./js/engine/seed.js?v=20260927-01" defer></script>
-  <script src="./js/engine/mariadb-compat.js?v=20260927-01" defer></script>
-  <script src="./js/engine/db.js?v=20260927-01" defer></script>
-  <script src="./js/game/schema-doc.js?v=20260927-01" defer></script>
-  <script src="./js/game/cast.js?v=20260927-01" defer></script>
-  <script src="./js/game/media.js?v=20260927-01" defer></script>
-  <script src="./js/game/audio.js?v=20260927-01" defer></script>
-  <script src="./js/game/opening.js?v=20260927-01" defer></script>
-  <script src="./js/chapters/ch0.js?v=20260927-01" defer></script>
-  <script src="./js/chapters/ch1.js?v=20260927-01" defer></script>
-  <script src="./js/chapters/ch2.js?v=20260927-01" defer></script>
-  <script src="./js/chapters/ch3.js?v=20260927-01" defer></script>
-  <script src="./js/chapters/ch4.js?v=20260927-01" defer></script>
-  <script src="./js/chapters/ch5.js?v=20260927-01" defer></script>
-  <script src="./js/chapters/ch6.js?v=20260927-01" defer></script>
-  <script src="./js/chapters/expect.js?v=20260927-01" defer></script>
-  <script src="./js/game/state.js?v=20260927-01" defer></script>
-  <script src="./js/game/confirm.js?v=20260927-01" defer></script>
-  <script src="./js/game/check.js?v=20260927-01" defer></script>
-  <script src="./js/game/cheatsheet.js?v=20260927-01" defer></script>
-  <script src="./js/game/highlight.js?v=20260927-01" defer></script>
-  <script src="./js/game/play.js?v=20260927-01" defer></script>
+  <script src="./js/engine/seed.js?v=20260930-01" defer></script>
+  <script src="./js/engine/mariadb-compat.js?v=20260930-01" defer></script>
+  <script src="./js/engine/db.js?v=20260930-01" defer></script>
+  <script src="./js/game/schema-doc.js?v=20260930-01" defer></script>
+  <script src="./js/game/cast.js?v=20260930-01" defer></script>
+  <script src="./js/game/media.js?v=20260930-01" defer></script>
+  <script src="./js/game/audio.js?v=20260930-01" defer></script>
+  <script src="./js/game/opening.js?v=20260930-01" defer></script>
+  <script src="./js/chapters/ch0.js?v=20260930-01" defer></script>
+  <script src="./js/chapters/ch1.js?v=20260930-01" defer></script>
+  <script src="./js/chapters/ch2.js?v=20260930-01" defer></script>
+  <script src="./js/chapters/ch3.js?v=20260930-01" defer></script>
+  <script src="./js/chapters/ch4.js?v=20260930-01" defer></script>
+  <script src="./js/chapters/ch5.js?v=20260930-01" defer></script>
+  <script src="./js/chapters/ch6.js?v=20260930-01" defer></script>
+  <script src="./js/chapters/expect.js?v=20260930-01" defer></script>
+  <script src="./js/game/state.js?v=20260930-01" defer></script>
+  <script src="./js/game/confirm.js?v=20260930-01" defer></script>
+  <script src="./js/game/check.js?v=20260930-01" defer></script>
+  <script src="./js/game/cheatsheet.js?v=20260930-01" defer></script>
+  <script src="./js/game/highlight.js?v=20260930-01" defer></script>
+  <script src="./js/game/play.js?v=20260930-01" defer></script>
 </body>
 </html>
