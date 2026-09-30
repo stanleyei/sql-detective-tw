@@ -1,4 +1,4 @@
-/* 首頁：章節地圖、進度、GSAP 進場 */
+/* 首頁：卷宗（章節清單）、進度、Hero 開場序列與手電筒 */
 (function () {
   'use strict';
   const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -14,6 +14,42 @@
     goTop.addEventListener('click', () => window.scrollTo({ top: 0, behavior: reduce ? 'auto' : 'smooth' }));
   }
 
+  /* ---------- Hero：手電筒 ----------
+   * 亮版插畫以 mask 露出游標周圍；座標寫成百分比，視窗縮放時光圈位置不會漂 */
+  const hero = document.getElementById('hero');
+  if (hero && window.matchMedia('(hover: hover)').matches) {
+    const art = hero.querySelector('.hero-art');
+    hero.addEventListener('pointermove', (e) => {
+      const r = hero.getBoundingClientRect();
+      art.style.setProperty('--tx', `${((e.clientX - r.left) / r.width * 100).toFixed(2)}%`);
+      art.style.setProperty('--ty', `${((e.clientY - r.top) / r.height * 100).toFixed(2)}%`);
+      hero.classList.add('is-lit');
+    }, { passive: true });
+    hero.addEventListener('pointerleave', () => hero.classList.remove('is-lit'));
+  }
+
+  /* ---------- Hero：開場序列 ----------
+   * 先打出一句 SQL，「結果回來」時標題逐行亮起、插畫變亮。減少動態或沒有 GSAP 時直接把整段顯示出來 */
+  const codeEl = document.getElementById('hero-code-text');
+  const CODE = 'SELECT truth FROM chaogang_city;';
+  if (hero && codeEl) {
+    if (reduce || !window.gsap) {
+      codeEl.textContent = CODE;
+      hero.classList.add('is-done');
+    } else {
+      hero.classList.add('is-animating');
+      const tl = gsap.timeline({ delay: 0.3, onComplete: () => hero.classList.remove('is-animating') });
+      const typed = { n: 0 };
+      tl.to(typed, {
+        n: CODE.length, duration: CODE.length * 0.045, ease: 'none',
+        onUpdate: () => { codeEl.textContent = CODE.slice(0, Math.round(typed.n)); },
+      });
+      tl.add(() => hero.classList.add('is-done'), '+=0.35');
+      tl.to('.hero-img-dim', { opacity: 0.6, duration: 1.2, ease: 'power2.out' }, '<');
+      tl.fromTo('.hero-line', { opacity: 0, y: 18 }, { opacity: 1, y: 0, duration: 0.8, stagger: 0.14, ease: 'power3.out', clearProps: 'opacity,transform' }, '<');
+    }
+  }
+
   const grid = document.getElementById('chapter-grid');
   if (!grid || !window.SD || !SD.chapters) return;
   const state = SD.state.load();
@@ -23,33 +59,44 @@
   const isDone = (ch) => !!(state.chapters[ch.id] && state.chapters[ch.id].done);
   const unlocked = (ch) => ch.id === 0 || isDone(chapters.find((c) => c.id === ch.id - 1));
 
+  /* ---------- 卷宗封面的數字 ---------- */
+  const dc = document.getElementById('dossier-chapters');
+  const dt = document.getElementById('dossier-tasks');
+  if (dc) dc.textContent = String(chapters.length);
+  if (dt) dt.textContent = String(chapters.reduce((n, ch) => n + tasksOf(ch).length, 0));
+
+  /* ---------- 卷宗：章節清單 ---------- */
   grid.innerHTML = chapters.map((ch) => {
     const done = isDone(ch);
     const open = unlocked(ch);
     const prog = state.chapters[ch.id];
     const stars = SD.state.chapterStars(ch.id, tasksOf(ch));
+    const total = tasksOf(ch).length;
     const doneTasks = prog ? tasksOf(ch).filter((t) => prog.steps[t.id] && prog.steps[t.id].done).length : 0;
+    const cls = done ? 'is-done' : open ? 'is-open' : 'is-locked';
     const status = done
-      ? `<span class="chip border-teal/50 text-teal">已破案 · ${stars.earned}/${stars.max} ★</span>`
+      ? `<span class="stamp stamp-done">已破案</span><span>${stars.earned} / ${stars.max} ★</span>`
       : open
-        ? (doneTasks ? `<span class="chip border-amber/50 text-amber">進行中 ${doneTasks}/${tasksOf(ch).length}</span>` : '<span class="chip border-amber/50 text-amber">可開始</span>')
-        : '<span class="chip">🔒 完成上一章解鎖</span>';
+        ? (doneTasks
+          ? `<span class="stamp stamp-open">辦案中</span><span>${doneTasks} / ${total} 題</span>`
+          : `<span class="stamp stamp-open">可開始</span><span>${total} 題</span>`)
+        : `<span>完成第 ${ch.id - 1} 章解鎖 · ${total} 題</span>`;
+    const figStamp = done ? '' : open ? '' : '<span class="stamp stamp-locked">封存</span>';
     const inner = `
-      <img src="${ch.cover}" alt="" width="600" height="400" loading="lazy" />
-      <div class="flex flex-1 flex-col gap-2 p-5">
-        <div class="flex items-center justify-between gap-2">
-          <p class="eyebrow">第 ${ch.id} 章</p>
-          ${status}
-        </div>
-        <h3 class="text-xl font-bold">${ch.title}</h3>
-        <p class="text-sm text-ink-300">${ch.subtitle}</p>
-        <ul class="mt-1 flex flex-wrap gap-1.5" aria-label="本章語法">${ch.skills.map((s) => `<li class="chip">${s}</li>`).join('')}</ul>
+      <p class="docket-no"><span>${ch.id}</span><small>章</small></p>
+      <figure class="docket-fig">
+        <img src="${ch.cover}" alt="" width="600" height="400" loading="lazy" />
+        ${figStamp}
+      </figure>
+      <div class="docket-body">
+        <h3>${ch.title}</h3>
+        <p class="docket-sub">${ch.subtitle}</p>
+        <ul class="flex flex-wrap gap-1.5" aria-label="本章語法">${ch.skills.map((s) => `<li class="chip">${s}</li>`).join('')}</ul>
+        <p class="docket-status">${status}</p>
       </div>`;
-    // 第 0 章（報到日）橫跨整列：七張卡放三欄會留一張孤卡，且它是訓練章而非案件，版面上與六個案件分開剛好
-    const wide = ch.id === 0 ? ' chapter-card-wide' : '';
     return open
-      ? `<a href="./play.html#${ch.slug}" class="chapter-card reveal${wide}" aria-label="第 ${ch.id} 章 ${ch.title}">${inner}</a>`
-      : `<div class="chapter-card locked reveal${wide}" aria-label="第 ${ch.id} 章 ${ch.title}（尚未解鎖）">${inner}</div>`;
+      ? `<li class="docket-row ${cls}"><a href="./play.html#${ch.slug}" class="docket-link" aria-label="第 ${ch.id} 章 ${ch.title}">${inner}</a></li>`
+      : `<li class="docket-row ${cls}"><div class="docket-link" aria-label="第 ${ch.id} 章 ${ch.title}（尚未解鎖）">${inner}</div></li>`;
   }).join('');
 
   // 續玩區
@@ -75,14 +122,12 @@
     });
   }
 
-  // 動畫
-  if (!window.gsap) return;
+  /* ---------- 捲動 ----------
+   * 只留兩處：Hero 插畫比文字慢半拍的視差、卷宗各列進場。其餘區塊不做進場動畫 */
+  if (!window.gsap || reduce) return;
   gsap.registerPlugin(ScrollTrigger);
-  const mm = gsap.matchMedia();
-  mm.add('(prefers-reduced-motion: no-preference)', () => {
-    gsap.from('.hero-in', { y: 24, opacity: 0, duration: 0.9, stagger: 0.12, ease: 'power3.out' });
-    gsap.utils.toArray('.reveal').forEach((el) => {
-      gsap.from(el, { y: 30, opacity: 0, duration: 0.7, ease: 'power2.out', scrollTrigger: { trigger: el, start: 'top 88%', once: true } });
-    });
+  gsap.to('.hero-art', { yPercent: 18, ease: 'none', scrollTrigger: { trigger: '#hero', start: 'top top', end: 'bottom top', scrub: true } });
+  gsap.utils.toArray('.docket-row').forEach((el) => {
+    gsap.from(el, { y: 40, opacity: 0, duration: 0.8, ease: 'power2.out', scrollTrigger: { trigger: el, start: 'top 85%', once: true } });
   });
 })();

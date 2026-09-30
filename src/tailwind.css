@@ -11,6 +11,8 @@
   /* 字體 */
   --font-sans: "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", sans-serif;
   --font-mono: "JetBrains Mono", "Cascadia Code", "Consolas", "Menlo", monospace;
+  /* 展示字：只用在首頁大標與章號。明體的筆畫對比在深色底上有卷宗、鉛字的份量，與內文的黑體形成明確對比 */
+  --font-display: "Noto Serif TC", "Songti TC", "PMingLiU", serif;
 
   /*
    * 語意色 token。整站為「霓虹港都夜色」的深色主題，命名依用途而非色相。
@@ -266,17 +268,82 @@
     background: rgb(5 8 20 / 0.75);
     backdrop-filter: blur(4px);
   }
-  /* 首頁章節卡 */
-  .chapter-card {
-    @apply rounded-2xl border border-ink-700 bg-ink-900/80 shadow-card backdrop-blur flex flex-col gap-3 overflow-hidden p-0 transition hover:-translate-y-1 hover:shadow-glow-amber;
+  /* ===== 首頁：Hero ===== */
+  .hero { @apply relative isolate flex min-h-[88svh] items-end overflow-hidden; }
+  .hero-art { @apply absolute inset-0 -z-10; }
+  /* 兩張圖疊在同一位置：dim 是常態的暗版，torch 是亮版，用 mask 只露出游標周圍。
+     torch 疊在漸層遮罩之上，光圈內才會真的亮起來；文字仍在最上層，光圈只有 4rem 實心，不會整片壓在段落底下。
+     scale 1.08 給滾動視差留出位移空間，不會露出邊緣 */
+  .hero-img { @apply absolute inset-0 size-full scale-[1.08] object-cover object-[22%_center] sm:object-center; }
+  .hero-img-dim { @apply opacity-40; }
+  .hero-img-torch {
+    @apply opacity-0;
+    mask-image: radial-gradient(circle at var(--tx, 50%) var(--ty, 50%), #000 0, #000 4rem, transparent 18rem);
+    -webkit-mask-image: radial-gradient(circle at var(--tx, 50%) var(--ty, 50%), #000 0, #000 4rem, transparent 18rem);
+    transition: opacity 0.6s ease;
   }
-  .chapter-card img { @apply aspect-[3/2] w-full object-cover; }
-  /* 橫跨整列的卡（第 0 章）：lg 起圖左文右，圖固定 2/5 寬並以高度填滿，文字區才不會被 3:2 的圖撐得過高 */
-  .chapter-card-wide { @apply sm:col-span-2 lg:col-span-3 lg:flex-row; }
-  .chapter-card-wide img { @apply lg:aspect-auto lg:h-auto lg:w-2/5 lg:self-stretch; }
-  /* 文字區高度由左側 3:2 的圖決定，內容垂直置中並加大留白，不會擠在卡片頂端 */
-  .chapter-card-wide > div { @apply lg:justify-center lg:p-8; }
-  .chapter-card.locked img { @apply grayscale opacity-60; }
+  /* 只有能 hover 的裝置才點亮手電筒；觸控裝置沒有游標位置，露出一塊固定亮區反而像破圖 */
+  @media (hover: hover) {
+    .hero.is-lit .hero-img-torch { @apply opacity-85; }
+  }
+  .hero-fade { @apply absolute inset-0 bg-linear-to-t from-ink-950 via-ink-950/55 to-ink-950/10; }
+  .hero-inner { @apply mx-auto w-full max-w-6xl px-4 pb-16 pt-32 sm:pb-24; }
+  .hero-code { @apply mb-6 font-mono text-code text-teal sm:text-base; }
+  .hero-caret { @apply ml-0.5 inline-block h-[1.1em] w-[0.55em] translate-y-[0.2em] bg-teal align-baseline; animation: hero-blink 1s steps(2, start) infinite; }
+  .hero.is-done .hero-caret { @apply hidden; }
+  @keyframes hero-blink { to { visibility: hidden; } }
+  .hero-title { @apply font-display text-[2.75rem] font-black leading-[1.15] text-paper sm:text-7xl sm:leading-[1.1]; }
+  .hero-title .hero-line { @apply block; }
+  .hero-lede { @apply mt-6 max-w-2xl text-lg leading-8 text-ink-300; }
+  .hero-lede code { @apply text-teal; }
+  .hero-actions { @apply mt-8 flex flex-wrap items-center gap-3; }
+  /* 開場序列由 main.js 用 GSAP 推：先把要進場的行藏起來，JS 沒跑或減少動態時整段直接可見 */
+  .hero.is-animating .hero-line { @apply opacity-0; }
+
+  /* ===== 首頁：卷宗（章節清單） ===== */
+  /* 左側一條軸線貫穿七章：軸線由每個章號框的上下兩段偽元素接成，章號本身就是缺口，不必用底色遮線
+     （底色遮線會在 body 的固定漸層區露出色塊）。兩段各拉得很長，靠每一列的 overflow: clip 裁在列的範圍內，
+     clip-margin 讓裁切邊界外推 2rem：圖片投影不被切、相鄰兩列的線段在列距（3.5rem）內仍能接上。
+     不支援 clip-margin 的瀏覽器線段會穿過章號，所以整條軸線只在支援時顯示 */
+  .docket { @apply relative flex flex-col gap-10 sm:gap-14; }
+  .docket-row { @apply relative; }
+  @supports (overflow-clip-margin: 2rem) {
+    .docket-row { overflow: clip; overflow-clip-margin: 2rem; }
+    .docket-no::before, .docket-no::after { content: ''; @apply absolute left-1/2 hidden h-[200vh] w-px bg-ink-700 lg:block; }
+    .docket-no::before { @apply bottom-full; }
+    .docket-no::after { @apply top-full; }
+  }
+  .docket-link { @apply grid gap-5 rounded-2xl transition lg:grid-cols-[7rem_minmax(0,5fr)_minmax(0,6fr)] lg:items-center lg:gap-8; }
+  a.docket-link:hover .docket-fig img, a.docket-link:focus-visible .docket-fig img { @apply scale-[1.03]; }
+  .docket-no { @apply flex items-baseline gap-1 font-display text-6xl font-black leading-none text-paper lg:relative lg:flex-col lg:items-center lg:gap-0 lg:py-3 lg:text-7xl; }
+  .docket-no small { @apply font-sans text-sm font-bold text-ink-300; }
+  .docket-fig { @apply relative m-0 overflow-hidden rounded-2xl border border-ink-700 shadow-card; }
+  .docket-fig img { @apply aspect-[3/2] w-full object-cover transition-transform duration-500; }
+  .docket-row.is-locked .docket-fig img { @apply grayscale opacity-60; }
+  .docket-body { @apply flex flex-col gap-3; }
+  .docket-body h3 { @apply font-display text-3xl font-black leading-tight sm:text-4xl; }
+  .docket-row.is-locked .docket-body h3 { @apply text-ink-300; }
+  .docket-sub { @apply text-lg text-ink-300; }
+  /* 偶數列圖右文左，讓軸線兩側交錯；手機一律圖上文下 */
+  .docket-row:nth-child(even) .docket-fig { @apply lg:order-last; }
+  .docket-status { @apply mt-1 flex items-center gap-3 text-sm text-ink-300; }
+
+  /* 印章：雙圈邊框加旋轉，用在章節狀態與頁尾。資訊由文字承載，顏色只是輔助 */
+  .stamp { @apply inline-block -rotate-6 rounded-md border-2 px-2 py-0.5 text-xs font-black tracking-widest whitespace-nowrap; box-shadow: inset 0 0 0 2px var(--color-ink-950), inset 0 0 0 3px currentColor; }
+  .stamp-done { @apply border-teal text-teal; }
+  .stamp-open { @apply border-amber text-amber; }
+  .stamp-locked { @apply border-ink-500 text-ink-300; }
+  .stamp-lg { @apply rotate-[-8deg] rounded-lg border-[3px] border-string px-4 py-2 font-display text-2xl text-string opacity-80; box-shadow: inset 0 0 0 3px var(--color-ink-950), inset 0 0 0 5px currentColor; }
+  /* 圖上的封存章：蓋在鎖定章節的圖右上角 */
+  .docket-fig .stamp { @apply absolute right-4 top-4 bg-ink-950/80 px-3 py-1 text-sm backdrop-blur; }
+
+  /* ===== 首頁：卷宗封面（規格表） ===== */
+  .dossier { @apply border-t border-ink-600; }
+  .dossier > div { @apply grid gap-1 border-b border-ink-800 py-5 sm:grid-cols-[10rem_1fr] sm:gap-6; }
+  .dossier dt { @apply text-sm font-bold text-ink-300 sm:pt-1.5; }
+  .dossier dd { @apply text-lg leading-8 text-paper; }
+  .dossier-num { @apply font-display text-4xl font-black leading-none text-amber; }
+
   .star { @apply text-amber; }
   .star.off { @apply text-ink-600; }
   /* 面板切換（手機） */

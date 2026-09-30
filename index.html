@@ -22,10 +22,10 @@
   <meta name="twitter:image" content="https://stanleyei.github.io/sql-detective-tw/images/og-v2.jpg" />
 
   <!-- 同步、放 head：首次繪製前依進度替 <html> 加 data-resume，CTA 文字由 CSS 切換，避免先閃「開始辦案」 -->
-  <script src="./js/boot-flag.js?v=20260930-01"></script>
+  <script src="./js/boot-flag.js?v=20260930-02"></script>
   <link rel="icon" href="./favicon.ico" sizes="48x48" />
   <link rel="apple-touch-icon" href="./images/apple-touch-icon.png" />
-  <link rel="stylesheet" href="./css/style.css?v=20260930-01" />
+  <link rel="stylesheet" href="./css/style.css?v=20260930-02" />
 </head>
 <body>
   <a href="#main" class="sr-only z-60 rounded-lg bg-amber px-6 py-3 font-bold text-ink-950 focus:not-sr-only focus:fixed focus:left-4 focus:top-4">跳至主要內容</a>
@@ -44,23 +44,28 @@
   </header>
 
   <main id="main">
-    <!-- Hero -->
-    <section class="relative overflow-hidden">
-      <div class="absolute inset-0">
-        <img src="./images/hero-1600.webp" srcset="./images/hero-800.webp 800w, ./images/hero-1600.webp 1536w" sizes="100vw" width="800" height="533" alt="夜晚的潮港市港口，一位偵探的剪影站在碼頭看向霓虹燈閃爍的城市" class="size-full object-cover object-[22%_center] opacity-60 sm:object-center" fetchpriority="high" />
-        <div class="absolute inset-0 bg-linear-to-t from-ink-950 via-ink-950/60 to-ink-950/20"></div>
+    <!-- Hero：一段「下查詢 → 城市回應」的開場。先在深色海港上打出一句 SQL，結果回來時標題與插畫才亮起。
+         torch 層是同一張圖的亮版，以游標為中心用 mask 露出，像手電筒掃過霧中的港口；無 hover 的裝置不顯示 -->
+    <section id="hero" class="hero">
+      <div class="hero-art" aria-hidden="true">
+        <img src="./images/hero-1600.webp" srcset="./images/hero-800.webp 800w, ./images/hero-1600.webp 1536w" sizes="100vw" width="800" height="533" alt="" class="hero-img hero-img-dim" fetchpriority="high" />
+        <div class="hero-fade"></div>
+        <img src="./images/hero-1600.webp" srcset="./images/hero-800.webp 800w, ./images/hero-1600.webp 1536w" sizes="100vw" width="800" height="533" alt="" class="hero-img hero-img-torch" />
       </div>
-      <div class="relative mx-auto flex max-w-6xl flex-col items-start gap-6 px-4 pb-20 pt-24 sm:pt-36 md:pb-28">
-        <p class="eyebrow hero-in">潮港市警察局 · 資料分析組</p>
-        <h1 class="hero-in max-w-3xl text-4xl font-black leading-tight sm:text-6xl">
-          用 <span class="text-amber">SQL</span> 破案。<br />五起案件，<span class="whitespace-nowrap">一座港都。</span>
+      <p class="sr-only">夜晚的潮港市港口，一位偵探的剪影站在碼頭看向霓虹燈閃爍的城市</p>
+      <div class="hero-inner">
+        <p class="hero-code" aria-hidden="true"><span id="hero-code-text"></span><span class="hero-caret"></span></p>
+        <p class="sr-only">SELECT truth FROM chaogang_city;</p>
+        <h1 class="hero-title">
+          <span class="hero-line">用 SQL 破案。</span>
+          <span class="hero-line">五起案件，<span class="whitespace-nowrap">一座港都。</span></span>
         </h1>
-        <p class="hero-in max-w-2xl text-lg leading-8 text-ink-300">
-          你是警局新來的資料分析實習生。線索都藏在資料庫裡：市民、駕照、監視器、悠遊卡、門禁。從最基本的 <code class="text-teal">SELECT</code> 開始，一路學到 <code class="text-teal">JOIN</code> 與子查詢，最後親手破解一樁命案。
+        <p class="hero-lede hero-line">
+          你是警局新來的資料分析實習生。線索都藏在資料庫裡：市民、駕照、監視器、悠遊卡、門禁。從最基本的 <code>SELECT</code> 開始，一路學到 <code>JOIN</code> 與子查詢，最後親手破解一樁命案。
         </p>
-        <div class="hero-in flex flex-wrap items-center gap-3">
+        <div class="hero-line hero-actions">
           <a href="./play.html" id="hero-cta" class="btn-primary text-lg"><span class="cta-start">開始辦案</span><span class="cta-resume">繼續辦案</span></a>
-          <a href="#chapters" class="btn-ghost">看看七個章節</a>
+          <a href="#chapters" class="btn-ghost">翻開卷宗</a>
         </div>
       </div>
     </section>
@@ -69,7 +74,7 @@
     <section id="resume" class="mx-auto max-w-6xl px-4 pt-10" hidden>
       <div class="card flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
         <div>
-          <p class="eyebrow">歡迎回來</p>
+          <p class="text-sm text-ink-300">歡迎回來</p>
           <p id="resume-text" class="mt-1 text-lg"></p>
         </div>
         <div class="flex gap-2">
@@ -79,28 +84,27 @@
       </div>
     </section>
 
-    <!-- 章節地圖 -->
-    <section id="chapters" class="mx-auto max-w-6xl px-4 py-20">
-      <p class="eyebrow">案件檔案</p>
-      <h2 class="mt-2 text-3xl font-black sm:text-4xl">七個章節，循序把 SQL 練起來</h2>
-      <p class="mt-3 max-w-2xl text-ink-300">五起案件，加上報到訓練與資料室實作；每章聚焦一組語法。完成一章就會解鎖下一章與一枚徽章。你可以隨時回來，進度會存在這台裝置的瀏覽器裡。</p>
-      <div id="chapter-grid" class="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3"></div>
+    <!-- 卷宗：七章依序解鎖，是真正的順序，所以用章號當軸 -->
+    <section id="chapters" class="mx-auto max-w-6xl px-4 py-20 sm:py-28">
+      <h2 class="font-display text-4xl font-black leading-tight sm:text-5xl">七個章節，<br class="sm:hidden" />循序把 SQL 練起來</h2>
+      <p class="mt-4 max-w-2xl text-lg leading-8 text-ink-300">五起案件，加上報到訓練與資料室實作；每章聚焦一組語法。完成一章就會解鎖下一章與一枚徽章。你可以隨時回來，進度會存在這台裝置的瀏覽器裡。</p>
+      <ol id="chapter-grid" class="docket mt-14"></ol>
     </section>
 
     <!-- 玩法 -->
     <section class="border-y border-ink-800 bg-ink-900/40">
       <div class="mx-auto grid max-w-6xl gap-10 px-4 py-20 md:grid-cols-3">
-        <div class="reveal">
+        <div>
           <div class="flex size-12 items-center justify-center rounded-xl bg-amber/15 text-amber" aria-hidden="true"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v14c0 1.7 3.6 3 8 3s8-1.3 8-3V5"/><path d="M4 12c0 1.7 3.6 3 8 3s8-1.3 8-3"/></svg></div>
           <h3 class="mt-4 text-xl font-bold">真的資料庫，真的 SQL</h3>
           <p class="mt-2 leading-7 text-ink-300">18 張資料表、幾千筆虛構的潮港市資料。你輸入的每一句 SQL 都會真正執行，輸入錯了也會得到白話的中文提示。</p>
         </div>
-        <div class="reveal">
+        <div>
           <div class="flex size-12 items-center justify-center rounded-xl bg-teal/15 text-teal" aria-hidden="true"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 17v5"/><path d="M9 3h6l-1 7 3 3H7l3-3z"/></svg></div>
           <h3 class="mt-4 text-xl font-bold">查出來的線索釘上證據板</h3>
           <p class="mt-2 leading-7 text-ink-300">每完成一個任務，線索就會飛到證據板上。推理不用靠記憶，看板子就知道下一步該查什麼。</p>
         </div>
-        <div class="reveal">
+        <div>
           <div class="flex size-12 items-center justify-center rounded-xl bg-pink/15 text-pink" aria-hidden="true"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="9" r="6"/><path d="m9.5 14.5-2 7 4.5-2.5 4.5 2.5-2-7"/><path d="m12 6 .9 1.9 2.1.3-1.5 1.4.4 2.1L12 10.7l-1.9 1 .4-2.1L9 8.2l2.1-.3z" fill="currentColor" stroke="none"/></svg></div>
           <h3 class="mt-4 text-xl font-bold">三段提示、星等與徽章</h3>
           <p class="mt-2 leading-7 text-ink-300">卡住了可以看提示：先給觀念、再給骨架、最後才給解答。不看提示拿三星，破案拿徽章，全部通關領結案證書。</p>
@@ -108,27 +112,29 @@
       </div>
     </section>
 
-    <!-- 語法地圖 -->
-    <section class="mx-auto max-w-6xl px-4 py-20">
-      <p class="eyebrow">你會學到</p>
-      <h2 class="mt-2 text-3xl font-black">MariaDB 基礎語法全地圖</h2>
-      <div class="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <div class="card reveal"><h3 class="font-bold text-amber">查詢</h3><p class="mt-2 text-sm leading-6 text-ink-300">SELECT、FROM、WHERE、ORDER BY、LIMIT、DISTINCT、AS</p></div>
-        <div class="card reveal"><h3 class="font-bold text-amber">條件</h3><p class="mt-2 text-sm leading-6 text-ink-300">AND / OR / NOT、LIKE、IN、BETWEEN、IS NULL、CASE WHEN</p></div>
-        <div class="card reveal"><h3 class="font-bold text-amber">函數</h3><p class="mt-2 text-sm leading-6 text-ink-300">日期時間、INTERVAL、字串、數學</p></div>
-        <div class="card reveal"><h3 class="font-bold text-amber">統計</h3><p class="mt-2 text-sm leading-6 text-ink-300">COUNT / SUM / AVG / MIN / MAX、GROUP BY、HAVING、GROUP_CONCAT</p></div>
-        <div class="card reveal"><h3 class="font-bold text-amber">連結</h3><p class="mt-2 text-sm leading-6 text-ink-300">INNER JOIN、LEFT JOIN、多表、SELF JOIN</p></div>
-        <div class="card reveal"><h3 class="font-bold text-amber">子查詢</h3><p class="mt-2 text-sm leading-6 text-ink-300">= (SELECT)、IN (SELECT)、MAX 子查詢</p></div>
-        <div class="card reveal"><h3 class="font-bold text-amber">資料異動</h3><p class="mt-2 text-sm leading-6 text-ink-300">INSERT、UPDATE、DELETE、INSERT ... SELECT</p></div>
-        <div class="card reveal"><h3 class="font-bold text-amber">資料表</h3><p class="mt-2 text-sm leading-6 text-ink-300">CREATE TABLE、AUTO_INCREMENT、ALTER、DROP、FOREIGN KEY</p></div>
-      </div>
+    <!-- 卷宗封面：整個課程的規格，用檔案表單的格線呈現，而不是八張小卡 -->
+    <section class="mx-auto max-w-6xl px-4 py-20 sm:py-28">
+      <h2 class="font-display text-4xl font-black leading-tight sm:text-5xl">卷宗封面</h2>
+      <dl class="dossier mt-10">
+        <div><dt>卷號</dt><dd class="font-mono">CG-2026-0001</dd></div>
+        <div><dt>章節</dt><dd><span id="dossier-chapters" class="dossier-num">7</span> 章，五起案件、一次報到訓練、一次資料室實作</dd></div>
+        <div><dt>任務</dt><dd><span id="dossier-tasks" class="dossier-num">85</span> 題，每題三段提示，不看提示得三星</dd></div>
+        <div><dt>資料表</dt><dd><span class="dossier-num">18</span> 張，市民、駕照、監視器、悠遊卡、門禁、員工與證物</dd></div>
+        <div><dt>語法範圍</dt><dd>SELECT、WHERE、LIKE、IN、BETWEEN、IS NULL、CASE WHEN、日期與字串函數、COUNT／SUM／AVG、GROUP BY、HAVING、GROUP_CONCAT、INNER／LEFT／SELF JOIN、子查詢、INSERT／UPDATE／DELETE、CREATE／ALTER／DROP TABLE、FOREIGN KEY</dd></div>
+        <div><dt>執行環境</dt><dd>瀏覽器內建資料庫，MariaDB 語法，不需安裝、不需帳號</dd></div>
+        <div><dt>預估時長</dt><dd><span class="dossier-num">8</span> 小時</dd></div>
+        <div><dt>結案條件</dt><dd>七章全數破案，領取結案證書</dd></div>
+      </dl>
     </section>
   </main>
 
   <footer class="border-t border-ink-800">
-    <div class="mx-auto flex max-w-6xl flex-col gap-3 px-4 py-10 text-sm text-ink-300 sm:flex-row sm:items-center sm:justify-between">
-      <p>SQL 偵探 · 潮港市與所有人物、事件皆為虛構。</p>
-      <p>靈感來自 <a href="https://mystery.knightlab.com" class="underline hover:text-amber" rel="noopener" target="_blank">SQL Murder Mystery</a>（Knight Lab，CC BY-SA 4.0）。</p>
+    <div class="mx-auto flex max-w-6xl flex-col gap-6 px-4 py-14 text-sm text-ink-300 sm:flex-row sm:items-center sm:justify-between">
+      <div class="space-y-2">
+        <p>SQL 偵探 · 潮港市與所有人物、事件皆為虛構。</p>
+        <p>靈感來自 <a href="https://mystery.knightlab.com" class="underline hover:text-amber" rel="noopener" target="_blank">SQL Murder Mystery</a>（Knight Lab，CC BY-SA 4.0）。</p>
+      </div>
+      <p class="stamp stamp-lg" aria-hidden="true">等你結案</p>
     </div>
   </footer>
 
@@ -138,16 +144,16 @@
 
   <script src="./vendor/gsap.min.js"></script>
   <script src="./vendor/ScrollTrigger.min.js"></script>
-  <script src="./js/game/cast.js?v=20260930-01"></script>
-  <script src="./js/chapters/ch0.js?v=20260930-01"></script>
-  <script src="./js/chapters/ch1.js?v=20260930-01"></script>
-  <script src="./js/chapters/ch2.js?v=20260930-01"></script>
-  <script src="./js/chapters/ch3.js?v=20260930-01"></script>
-  <script src="./js/chapters/ch4.js?v=20260930-01"></script>
-  <script src="./js/chapters/ch5.js?v=20260930-01"></script>
-  <script src="./js/chapters/ch6.js?v=20260930-01"></script>
-  <script src="./js/game/state.js?v=20260930-01"></script>
-  <script src="./js/game/confirm.js?v=20260930-01"></script>
-  <script src="./js/main.js?v=20260930-01" defer></script>
+  <script src="./js/game/cast.js?v=20260930-02"></script>
+  <script src="./js/chapters/ch0.js?v=20260930-02"></script>
+  <script src="./js/chapters/ch1.js?v=20260930-02"></script>
+  <script src="./js/chapters/ch2.js?v=20260930-02"></script>
+  <script src="./js/chapters/ch3.js?v=20260930-02"></script>
+  <script src="./js/chapters/ch4.js?v=20260930-02"></script>
+  <script src="./js/chapters/ch5.js?v=20260930-02"></script>
+  <script src="./js/chapters/ch6.js?v=20260930-02"></script>
+  <script src="./js/game/state.js?v=20260930-02"></script>
+  <script src="./js/game/confirm.js?v=20260930-02"></script>
+  <script src="./js/main.js?v=20260930-02" defer></script>
 </body>
 </html>

@@ -9,7 +9,7 @@ const path = require('path');
 const ROOT = path.join(__dirname, '..');
 const OUT_DIR = path.join(ROOT, 'fonts');
 const CSS_OUT = path.join(ROOT, 'src', 'fonts.css');
-const FAMILIES = 'family=Noto+Sans+TC:wght@400..900&family=JetBrains+Mono:wght@400..700';
+const FAMILIES = 'family=Noto+Sans+TC:wght@400..900&family=Noto+Serif+TC:wght@600..900&family=JetBrains+Mono:wght@400..700';
 const URL = `https://fonts.googleapis.com/css2?${FAMILIES}&display=swap`;
 /* Google 依 UA 決定回傳格式；Chrome UA 才拿得到 woff2 與 unicode-range 切片 */
 const UA = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0 Safari/537.36';
