@@ -23,8 +23,8 @@
 
   <link rel="icon" href="./favicon.ico" sizes="48x48" />
   <link rel="apple-touch-icon" href="./images/apple-touch-icon.png" />
-  <script src="./js/boot-cover.js?v=20260930-02"></script>
-  <link rel="stylesheet" href="./css/style.css?v=20260930-02" />
+  <script src="./js/boot-cover.js?v=20260930-03"></script>
+  <link rel="stylesheet" href="./css/style.css?v=20260930-03" />
 </head>
 <body class="min-h-dvh">
   <a href="#editor" class="sr-only z-60 rounded-lg bg-amber px-6 py-3 font-bold text-ink-950 focus:not-sr-only focus:fixed focus:left-4 focus:top-4">跳至查詢區</a>
@@ -193,7 +193,8 @@
         </div>
         <!-- relative 讓紀錄面板以整列寬度定位；details 設 static，面板才不會被按鈕寬度卡住 -->
         <div class="relative flex flex-wrap items-center justify-between gap-2">
-          <p class="eyebrow">SQL 查詢區 · MariaDB 語法</p>
+          <!-- 查詢區以「檔案室終端機」的語彙呈現：狀態燈在執行時閃動，由 play.js 對 #editor-card 切 is-busy -->
+          <p class="term-title"><span class="term-led" aria-hidden="true"></span><span>檔案室查詢終端</span><span class="term-sep" aria-hidden="true">·</span><span>MariaDB</span></p>
           <!-- 四顆按鈕在手機寬度放不進一列時整顆換行，不讓中文標籤逐字直排 -->
           <div class="flex flex-wrap items-center gap-2 *:whitespace-nowrap">
             <!-- 紀錄做成浮動面板而非常駐卡片：收合時不佔直向空間，結果維持原位 -->
@@ -231,6 +232,8 @@
         </div>
         <label for="editor" class="sr-only">SQL 輸入</label>
         <div class="relative">
+          <!-- 執行時掃過編輯器的一道光，純裝飾；play.js 切 is-scanning，animationend 後移除 -->
+          <span class="scan-beam" aria-hidden="true"></span>
           <textarea id="editor" class="sql" spellcheck="false" autocapitalize="off" autocomplete="off" placeholder="在這裡輸入 SQL，例如：SELECT * FROM person LIMIT 5;"></textarea>
           <!-- 帶入／清空取代原本內容時的復原提示：浮在編輯器右下角，出現與消失都不推動下方版面；容器常駐 DOM，aria-live 才會唸出後插入的訊息 -->
           <div id="editor-undo" class="undo-toast" role="status" aria-live="polite"></div>
@@ -305,8 +308,10 @@
     </div>
   </dialog>
 
-  <dialog id="dlg-badge" class="sd" aria-labelledby="badge-title">
-    <div id="badge-body" class="flex flex-col items-center gap-4 px-6 py-8 text-center"></div>
+  <!-- 徽章解鎖：滿版儀式畫面。光環與光束為純 CSS，徽章與文字由 play.js 以 GSAP 依序推進 -->
+  <dialog id="dlg-badge" class="sd ceremony" aria-labelledby="badge-title">
+    <div class="ceremony-rays" aria-hidden="true"></div>
+    <div id="badge-body" class="ceremony-body"></div>
   </dialog>
 
   <template id="tpl-loading">
@@ -325,27 +330,27 @@
   <script src="./vendor/sql-wasm.js" defer></script>
   <script src="./vendor/gsap.min.js" defer></script>
   <script src="./vendor/Flip.min.js" defer></script>
-  <script src="./js/engine/seed.js?v=20260930-02" defer></script>
-  <script src="./js/engine/mariadb-compat.js?v=20260930-02" defer></script>
-  <script src="./js/engine/db.js?v=20260930-02" defer></script>
-  <script src="./js/game/schema-doc.js?v=20260930-02" defer></script>
-  <script src="./js/game/cast.js?v=20260930-02" defer></script>
-  <script src="./js/game/media.js?v=20260930-02" defer></script>
-  <script src="./js/game/audio.js?v=20260930-02" defer></script>
-  <script src="./js/game/opening.js?v=20260930-02" defer></script>
-  <script src="./js/chapters/ch0.js?v=20260930-02" defer></script>
-  <script src="./js/chapters/ch1.js?v=20260930-02" defer></script>
-  <script src="./js/chapters/ch2.js?v=20260930-02" defer></script>
-  <script src="./js/chapters/ch3.js?v=20260930-02" defer></script>
-  <script src="./js/chapters/ch4.js?v=20260930-02" defer></script>
-  <script src="./js/chapters/ch5.js?v=20260930-02" defer></script>
-  <script src="./js/chapters/ch6.js?v=20260930-02" defer></script>
-  <script src="./js/chapters/expect.js?v=20260930-02" defer></script>
-  <script src="./js/game/state.js?v=20260930-02" defer></script>
-  <script src="./js/game/confirm.js?v=20260930-02" defer></script>
-  <script src="./js/game/check.js?v=20260930-02" defer></script>
-  <script src="./js/game/cheatsheet.js?v=20260930-02" defer></script>
-  <script src="./js/game/highlight.js?v=20260930-02" defer></script>
-  <script src="./js/game/play.js?v=20260930-02" defer></script>
+  <script src="./js/engine/seed.js?v=20260930-03" defer></script>
+  <script src="./js/engine/mariadb-compat.js?v=20260930-03" defer></script>
+  <script src="./js/engine/db.js?v=20260930-03" defer></script>
+  <script src="./js/game/schema-doc.js?v=20260930-03" defer></script>
+  <script src="./js/game/cast.js?v=20260930-03" defer></script>
+  <script src="./js/game/media.js?v=20260930-03" defer></script>
+  <script src="./js/game/audio.js?v=20260930-03" defer></script>
+  <script src="./js/game/opening.js?v=20260930-03" defer></script>
+  <script src="./js/chapters/ch0.js?v=20260930-03" defer></script>
+  <script src="./js/chapters/ch1.js?v=20260930-03" defer></script>
+  <script src="./js/chapters/ch2.js?v=20260930-03" defer></script>
+  <script src="./js/chapters/ch3.js?v=20260930-03" defer></script>
+  <script src="./js/chapters/ch4.js?v=20260930-03" defer></script>
+  <script src="./js/chapters/ch5.js?v=20260930-03" defer></script>
+  <script src="./js/chapters/ch6.js?v=20260930-03" defer></script>
+  <script src="./js/chapters/expect.js?v=20260930-03" defer></script>
+  <script src="./js/game/state.js?v=20260930-03" defer></script>
+  <script src="./js/game/confirm.js?v=20260930-03" defer></script>
+  <script src="./js/game/check.js?v=20260930-03" defer></script>
+  <script src="./js/game/cheatsheet.js?v=20260930-03" defer></script>
+  <script src="./js/game/highlight.js?v=20260930-03" defer></script>
+  <script src="./js/game/play.js?v=20260930-03" defer></script>
 </body>
 </html>

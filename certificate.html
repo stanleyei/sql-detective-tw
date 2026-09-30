@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; font-src 'self'; img-src 'self' data:; media-src 'self'; connect-src 'self'; object-src 'none'; frame-src 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests" />
+  <title>結案證書 · SQL 偵探</title>
+  <meta name="description" content="潮港市警察局資料分析組結案證書：七章全數破案的學習紀錄。" />
+  <meta property="og:site_name" content="SQL 偵探" />
+  <meta property="og:title" content="結案證書 · SQL 偵探：潮港市檔案" />
+  <meta property="og:url" content="https://stanleyei.github.io/sql-detective-tw/certificate.html" />
+  <meta property="og:image" content="https://stanleyei.github.io/sql-detective-tw/images/og-cert.jpg" />
+  <meta property="og:image:type" content="image/jpeg" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:image:alt" content="深藍底上一枚金色結案徽章，旁邊是「結案證書」字樣與潮港市警察局資料分析組" />
+  <meta property="og:description" content="用 SQL 破解潮港市五起案件，領到結案證書。你也來試試。" />
+  <meta property="og:type" content="website" />
+  <meta property="og:locale" content="zh_TW" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:image" content="https://stanleyei.github.io/sql-detective-tw/images/og-cert.jpg" />
+  <link rel="icon" href="./favicon.ico" sizes="48x48" />
+  <link rel="apple-touch-icon" href="./images/apple-touch-icon.png" />
+  <link rel="stylesheet" href="./css/style.css?v=20260930-03" />
+</head>
+<body>
+  <a href="#main" class="sr-only z-60 rounded-lg bg-amber px-6 py-3 font-bold text-ink-950 focus:not-sr-only focus:fixed focus:left-4 focus:top-4">跳至主要內容</a>
+  <header class="sticky top-0 z-40 border-b border-ink-800/80 bg-ink-950/80 backdrop-blur print:hidden">
+    <nav class="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3" aria-label="主選單">
+      <a href="./" class="flex items-center gap-2 font-black tracking-wide">
+        <img src="./images/icon/icon-badge.svg" alt="" width="28" height="28" class="size-7" />
+        <span>SQL 偵探</span>
+      </a>
+      <a href="./play.html" class="btn-primary btn-sm">我也要辦案</a>
+    </nav>
+  </header>
+
+  <main id="main" class="mx-auto max-w-4xl px-4 py-10 sm:py-16">
+    <!-- 證書本體是一張紙白文件，資料全部由 js/game/certificate.js 以 textContent 從網址參數填入 -->
+    <article class="cert" aria-labelledby="cert-title">
+      <div class="cert-head">
+        <img src="./images/icon/icon-badge.svg" alt="" width="56" height="56" class="size-14" />
+        <p class="cert-org">潮港市警察局 · 資料分析組</p>
+        <h1 id="cert-title" class="cert-title">結案證書</h1>
+        <p class="cert-no">卷號 <span id="cert-no" class="font-mono">CG-2026-0001</span></p>
+      </div>
+      <p class="cert-lede">茲證明持有人以 SQL 偵破潮港市全部案件，完成報到訓練與資料室實作，特授予</p>
+      <p id="cert-rank" class="cert-rank">—</p>
+      <dl class="cert-stats">
+        <div><dt>結案</dt><dd><span id="cert-chapters">0</span><small id="cert-chapters-max"> / 7 章</small></dd></div>
+        <div><dt>星數</dt><dd><span id="cert-stars">0</span><small id="cert-stars-max"> / 0</small></dd></div>
+        <div><dt>線索</dt><dd><span id="cert-clues">0</span><small> 條</small></dd></div>
+        <div><dt>徽章</dt><dd><span id="cert-badges">0</span><small id="cert-badges-max"> / 8 枚</small></dd></div>
+      </dl>
+      <ul id="cert-wall" class="cert-wall" aria-label="徽章"></ul>
+      <div class="cert-foot">
+        <p><span class="cert-foot-label">結案日期</span><span id="cert-date">—</span></p>
+        <img src="./images/badge-master.webp" alt="" width="96" height="96" class="cert-seal" />
+        <p class="stamp stamp-cert" aria-hidden="true">結案</p>
+      </div>
+    </article>
+
+    <!-- 沒有帶參數（直接打網址進來）時顯示 -->
+    <section id="cert-empty" class="card mt-8 text-center print:hidden" hidden>
+      <p class="text-lg font-bold">這是結案證書的展示頁</p>
+      <p class="mt-2 text-ink-300">七章全數破案後，在「偵探檔案」開啟你自己的證書，網址就能分享。</p>
+    </section>
+
+    <div class="mt-8 flex flex-wrap justify-center gap-3 print:hidden">
+      <a href="./play.html" class="btn-primary">我也要辦案</a>
+      <button type="button" id="cert-print" class="btn-ghost">列印或存成 PDF</button>
+      <button type="button" id="cert-copy" class="btn-ghost">複製證書網址</button>
+    </div>
+    <p id="cert-status" class="mt-3 min-h-6 text-center text-sm text-teal print:hidden" role="status"></p>
+  </main>
+
+  <script src="./js/game/cast.js?v=20260930-03"></script>
+  <script src="./js/chapters/ch0.js?v=20260930-03"></script>
+  <script src="./js/chapters/ch1.js?v=20260930-03"></script>
+  <script src="./js/chapters/ch2.js?v=20260930-03"></script>
+  <script src="./js/chapters/ch3.js?v=20260930-03"></script>
+  <script src="./js/chapters/ch4.js?v=20260930-03"></script>
+  <script src="./js/chapters/ch5.js?v=20260930-03"></script>
+  <script src="./js/chapters/ch6.js?v=20260930-03"></script>
+  <script src="./js/game/certificate.js?v=20260930-03" defer></script>
+</body>
+</html>

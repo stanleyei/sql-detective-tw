@@ -2,17 +2,17 @@
 /**
  * 靜態資源快取版本號（?v=YYYYMMDD-NN）統一管理。
  *
- *   npm run bump          把三個 HTML 內所有 ?v= 改成今天的下一個流水號
- *   npm run bump:check    只檢查三頁版本號是否一致（不改檔），不一致回傳非零
+ *   npm run bump          把所有 HTML 頁面內的 ?v= 改成今天的下一個流水號
+ *   npm run bump:check    只檢查各頁版本號是否一致（不改檔），不一致回傳非零
  *
- * 規則：取三頁現有版本的最大值；日期等於今天就流水號 +1，否則以今天日期從 01 起算。
+ * 規則：取各頁現有版本的最大值；日期等於今天就流水號 +1，否則以今天日期從 01 起算。
  * 這支腳本只綁「發布」，不掛進 build，避免 dev watch 期間每次建置都浪費流水號。
  */
 const fs = require('fs');
 const path = require('path');
 
 const ROOT = path.join(__dirname, '..');
-const PAGES = ['index.html', 'play.html', 'schema.html'];
+const PAGES = ['index.html', 'play.html', 'schema.html', 'certificate.html'];
 const RE = /\?v=(\d{8})-(\d{2})/g;
 
 function today() {
@@ -38,7 +38,7 @@ function check(pages) {
     else if (p.versions.size > 1) { console.error(`✗ ${p.file}：同一頁出現多個版本 ${[...p.versions].join(', ')}`); ok = false; }
   }
   if (all.size > 1) {
-    console.error(`✗ 三頁版本不一致：${pages.map((p) => `${p.file}=${[...p.versions].join('/') || '(無)'}`).join('、')}`);
+    console.error(`✗ 各頁版本不一致：${pages.map((p) => `${p.file}=${[...p.versions].join('/') || '(無)'}`).join('、')}`);
     ok = false;
   }
   if (ok) console.log(`✓ 版本號一致：${[...all][0]}`);

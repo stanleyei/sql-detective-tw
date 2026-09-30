@@ -183,7 +183,12 @@
       }
       resultsEl.appendChild(card);
     }
-    if (canAnimate()) gsap.from(resultsEl.children, { y: 12, opacity: 0, duration: 0.35, stagger: 0.06, ease: 'power2.out' });
+    if (canAnimate()) {
+      gsap.from(resultsEl.children, { y: 12, opacity: 0, duration: 0.35, stagger: 0.06, ease: 'power2.out' });
+      // 第一個結果表逐列「列印」出來；只動前 24 列，長表其餘直接顯示，避免拖慢
+      const rows = resultsEl.querySelectorAll('.result-table tbody tr');
+      if (rows.length) gsap.from(Array.from(rows).slice(0, 24), { x: -8, opacity: 0, duration: 0.25, stagger: 0.03, ease: 'power1.out', delay: 0.15, clearProps: 'all' });
+    }
   }
 
   function scheduleDbSave() {
@@ -196,6 +201,11 @@
     const sql = editor.value.trim();
     if (!sql) return;
     lastSql = sql;
+    // 終端機回饋：狀態燈閃、光束掃過編輯器；動畫結束自行復原
+    const ecard = $('#editor-card');
+    ecard.classList.add('is-busy', 'is-scanning');
+    ecard.querySelector('.scan-beam').addEventListener('animationend', () => ecard.classList.remove('is-scanning'), { once: true });
+    setTimeout(() => ecard.classList.remove('is-busy', 'is-scanning'), 700);
     lastResults = SD.db.run(sql);
     renderResults(lastResults);
     SD.state.addHistory({ sql, kind: 'run', ch: chapter ? chapter.id : null, ...runSummary(lastResults) });
@@ -955,13 +965,23 @@
     badgeNew = true;
     return true;
   }
+  /* 結案證書頁的網址：進度只存在這台瀏覽器，分享靠參數帶值；證書頁只認章節定義裡有的徽章 id */
+  function certUrl() {
+    const total = totalStars(), max = maxStars();
+    const p = new URLSearchParams({
+      r: rankOf(total, max).name, s: total, c: chapters.filter(isDone).length, k: state.clues.length,
+      b: state.badges.join(','), d: (state.badgeAt.master || new Date().toISOString()).slice(0, 10),
+    });
+    return new URL(`./certificate.html?${p}`, location.href).href;
+  }
   function certificateHtml() {
     const total = totalStars(), max = maxStars();
     return `<div class="w-full rounded-xl border border-amber/40 bg-ink-950 p-4 text-left">
       <p class="eyebrow">潮港市警察局 · 結案證書</p>
       <p class="mt-2 text-lg font-bold">資料分析組 ${esc(rankOf(total, max).name)}</p>
       <p class="mt-1 text-sm text-ink-300">完成章節 ${chapters.length} / ${chapters.length} · 總星數 ${total} / ${max} · 線索 ${state.clues.length} 條 · 徽章 ${state.badges.length} 枚</p>
-      <p class="mt-1 text-xs text-ink-300">${fmtDate(state.badgeAt.master)} · 截圖此畫面即可作為學習紀錄，之後也能在「偵探檔案」重看</p>
+      <p class="mt-1 text-xs text-ink-300">${fmtDate(state.badgeAt.master)} · 之後也能在「偵探檔案」重看</p>
+      <a href="${esc(certUrl())}" class="btn-teal btn-sm mt-3" target="_blank" rel="noopener">開啟證書頁（可分享、可列印）</a>
     </div>`;
   }
   function shareText() {
@@ -973,7 +993,7 @@
       `階級：${rankOf(total, max).name}`,
       `★ ${total} / ${max} 星 · 結案 ${chapters.filter(isDone).length} / ${chapters.length} · 線索 ${state.clues.length} 條 · 徽章 ${owned.length} / ${badges.length}`,
       `徽章：${owned.length ? owned.map((b) => b.name).join('、') : '尚未取得'}`,
-      siteUrl(),
+      state.badges.includes('master') ? certUrl() : siteUrl(),
     ].join('\n');
   }
   function renderAchievements() {
@@ -1084,15 +1104,23 @@
 
   function showBadge(badge, extraHtml, label = '徽章解鎖') {
     const dlg = $('#dlg-badge');
+    const stamp = badge.ch ? `第 ${badge.ch.id} 章 結案` : (badge.id === 'master' ? '全案結案' : '');
     $('#badge-body').innerHTML = `
-      <p class="eyebrow">${esc(label)}</p>
-      <img id="badge-img" src="${badge.img}" alt="" width="160" height="160" class="size-40 rounded-full object-cover shadow-glow-amber" />
-      <h2 class="text-2xl font-black">${esc(badge.name)}</h2>
-      <p class="max-w-md text-ink-300">${esc(badge.desc)}</p>
-      ${extraHtml || ''}
-      <button type="button" class="btn-primary mt-2" data-close>太好了</button>`;
+      <p class="ceremony-label ceremony-in">${esc(label)}</p>
+      ${stamp ? `<p class="stamp stamp-done ceremony-in">${esc(stamp)}</p>` : ''}
+      <img id="badge-img" src="${badge.img}" alt="" width="224" height="224" class="ceremony-img" />
+      <h2 id="badge-title" class="ceremony-title ceremony-in">${esc(badge.name)}</h2>
+      <p class="ceremony-desc ceremony-in">${esc(badge.desc)}</p>
+      <div class="ceremony-extra ceremony-in">${extraHtml || ''}</div>
+      <button type="button" class="btn-primary mt-2 ceremony-in" data-close>太好了</button>`;
     dlg.showModal();
-    if (canAnimate()) gsap.from('#badge-img', { scale: 0.3, rotate: -20, opacity: 0, duration: 0.8, ease: 'back.out(1.7)' });
+    if (!canAnimate()) return;
+    // 儀式順序：舞台淡入 → 徽章從遠處落下並旋正 → 文字逐段浮現
+    const tl = gsap.timeline();
+    tl.fromTo(dlg, { opacity: 0 }, { opacity: 1, duration: 0.4 });
+    tl.fromTo('.ceremony-rays', { scale: 0.6, opacity: 0 }, { scale: 1, opacity: 0.7, duration: 1.2, ease: 'power2.out' }, '<');
+    tl.from('#badge-img', { scale: 0.2, rotate: -30, y: -60, opacity: 0, duration: 0.9, ease: 'back.out(1.6)' }, '<0.15');
+    tl.from('.ceremony-in', { y: 16, opacity: 0, duration: 0.5, stagger: 0.1, ease: 'power2.out', clearProps: 'all' }, '-=0.4');
   }
   document.querySelectorAll('dialog.sd').forEach((d) => d.addEventListener('click', (e) => { if (e.target.closest('[data-close]') || e.target === d) d.close(); }));
 
@@ -1786,7 +1814,7 @@
     }
     renderAchievements();
     extra += '<p class="text-xs text-ink-300">之後想重看徽章，打開右上角的「偵探檔案」。</p>';
-    showBadge(chapter.badge, extra);
+    showBadge({ ...chapter.badge, ch: chapter }, extra);
     $('#dlg-badge').addEventListener('click', (e) => { const a = e.target.closest('[data-goto]'); if (a) { e.preventDefault(); $('#dlg-badge').close(); loadChapter(chapters.find((c) => c.slug === a.dataset.goto)); } }, { once: true });
   }
 

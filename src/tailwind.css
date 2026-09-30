@@ -5,6 +5,7 @@
 @source "../index.html";
 @source "../play.html";
 @source "../schema.html";
+@source "../certificate.html";
 @source "../js/**/*.js";
 
 @theme {
@@ -260,6 +261,71 @@
     tab-size: 2;
     min-height: 10rem;
   }
+  /* ===== 查詢區：終端機語彙 ===== */
+  .term-title { @apply flex items-center gap-2 font-mono text-code font-bold tracking-wide text-ink-300; }
+  .term-sep { @apply text-ink-600; }
+  /* 狀態燈：待機常亮青綠；執行中（#editor-card.is-busy）換琥珀並閃動 */
+  .term-led { @apply size-2.5 rounded-full bg-teal shadow-[0_0_8px_var(--color-teal)]; }
+  #editor-card.is-busy .term-led { @apply bg-amber shadow-[0_0_8px_var(--color-amber)]; animation: led-blink 0.35s steps(2, start) infinite; }
+  @keyframes led-blink { to { opacity: 0.35; } }
+  /* 掃描光束：一道橫向的青綠光從上掃到下，蓋在編輯器上不擋操作 */
+  .scan-beam { @apply pointer-events-none absolute inset-x-0 top-0 z-10 hidden h-10 rounded-xl; background: linear-gradient(to bottom, transparent, color-mix(in srgb, var(--color-teal) 22%, transparent), transparent); }
+  #editor-card.is-scanning .scan-beam { @apply block; animation: scan-sweep 0.6s ease-in-out 1; }
+  @keyframes scan-sweep { from { transform: translateY(-2.5rem); opacity: 0; } 20% { opacity: 1; } to { transform: translateY(100%); opacity: 0; } }
+  @media (prefers-reduced-motion: reduce) { #editor-card.is-scanning .scan-beam { display: none; } }
+
+  /* ===== 徽章解鎖儀式 ===== */
+  /* 滿版深色舞台；光束用兩層 conic 漸層慢速反向旋轉，中心留給徽章。減少動態時停止旋轉 */
+  /* 選擇器疊上 .sd 提高特定度，才能蓋掉後面 dialog.sd 的寬度、邊框與圓角 */
+  dialog.sd.ceremony { @apply fixed inset-0 m-0 h-dvh w-dvw max-h-none max-w-none overflow-y-auto rounded-none border-0 bg-ink-950 shadow-none; }
+  dialog.sd.ceremony::backdrop { background: rgb(5 8 20 / 0.92); }
+  .ceremony-rays { @apply pointer-events-none absolute inset-0 overflow-hidden opacity-70; }
+  .ceremony-rays::before, .ceremony-rays::after { content: ''; @apply absolute left-1/2 top-1/2 size-[160vmax] -translate-x-1/2 -translate-y-1/2 rounded-full; }
+  .ceremony-rays::before {
+    background: repeating-conic-gradient(from 0deg, color-mix(in srgb, var(--color-amber) 10%, transparent) 0 6deg, transparent 6deg 18deg);
+    mask-image: radial-gradient(circle, #000 0, transparent 38%);
+    -webkit-mask-image: radial-gradient(circle, #000 0, transparent 38%);
+    animation: rays-spin 60s linear infinite;
+  }
+  .ceremony-rays::after {
+    background: radial-gradient(circle, color-mix(in srgb, var(--color-amber) 28%, transparent) 0, transparent 22%);
+  }
+  @keyframes rays-spin { to { transform: translate(-50%, -50%) rotate(360deg); } }
+  @media (prefers-reduced-motion: reduce) { .ceremony-rays::before { animation: none; } }
+  .ceremony-body { @apply relative flex min-h-dvh flex-col items-center justify-center gap-4 px-6 py-10 text-center; }
+  .ceremony-label { @apply text-sm font-bold tracking-widest text-ink-300; }
+  .ceremony-img { @apply size-44 rounded-full object-cover shadow-glow-amber ring-4 ring-amber/60 ring-offset-4 ring-offset-ink-950 sm:size-56; }
+  .ceremony-title { @apply font-display text-4xl font-black leading-tight sm:text-5xl; }
+  .ceremony-desc { @apply max-w-md text-lg leading-8 text-ink-300; }
+  .ceremony-extra { @apply flex flex-col items-center gap-2; }
+
+  /* ===== 結案證書頁 ===== */
+  /* 證書是一張放在暗桌上的紙白文件：底色 paper、文字 ink，與證據板拍立得同一套材質語言。
+     列印時去掉桌面（body 深色底），紙張本身就是頁面 */
+  .cert { @apply relative mx-auto max-w-3xl rounded-sm border-[6px] border-double border-amber-dark bg-paper px-6 py-10 text-ink-950 shadow-panel sm:px-14 sm:py-14; }
+  .cert-head { @apply flex flex-col items-center gap-2 text-center; }
+  .cert-org { @apply text-sm font-bold tracking-widest text-ink-700; }
+  .cert-title { @apply font-display text-5xl font-black leading-none tracking-wide sm:text-6xl; }
+  .cert-no { @apply text-xs text-ink-700; }
+  .cert-lede { @apply mt-8 text-center leading-8 text-ink-700; }
+  .cert-rank { @apply mt-2 text-center font-display text-4xl font-black text-amber-dark sm:text-5xl; }
+  .cert-stats { @apply mt-8 grid grid-cols-2 gap-4 border-y border-ink-950/20 py-5 text-center sm:grid-cols-4; }
+  .cert-stats dt { @apply text-xs font-bold tracking-widest text-ink-700; }
+  .cert-stats dd { @apply mt-1 font-display text-3xl font-black; }
+  .cert-stats small { @apply font-sans text-sm font-normal text-ink-700; }
+  .cert-wall { @apply mt-6 flex flex-wrap justify-center gap-3; }
+  .cert-wall img { @apply size-14 rounded-full object-cover ring-2 ring-amber-dark/60; }
+  .cert-wall .is-locked img { @apply opacity-30 grayscale ring-ink-700/30; }
+  .cert-foot { @apply relative mt-10 flex flex-wrap items-end justify-between gap-4 text-sm text-ink-700; }
+  .cert-foot-label { @apply mr-2 text-xs font-bold tracking-widest; }
+  .cert-seal { @apply size-24 rounded-full object-cover; }
+  /* 印章壓在封印圖右上角；紙上用深紅實色。選擇器疊上 .stamp：基底 .stamp 定義在本區之後，單一類別會被它的 text-xs 蓋回去 */
+  .stamp.stamp-cert { @apply absolute -right-3 -top-4 rotate-[-14deg] rounded-lg border-[3px] border-string px-4 py-1.5 font-display text-2xl text-string opacity-90; box-shadow: inset 0 0 0 3px var(--color-paper), inset 0 0 0 5px currentColor; }
+  @media print {
+    body { background: #fff !important; color: #000; }
+    .cert { @apply max-w-none border-4 shadow-none; }
+  }
+
   /* 對話框 */
   dialog.sd {
     @apply m-auto w-[min(92vw,44rem)] rounded-2xl border border-ink-700 bg-ink-900 p-0 text-paper shadow-card;

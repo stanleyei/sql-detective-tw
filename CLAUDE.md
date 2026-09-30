@@ -8,7 +8,9 @@
 
 ## 專案概述
 
-「SQL 偵探：潮港市檔案」——以 MariaDB 語法為基準的互動式 SQL 教學遊戲，純靜態站部署於 GitHub Pages。頁面：`index.html`（首頁）、`play.html`（遊戲）、`schema.html`（資料表總覽）。查詢引擎為 vendor 進 repo 的 sql.js，`js/engine/mariadb-compat.js` 負責把 MariaDB 語法改寫成 SQLite 並翻譯錯誤。樣式由 Tailwind CSS v4 從 `src/tailwind.css` 建置成 `css/style.css`。沒有框架與 bundler；唯一的自動化測試是 `npm run test:compat`（相容層回歸測試）。
+「SQL 偵探：潮港市檔案」——以 MariaDB 語法為基準的互動式 SQL 教學遊戲，純靜態站部署於 GitHub Pages。頁面：`index.html`（首頁）、`play.html`（遊戲）、`schema.html`（資料表總覽）、`certificate.html`（結案證書，資料由網址參數帶入）。查詢引擎為 vendor 進 repo 的 sql.js，`js/engine/mariadb-compat.js` 負責把 MariaDB 語法改寫成 SQLite 並翻譯錯誤。樣式由 Tailwind CSS v4 從 `src/tailwind.css` 建置成 `css/style.css`。沒有框架與 bundler；唯一的自動化測試是 `npm run test:compat`（相容層回歸測試）。
+
+**字型**：自架於 `fonts/`，由 `npm run fonts`（`scripts/fetch-fonts.js`）鏡射 Google Fonts 切片並產生 `src/fonts.css`；改字型家族或字重時改該腳本的 `FAMILIES` 再重跑。
 
 **內容流程**：資料由 `scripts/gen-data.js` 以固定亂數種子產生（劇情關鍵列在檔案下半段釘入），章節在 `js/chapters/chN.js`，每個任務的第三個提示就是標準解答，`scripts/build-tasks.js` 以此算出期望值寫入 `js/chapters/expect.js`。改資料或任務後必跑 `npm run data && npm run tasks && npm run test:compat`。開放式答案在 `scripts/answers.json`。
 
@@ -22,7 +24,7 @@
 
 ### 靜態資源快取版本號（改版必做）
 
-`index.html`、`play.html`、`schema.html` 引用的 `css/style.css` 與 `js/` 底下所有腳本都帶有 `?v=YYYYMMDD-NN` 版本參數，用於快取破壞。`YYYYMMDD` 為發布當日日期，`NN` 是當日發布流水號，從 `01` 開始遞增（當日第一次發布為 `-01`，第二次為 `-02`，依此類推）：
+`index.html`、`play.html`、`schema.html`、`certificate.html` 引用的 `css/style.css` 與 `js/` 底下所有腳本都帶有 `?v=YYYYMMDD-NN` 版本參數，用於快取破壞。`YYYYMMDD` 為發布當日日期，`NN` 是當日發布流水號，從 `01` 開始遞增（當日第一次發布為 `-01`，第二次為 `-02`，依此類推）：
 
 ```html
 <link rel="stylesheet" href="./css/style.css?v=YYYYMMDD-NN" />
@@ -30,7 +32,7 @@
 <script src="./js/main.js?v=YYYYMMDD-NN" defer></script>
 ```
 
-**只要 `src/tailwind.css`、`css/style.css` 或 `js/` 底下任一檔案有異動，發布前務必執行 `npm run bump`**，它會讀出三頁現有版本、以今天日期算出下一個流水號並同步改寫三個 HTML 內所有 `?v=`；不要手動逐一替換。`npm run bump:check` 只驗證三頁是否一致不改檔，已納入 `npm test`。同一天多次發布時流水號必須遞增，避免 `immutable` 快取因版本號重複而繼續提供舊檔。`bump` 綁定「發布」而非「建置」，因此刻意不掛進 `build` 或 `dev`。
+**只要 `src/tailwind.css`、`css/style.css` 或 `js/` 底下任一檔案有異動，發布前務必執行 `npm run bump`**，它會讀出各頁現有版本、以今天日期算出下一個流水號並同步改寫所有 HTML 內的 `?v=`；不要手動逐一替換。`npm run bump:check` 只驗證各頁是否一致不改檔，已納入 `npm test`。同一天多次發布時流水號必須遞增，避免 `immutable` 快取因版本號重複而繼續提供舊檔。`bump` 綁定「發布」而非「建置」，因此刻意不掛進 `build` 或 `dev`。
 
 原因：正式站（GitHub Pages）與過往 nginx 部署都會長期快取靜態檔，nginx 對 `.css` / `.js` 設定了 `Cache-Control: public, max-age=31536000, immutable`（一年、不重新驗證），版本號沒更新使用者就會一直拿到舊檔。LINE、Facebook 等 App 內建瀏覽器有獨立於系統瀏覽器的快取，且比一般瀏覽器更難清除，這個問題在它們身上最嚴重——曾發生 Tailwind 新增的 utility 因舊 CSS 未更新而未生效、導致圖示爆版的實際案例。
 
